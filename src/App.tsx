@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useGameStore } from "./store/gameStore";
 import { ResourcePanel } from "./components/ResourcePanel";
 import { BuildingPanel } from "./components/BuildingPanel";
+import { AUTO_SAVE_INTERVAL_TICKS, GAME_TICK_INTERVAL_MS } from "./engine/constants";
 
 function App() {
   const tick = useGameStore((store) => store.tick);
@@ -10,16 +11,15 @@ function App() {
   const resetGame = useGameStore((store) => store.resetGame);
   const gameTickRef = useRef(0);
 
-  // 200ms per tick
   useEffect(() => {
       const interval = setInterval(() => {
           tick();
           gameTickRef.current += 1;
 
-          if (gameTickRef.current % 10 === 0) {
+          if (gameTickRef.current % AUTO_SAVE_INTERVAL_TICKS === 0) {
               saveGame();
           }
-      }, 200);
+      }, GAME_TICK_INTERVAL_MS);
 
       return () => clearInterval(interval);
   }, [tick, saveGame]);
