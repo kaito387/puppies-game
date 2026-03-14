@@ -258,6 +258,19 @@ npm run preview  # 预览构建结果
 export function calculateProduction(...) { /* ... */ }
 ```
 
+## 目录结构
+```
+puppies-game/
+├── src/
+│   ├── engine/        # 游戏核心逻辑
+│   ├── store/         # Zustand 状态管理
+│   ├── components/    # React UI 组件
+│   └── App.tsx # 主入口，渲染游戏
+├── .github/
+│   └── workflows/     # GitHub Actions CI/CD
+└── docs/              # 项目文档
+```
+
 ## 问题报告
 
 如果发现 bug，请在 GitHub Issues 上报告:
