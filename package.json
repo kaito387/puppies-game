@@ -12,7 +12,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "deploy": "gh-pages -d dist",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
     "gh-pages": "^6.3.0",
@@ -34,6 +35,7 @@
     "global-jsdom": "^28.0.0",
     "globals": "^17.4.0",
     "jsdom": "^28.1.0",
+    "prettier": "^3.8.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.0.0",

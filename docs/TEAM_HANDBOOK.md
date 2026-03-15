@@ -3,6 +3,7 @@
 ## 🚀 第一天到第一周
 
 ### 第一天: 环境准备
+
 ```bash
 # 1. 克隆项目
 git clone https://github.com/<org>/puppies-game.git
@@ -18,6 +19,7 @@ npm run dev
 ```
 
 ### 第一周: 了解项目
+
 - [ ] 阅读 README.md
 - [ ] 看一遍 src/ 目录结构
 - [ ] 尝试修改一个组件，看改动实时反映
@@ -27,11 +29,13 @@ npm run dev
 ## 📋 日常工作流
 
 ### 我的任务是什么?
+
 1. 打开 GitHub Projects 看板 (会分配任务)
 2. 一共有三个状态: Todo → In Progress → Done
 3. 开始工作时，把条目移到 "In Progress"
 
 ### 开发一个功能的标准流程
+
 ```bash
 # 1. 更新代码到最新
 git checkout develop
@@ -73,17 +77,19 @@ npm run preview         # 预览生产构建
 
 ## 📚 代码结构速查
 
-| 目录 | 用途 |
-|-----|------|
-| `src/engine/` | 游戏核心逻辑 (纯 TypeScript, 无 React) |
-| `src/store/` | Zustand 状态管理 |
-| `src/components/` | React UI 组件 |
-| `.github/workflows/` | GitHub Actions CI/CD |
+| 目录                 | 用途                                   |
+| -------------------- | -------------------------------------- |
+| `src/engine/`        | 游戏核心逻辑 (纯 TypeScript, 无 React) |
+| `src/store/`         | Zustand 状态管理                       |
+| `src/components/`    | React UI 组件                          |
+| `.github/workflows/` | GitHub Actions CI/CD                   |
 
 ## ❌ 常见错误
 
 ### 错误 1: "I can't push to main"
+
 ✅ 正确: 创建功能分支，通过 PR 合并
+
 ```bash
 git checkout -b feat/my-feature    # ✅ 这样做
 git push origin feat/my-feature
@@ -91,12 +97,15 @@ git push origin feat/my-feature
 ```
 
 ### 错误 2: "Tests are failing"
+
 1. 读一下错误信息，可能是明显的 bug
 2. 在本地运行 `npm run test -- <test-file>` 看详细信息
 3. 如果不懂，问 Leader 或 QA
 
 ### 错误 3: "Merge conflict"
+
 当两个人改了同一个文件:
+
 ```bash
 # 打开文件，找到冲突标记 <<<<<<, ======, >>>>>>
 # 手动选择保留哪个改动
@@ -108,11 +117,13 @@ git commit -m "fix: resolve merge conflict"
 ## 💡 Best Practices
 
 ### ✅ DO
+
 - 编写代码前 `git pull` 获取最新代码
 - 小步骤 commit (不要一次改 1000 行)
 - 为代码审查做准备 (确保测试通过)
 
 ### ❌ DON'T
+
 - 不要直接 push 到 main (必须 PR)
 - 不要忽视 linting 错误
 - 不要写没有测试的代码
