@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { type GameState, createInitialGameState } from '../engine/types'
 import { tick } from '../engine/gameLoop'
-import { buildBuilding, clickResource } from '../engine/actions'
+import { buildBuilding, clickResource, setJobAssignment } from '../engine/actions'
 import { saveGame, loadGame, resetGame } from '../engine/save'
 
 interface GameStore {
@@ -11,6 +11,7 @@ interface GameStore {
 
   buildBuilding: (buildingId: string) => void
   clickResource: (resourceId: string, amount?: number) => void
+  setJobAssignment: (jobId: string, assignedCount: number) => void
 
   saveGame: () => void
   loadGame: () => void
@@ -35,6 +36,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   clickResource: (resourceId: string, amount: number = 1) => {
     set((gameStore) => ({
       gameState: clickResource(gameStore.gameState, resourceId, amount),
+    }))
+  },
+
+  setJobAssignment: (jobId: string, assignedCount: number) => {
+    set((gameStore) => ({
+      gameState: setJobAssignment(gameStore.gameState, jobId, assignedCount),
     }))
   },
 

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useGameStore } from './store/gameStore'
 import { ResourcePanel } from './components/ResourcePanel'
 import { BuildingPanel } from './components/BuildingPanel'
+import { JobPanel } from './components/JobPanel'
 import { AUTO_SAVE_INTERVAL_TICKS, GAME_TICK_INTERVAL_MS } from './engine/constants'
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
       {/* 主要 UI */}
       <ResourcePanel />
       <BuildingPanel />
+      <JobPanel />
 
       {
         <button onClick={resetGame} style={{ marginLeft: '8px', padding: '8px 16px' }}>

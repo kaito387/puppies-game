@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { buildBuilding, clickResource } from './actions'
+import { buildBuilding, clickResource, setJobAssignment } from './actions'
 import { type GameState, createInitialGameState } from './types'
 
 describe('Actions', () => {
@@ -42,6 +42,28 @@ describe('Actions', () => {
       gameState.resourceLimits.bones = 5
       const newState = clickResource(gameState, 'bones', 10)
       expect(newState.resourceCounts.bones).toBe(5)
+    })
+  })
+
+  describe('Job Assignment', () => {
+    it('should set job assignment when population is enough', () => {
+      gameState.resourceCounts.puppies = 3
+      const newState = setJobAssignment(gameState, 'farmer', 2)
+      expect(newState.jobAssignments.farmer).toBe(2)
+    })
+
+    it('should reject assignment when total workers exceed population', () => {
+      gameState.resourceCounts.puppies = 2
+      gameState.jobAssignments.farmer = 1
+      expect(() => setJobAssignment(gameState, 'hunter', 2)).toThrow('职业分配总人数不能超过当前人口')
+    })
+
+    it('should reject unknown jobs', () => {
+      expect(() => setJobAssignment(gameState, 'unknown', 1)).toThrow('职业 unknown 不存在')
+    })
+
+    it('should reject negative assignment count', () => {
+      expect(() => setJobAssignment(gameState, 'farmer', -1)).toThrow('职业分配数量必须是非负整数')
     })
   })
 })

@@ -4,7 +4,7 @@ const SAVE_KEY = 'puppies-game-save'
 
 export function saveGame(gameState: GameState): void {
   const saveData = {
-    version: '0.1.0',
+    version: '0.0.0',
     timestamp: Date.now(),
     ...gameState,
   }
@@ -21,11 +21,14 @@ export function loadGame(): GameState {
 
   try {
     const saveData = JSON.parse(saveDataStr)
-    // TODO 版本兼容性处理
+
     return {
       resourceCounts: saveData.resourceCounts || INITIAL_GAME_STATE.resourceCounts,
       resourceLimits: saveData.resourceLimits || INITIAL_GAME_STATE.resourceLimits,
       buildings: saveData.buildings || INITIAL_GAME_STATE.buildings,
+      jobAssignments: saveData.jobAssignments || INITIAL_GAME_STATE.jobAssignments,
+      populationGrowthProgress:
+        saveData.populationGrowthProgress || INITIAL_GAME_STATE.populationGrowthProgress,
       tickCount: saveData.tickCount || INITIAL_GAME_STATE.tickCount,
       lastTickTime: saveData.lastTickTime || INITIAL_GAME_STATE.lastTickTime,
     }
