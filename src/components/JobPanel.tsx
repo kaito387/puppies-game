@@ -1,5 +1,9 @@
-import { useGameStore } from '../store/gameStore'
-import { JOBS } from '../engine/types'
+import { useGameStore } from '@/store/gameStore'
+import { JOBS } from '@/engine/types'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 
 export function JobPanel() {
   const gameState = useGameStore((store) => store.gameState)
@@ -9,46 +13,70 @@ export function JobPanel() {
   const totalAssigned = Object.values(gameState.jobAssignments).reduce((sum, count) => sum + count, 0)
   const idlePopulation = population - totalAssigned
 
+  function setWithDelta(jobId: string, currentAssigned: number, delta: number) {
+    if (delta > 0) {
+      const allowedIncrease = Math.min(delta, idlePopulation)
+      const target = currentAssigned + allowedIncrease
+      setJobAssignment(jobId, target)
+      return
+    }
+
+    const target = Math.max(0, currentAssigned + delta)
+    setJobAssignment(jobId, target)
+  }
+
   return (
-    <div
-      style={{
-        padding: '16px',
-        border: '1px solid #ccc',
-        borderRadius: '8px',
-        marginBottom: '16px',
-        backgroundColor: '#f9f9f9',
-      }}
-    >
-      <h3>👷 职业分配</h3>
-      <div style={{ marginBottom: '12px', color: '#666' }}>
-        总人口: {population} | 空闲: {idlePopulation}
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>👷 职业分配</CardTitle>
+        <CardDescription>工作人数不能超过总人口，使用快捷按钮可快速调整。</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap gap-2 text-xs">
+          <Badge variant="outline">总人口 {population}</Badge>
+          <Badge variant="outline">空闲 {idlePopulation}</Badge>
+          <Badge variant="outline">在岗 {totalAssigned}</Badge>
+        </div>
 
-      {JOBS.map((job) => {
-        const assigned = gameState.jobAssignments[job.id] || 0
-        const canIncrease = idlePopulation > 0
-        const canDecrease = assigned > 0
+        <Separator />
 
-        return (
-          <div
-            key={job.id}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '8px 0' }}
-          >
-            <div>
-              {job.icon} {job.name} - {job.description}
-            </div>
-            <div>
-              <button disabled={!canDecrease} onClick={() => setJobAssignment(job.id, assigned - 1)}>
-                -
-              </button>
-              <strong style={{ margin: '0 10px' }}>{assigned}</strong>
-              <button disabled={!canIncrease} onClick={() => setJobAssignment(job.id, assigned + 1)}>
-                +
-              </button>
-            </div>
-          </div>
-        )
-      })}
-    </div>
+        <div className="flex flex-col gap-3">
+          {JOBS.map((job) => {
+            // TODO move this logic to store
+            const assigned = gameState.jobAssignments[job.id] || 0
+            const canIncrease = idlePopulation > 0
+            const canDecrease = assigned > 0
+            const canIncreaseTen = idlePopulation > 0
+            const canDecreaseTen = assigned > 0
+
+            return (
+              <div key={job.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3">
+                <div>
+                  <div className="font-medium">
+                    {job.icon} {job.name}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{job.description}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" disabled={!canDecreaseTen} onClick={() => setWithDelta(job.id, assigned, -10)}>
+                    -10
+                  </Button>
+                  <Button variant="outline" size="sm" disabled={!canDecrease} onClick={() => setWithDelta(job.id, assigned, -1)}>
+                    -1
+                  </Button>
+                  <Badge>{assigned}</Badge>
+                  <Button variant="outline" size="sm" disabled={!canIncrease} onClick={() => setWithDelta(job.id, assigned, 1)}>
+                    +1
+                  </Button>
+                  <Button variant="outline" size="sm" disabled={!canIncreaseTen} onClick={() => setWithDelta(job.id, assigned, 10)}>
+                    +10
+                  </Button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </CardContent>
+    </Card>
   )
 }

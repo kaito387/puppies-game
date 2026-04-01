@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { buildBuilding, clickResource, setJobAssignment } from './actions'
-import { type GameState, createInitialGameState } from './types'
+import { buildBuilding, clickResource, setJobAssignment } from '@/engine/actions'
+import { type GameState, createInitialGameState } from '@/engine/types'
 
 describe('Actions', () => {
   let gameState: GameState

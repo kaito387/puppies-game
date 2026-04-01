@@ -1,5 +1,9 @@
-import { useGameStore } from '../store/gameStore'
-import { BUILDINGS } from '../engine/types'
+import { useGameStore } from '@/store/gameStore'
+import { BUILDINGS } from '@/engine/types'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 
 export function BuildingPanel() {
   const gameState = useGameStore((store) => store.gameState)
@@ -7,54 +11,56 @@ export function BuildingPanel() {
   const clickResource = useGameStore((store) => store.clickResource)
 
   return (
-    <div
-      style={{
-        padding: '16px',
-        border: '1px solid #ccc',
-        borderRadius: '8px',
-        marginBottom: '16px',
-        backgroundColor: '#f9f9f9',
-      }}
-    >
-      <h3>🏡 小镇</h3>
+    <Card>
+      <CardHeader>
+        <CardTitle>🏡 小镇</CardTitle>
+        <CardDescription>建造基础设施，扩展你的产能与容量。</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap items-center gap-3 rounded-md border p-3">
+          <Button onClick={() => clickResource('bones')}>🦴 挖掘骨头</Button>
+          <span className="text-sm text-muted-foreground">手动采集基础资源。</span>
+        </div>
 
-      <button onClick={() => clickResource('bones')}>🦴 挖掘骨头</button>
+        <Separator />
 
-      {BUILDINGS.map((building) => {
-        const count = gameState.buildings[building.id] || 0
+        <div className="flex flex-col gap-3">
+          {BUILDINGS.map((building) => {
+            const count = gameState.buildings[building.id] || 0
+            
+            let canBuild = true
+            // TODO Move this logic to game store and provide a canBuildBuilding(buildingId) method
+            for (const [resourceId, cost] of Object.entries(building.cost)) {
+              if ((gameState.resourceCounts[resourceId] || 0) < cost) {
+                canBuild = false
+                break
+              }
+            }
 
-        let canBuild = true
-        for (const [resourceId, cost] of Object.entries(building.cost)) {
-          if ((gameState.resourceCounts[resourceId] || 0) < cost) {
-            canBuild = false
-            break
-          }
-        }
+            const costText = Object.entries(building.cost)
+              .map(([resourceId, cost]) => `${cost} ${resourceId}`)
+              .join(' + ')
 
-        const costText = Object.entries(building.cost)
-          .map(([resourceId, cost]) => `${cost} ${resourceId}`)
-          .join(' + ')
-
-        return (
-          <div key={building.id} style={{ margin: '12px 0' }}>
-            <button
-              onClick={() => buildBuilding(building.id)}
-              disabled={!canBuild}
-              style={{
-                padding: '10px 16px',
-                fontSize: '16px',
-                cursor: canBuild ? 'pointer' : 'not-allowed',
-                opacity: canBuild ? 1 : 0.5,
-              }}
-            >
-              {building.icon} {building.name} (花费: {costText})
-            </button>
-            <span style={{ marginLeft: '8px' }}>
-              已有: <strong>{count}</strong>
-            </span>
-          </div>
-        )
-      })}
-    </div>
+            return (
+              <div key={building.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3">
+                <div className="space-y-1">
+                  <div className="font-medium">
+                    {building.icon} {building.name}
+                  </div>
+                  <div className="text-sm text-muted-foreground">{building.description}</div>
+                  <div className="text-xs text-muted-foreground">花费: {costText}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button onClick={() => buildBuilding(building.id)} disabled={!canBuild}>
+                    建造
+                  </Button>
+                  <Badge variant="outline">已有 {count}</Badge>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </CardContent>
+    </Card>
   )
 }

@@ -1,4 +1,4 @@
-import { type GameState, createInitialGameState } from './types'
+import { type GameState, createInitialGameState } from '@/engine/types'
 
 const SAVE_KEY = 'puppies-game-save'
 

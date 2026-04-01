@@ -1,4 +1,4 @@
-import { type GameState, BUILDINGS, JOBS } from './types'
+import { type GameState, BUILDINGS, JOBS } from '@/engine/types'
 import { min } from './utils'
 
 export function clickResource(state: GameState, resourceId: string, amount: number = 1): GameState {

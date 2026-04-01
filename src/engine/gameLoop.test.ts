@@ -5,8 +5,8 @@ import {
   calculateJobProduction,
   calculatePopulationCap,
   calculateResourceLimits,
-} from './gameLoop'
-import { type GameState, createInitialGameState } from './types'
+} from '@/engine/gameLoop'
+import { type GameState, createInitialGameState } from '@/engine/types'
 
 describe('Game Loop', () => {
   let gameState: GameState
