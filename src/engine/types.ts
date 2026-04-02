@@ -11,6 +11,7 @@ export interface Building {
   icon?: string // TODO Optional
   description: string
   cost: Record<string, number>
+  costGrowthMultiplier: number
   productionPerTick: Record<string, number>
   resourceLimitBonuses?: Record<string, number>
   populationCapBonus?: number
@@ -49,7 +50,7 @@ export const RESOURCE_LIMITS: Record<string, number> = {
 
 export const BASE_POPULATION_CAP = 1
 export const POPULATION_GROWTH_BASE_RATE = 0.06
-export const FOOD_CONSUMPTION_PER_PUPPY_PER_TICK = 0.2
+export const FOOD_CONSUMPTION_PER_PUPPY_PER_TICK = 1
 
 export const JOBS: Job[] = [
   {
@@ -75,6 +76,7 @@ export const BUILDINGS: Building[] = [
     icon: '🏠',
     description: '可以容纳 2 只小狗。',
     cost: { bones: 10 },
+    costGrowthMultiplier: 2.5,
     productionPerTick: {},
     populationCapBonus: 2,
   },
@@ -84,6 +86,7 @@ export const BUILDINGS: Building[] = [
     icon: '🌾',
     description: '每秒生产 1 份食物',
     cost: { bones: 20 },
+    costGrowthMultiplier: 1.12,
     productionPerTick: { food: 0.2 },
   },
   {
@@ -92,6 +95,7 @@ export const BUILDINGS: Building[] = [
     icon: '📦',
     description: '提升食物与骨头的存储上限。',
     cost: { bones: 30 },
+    costGrowthMultiplier: 1.12,
     productionPerTick: {},
     resourceLimitBonuses: { food: 200, bones: 200 },
   },

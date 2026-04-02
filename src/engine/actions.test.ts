@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { buildBuilding, clickResource, setJobAssignment } from '@/engine/actions'
+import { clickResource, setJobAssignment } from '@/engine/actions'
 import { type GameState, createInitialGameState } from '@/engine/types'
 
 describe('Actions', () => {
@@ -7,24 +7,6 @@ describe('Actions', () => {
 
   beforeEach(() => {
     gameState = createInitialGameState()
-  })
-
-  describe('Building', () => {
-    it('should build a barn if resources are sufficient', () => {
-      gameState.resourceCounts.bones = 10
-      const newState = buildBuilding(gameState, 'barn')
-      expect(newState.buildings.barn).toBe(1)
-      expect(newState.resourceCounts.bones).toBe(0)
-    })
-
-    it('should not build a barn if resources are insufficient', () => {
-      gameState.resourceCounts.bones = 5
-      expect(() => buildBuilding(gameState, 'barn')).toThrow('资源 bones 不足')
-    })
-
-    it('should throw an error if building does not exist', () => {
-      expect(() => buildBuilding(gameState, 'nonexistent')).toThrow('建筑 nonexistent 不存在')
-    })
   })
 
   describe('Clicking Resources', () => {

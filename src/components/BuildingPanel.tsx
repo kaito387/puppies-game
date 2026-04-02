@@ -9,6 +9,8 @@ export function BuildingPanel() {
   const gameState = useGameStore((store) => store.gameState)
   const buildBuilding = useGameStore((store) => store.buildBuilding)
   const clickResource = useGameStore((store) => store.clickResource)
+  const getBuildingCost = useGameStore((store) => store.getBuildingCost)
+  const canBuildBuilding = useGameStore((store) => store.canBuildBuilding)
 
   return (
     <Card>
@@ -27,17 +29,10 @@ export function BuildingPanel() {
         <div className="flex flex-col gap-3">
           {BUILDINGS.map((building) => {
             const count = gameState.buildings[building.id] || 0
-            
-            let canBuild = true
-            // TODO Move this logic to game store and provide a canBuildBuilding(buildingId) method
-            for (const [resourceId, cost] of Object.entries(building.cost)) {
-              if ((gameState.resourceCounts[resourceId] || 0) < cost) {
-                canBuild = false
-                break
-              }
-            }
+            const buildingCost = getBuildingCost(building.id)
+            const canBuild = canBuildBuilding(building.id)
 
-            const costText = Object.entries(building.cost)
+            const costText = Object.entries(buildingCost)
               .map(([resourceId, cost]) => `${cost} ${resourceId}`)
               .join(' + ')
 

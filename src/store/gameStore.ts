@@ -1,8 +1,9 @@
 import { create } from 'zustand'
-import { type GameState, createInitialGameState } from '../engine/types'
-import { tick } from '../engine/gameLoop'
-import { buildBuilding, clickResource, setJobAssignment } from '../engine/actions'
-import { saveGame, loadGame, resetGame } from '../engine/save'
+import { type GameState, createInitialGameState } from '@/engine/types'
+import { tick } from '@/engine/gameLoop'
+import { clickResource, setJobAssignment } from '@/engine/actions'
+import { buildBuilding, canBuildBuilding, getBuildingCost } from '@/engine/buildings'
+import { saveGame, loadGame, resetGame } from '@/engine/save'
 
 interface GameStore {
   gameState: GameState
@@ -10,6 +11,8 @@ interface GameStore {
   tick: () => void
 
   buildBuilding: (buildingId: string) => void
+  getBuildingCost: (buildingId: string) => Record<string, number>
+  canBuildBuilding: (buildingId: string) => boolean
   clickResource: (resourceId: string, amount?: number) => void
   setJobAssignment: (jobId: string, assignedCount: number) => void
 
@@ -31,6 +34,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set((gameStore) => ({
       gameState: buildBuilding(gameStore.gameState, buildingId),
     }))
+  },
+
+  getBuildingCost: (buildingId: string) => {
+    return getBuildingCost(get().gameState, buildingId)
+  },
+
+  canBuildBuilding: (buildingId: string) => {
+    return canBuildBuilding(get().gameState, buildingId)
   },
 
   clickResource: (resourceId: string, amount: number = 1) => {
