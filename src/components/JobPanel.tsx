@@ -9,7 +9,7 @@ export function JobPanel() {
   const gameState = useGameStore((store) => store.gameState)
   const setJobAssignment = useGameStore((store) => store.setJobAssignment)
 
-  const population = Math.floor(gameState.resourceCounts.puppies || 0)
+  const population = Math.floor(gameState.population || 0)
   const totalAssigned = Object.values(gameState.jobAssignments).reduce((sum, count) => sum + count, 0)
   const idlePopulation = Math.max(0, population - totalAssigned)
 

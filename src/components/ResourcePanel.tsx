@@ -5,14 +5,16 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
 
 export function ResourcePanel() {
   const gameState = useGameStore((store) => store.gameState)
+  const setDomesticateEnabled = useGameStore((store) => store.setDomesticateEnabled)
   const ratePerSecondMultiplier = 1000 / GAME_TICK_INTERVAL_MS
-  const population = Math.floor(gameState.resourceCounts.puppies || 0)
+  const population = Math.floor(gameState.population || 0)
   const growthProgressRaw = gameState.populationGrowthProgress || 0
   const growthProgressPercent = Math.floor(Math.abs(growthProgressRaw) * 100)
-  const populationCap = Math.floor(gameState.resourceLimits.puppies || 0)
+  const populationCap = Math.floor(gameState.populationCap || 0)
   const totalAssigned = Object.values(gameState.jobAssignments).reduce((sum, count) => sum + count, 0)
   const idlePopulation = Math.max(0, population - totalAssigned)
   const shouldShowProgress = growthProgressPercent > 0
@@ -76,9 +78,25 @@ export function ResourcePanel() {
 
         <Separator />
 
+        <div className="flex items-center justify-between rounded-md border px-3 py-2">
+          <div className="flex flex-col">
+            <span className="text-sm">允许入驻</span>
+            <span className="text-xs text-muted-foreground">
+              开启后会消耗食物驯服新小狗
+            </span>
+          </div>
+          <Switch size="lg"
+            checked={gameState.isDomesticateEnabled}
+            onCheckedChange={setDomesticateEnabled}
+            aria-label="切换是否允许小狗入驻"
+          />
+        </div>
+
+        <Separator />
+
         <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
           <Badge variant="outline">
-            人口 {population}
+            狗口 {population}
             {shouldShowProgress && (
               <>
                 (

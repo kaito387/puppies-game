@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { type GameState, createInitialGameState } from '@/engine/types'
 import { tick } from '@/engine/gameLoop'
-import { clickResource, setJobAssignment } from '@/engine/actions'
+import { clickResource, setDomesticateEnabled, setJobAssignment } from '@/engine/actions'
 import { buildBuilding, canBuildBuilding, getBuildingCost } from '@/engine/buildings'
 import { saveGame, loadGame, resetGame } from '@/engine/save'
 
@@ -15,6 +15,7 @@ interface GameStore {
   canBuildBuilding: (buildingId: string) => boolean
   clickResource: (resourceId: string, amount?: number) => void
   setJobAssignment: (jobId: string, assignedCount: number) => void
+  setDomesticateEnabled: (enabled: boolean) => void
 
   saveGame: () => void
   loadGame: () => void
@@ -53,6 +54,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setJobAssignment: (jobId: string, assignedCount: number) => {
     set((gameStore) => ({
       gameState: setJobAssignment(gameStore.gameState, jobId, assignedCount),
+    }))
+  },
+
+  setDomesticateEnabled: (enabled: boolean) => {
+    set((gameStore) => ({
+      gameState: setDomesticateEnabled(gameStore.gameState, enabled),
     }))
   },
 

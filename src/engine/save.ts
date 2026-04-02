@@ -39,6 +39,10 @@ export function loadGame(): GameState {
       ),
       buildings: mergeRecord(saveData.buildings, INITIAL_GAME_STATE.buildings),
       jobAssignments: mergeRecord(saveData.jobAssignments, INITIAL_GAME_STATE.jobAssignments),
+      population: saveData.population ?? INITIAL_GAME_STATE.population,
+      populationCap: saveData.populationCap ?? INITIAL_GAME_STATE.populationCap,
+      isDomesticateEnabled:
+        saveData.isDomesticateEnabled ?? INITIAL_GAME_STATE.isDomesticateEnabled,
       populationGrowthProgress:
         saveData.populationGrowthProgress ?? INITIAL_GAME_STATE.populationGrowthProgress,
       tickCount: saveData.tickCount ?? INITIAL_GAME_STATE.tickCount,

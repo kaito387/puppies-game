@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { clickResource, rebalanceJobAssignments, setJobAssignment } from '@/engine/actions'
+import {
+  clickResource,
+  rebalanceJobAssignments,
+  setDomesticateEnabled,
+  setJobAssignment,
+} from '@/engine/actions'
 import { type GameState, createInitialGameState } from '@/engine/types'
 
 describe('Actions', () => {
@@ -29,13 +34,13 @@ describe('Actions', () => {
 
   describe('Job Assignment', () => {
     it('should set job assignment when population is enough', () => {
-      gameState.resourceCounts.puppies = 3
+      gameState.population = 3
       const newState = setJobAssignment(gameState, 'farmer', 2)
       expect(newState.jobAssignments.farmer).toBe(2)
     })
 
     it('should reject assignment when total workers exceed population', () => {
-      gameState.resourceCounts.puppies = 2
+      gameState.population = 2
       gameState.jobAssignments.farmer = 1
       expect(() => setJobAssignment(gameState, 'hunter', 2)).toThrow('职业分配总人数不能超过当前人口')
     })
@@ -61,6 +66,14 @@ describe('Actions', () => {
     it('should cascade assignment reduction when deaths exceed idle population', () => {
       const nextAssignments = rebalanceJobAssignments({ farmer: 4, hunter: 3 }, 2)
       expect(nextAssignments).toEqual({ farmer: 2, hunter: 0 })
+    })
+
+    it('should toggle domestication switch state', () => {
+      const enabledState = setDomesticateEnabled(gameState, true)
+      expect(enabledState.isDomesticateEnabled).toBe(true)
+
+      const disabledState = setDomesticateEnabled(enabledState, false)
+      expect(disabledState.isDomesticateEnabled).toBe(false)
     })
   })
 })

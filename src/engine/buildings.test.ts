@@ -11,27 +11,44 @@ describe('Buildings', () => {
   const barn = BUILDINGS.find((building) => building.id === 'barn')!
   const farm = BUILDINGS.find((building) => building.id === 'farm')!
 
+  const calculateExpectedCost = (
+    baseCost: Record<string, number>,
+    costGrowthMultiplier: number,
+    ownedCount: number,
+  ): Record<string, number> => {
+    const expected: Record<string, number> = {}
+    for (const [resourceId, amount] of Object.entries(baseCost)) {
+      expected[resourceId] = Math.ceil(amount * costGrowthMultiplier ** ownedCount)
+    }
+    return expected
+  }
+
   beforeEach(() => {
     gameState = createInitialGameState()
   })
 
   describe('Cost Scaling', () => {
     it('should calculate building cost from the current building count', () => {
-      expect(getBuildingCost(gameState, 'barn')).toEqual({ bones: 20 })
+      expect(getBuildingCost(gameState, 'barn')).toEqual(
+        calculateExpectedCost(barn.cost, barn.costGrowthMultiplier, 0),
+      )
 
       gameState.buildings.barn = 1
-      const expected = Math.ceil((barn.cost.bones || 0) * barn.costGrowthMultiplier ** 1)
-      expect(getBuildingCost(gameState, 'barn')).toEqual({ bones: expected })
+      expect(getBuildingCost(gameState, 'barn')).toEqual(
+        calculateExpectedCost(barn.cost, barn.costGrowthMultiplier, 1),
+      )
     })
 
     it('should round building costs up after growth', () => {
       gameState.buildings.farm = 2
-      const expected = Math.ceil((farm.cost.bones || 0) * farm.costGrowthMultiplier ** 2)
-      expect(getBuildingCost(gameState, 'farm')).toEqual({ bones: expected })
+      expect(getBuildingCost(gameState, 'farm')).toEqual(
+        calculateExpectedCost(farm.cost, farm.costGrowthMultiplier, 2),
+      )
     })
 
     it('should report whether a building can be built with dynamic cost', () => {
-      gameState.resourceCounts.bones = 20
+      gameState.resourceCounts.bones = barn.cost.bones || 0
+      gameState.resourceCounts.food = barn.cost.food || 0
       expect(canBuildBuilding(gameState, 'barn')).toBe(true)
 
       gameState.buildings.barn = 1
@@ -39,10 +56,12 @@ describe('Buildings', () => {
     })
 
     it('should build a barn if resources are sufficient', () => {
-      gameState.resourceCounts.bones = 20
+      gameState.resourceCounts.bones = barn.cost.bones || 0
+      gameState.resourceCounts.food = barn.cost.food || 0
       const newState = buildBuilding(gameState, 'barn')
       expect(newState.buildings.barn).toBe(1)
       expect(newState.resourceCounts.bones).toBe(0)
+      expect(newState.resourceCounts.food).toBe(0)
     })
 
     it('should not build a barn if resources are insufficient', () => {

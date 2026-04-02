@@ -24,7 +24,7 @@ export function setJobAssignment(state: GameState, jobId: string, assignedCount:
     throw new Error('职业分配数量必须是非负整数')
   }
 
-  const currentPopulation = state.resourceCounts.puppies
+  const currentPopulation = state.population
   const totalAssignedExceptCurrentJob = Object.entries(state.jobAssignments)
     .filter(([assignedJobId]) => assignedJobId !== jobId)
     .reduce((sum, [, count]) => sum + count, 0)
@@ -39,6 +39,13 @@ export function setJobAssignment(state: GameState, jobId: string, assignedCount:
       ...state.jobAssignments,
       [job.id]: assignedCount,
     },
+  }
+}
+
+export function setDomesticateEnabled(state: GameState, enabled: boolean): GameState {
+  return {
+    ...state,
+    isDomesticateEnabled: enabled,
   }
 }
 

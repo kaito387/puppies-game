@@ -37,13 +37,13 @@ describe('Save System', () => {
     resetGame()
   })
 
-  it('should default missing populationGrowthProgress from old saves', () => {
+  it('should default missing population fields from old saves', () => {
     localStorage.setItem(
       'puppies-game-save',
       JSON.stringify({
         version: '0.0.0',
-        resourceCounts: { puppies: 2, food: 10, bones: 1 },
-        resourceLimits: { puppies: 3, food: 100, bones: 100 },
+        resourceCounts: { food: 10, bones: 1 },
+        resourceLimits: { food: 100, bones: 100 },
         buildings: { barn: 1, farm: 0, warehouse: 0 },
         jobAssignments: { farmer: 1, hunter: 0 },
         tickCount: 10,
@@ -52,8 +52,10 @@ describe('Save System', () => {
     )
 
     const loaded = loadGame()
+    expect(loaded.population).toBe(0)
+    expect(loaded.populationCap).toBe(1)
+    expect(loaded.isDomesticateEnabled).toBe(false)
     expect(loaded.populationGrowthProgress).toBe(0)
-    expect(loaded.resourceCounts.puppies).toBe(2)
   })
 
   it('should default missing resourceDeltaPerTick from old saves', () => {
@@ -61,8 +63,8 @@ describe('Save System', () => {
       'puppies-game-save',
       JSON.stringify({
         version: '0.0.0',
-        resourceCounts: { puppies: 2, food: 10, bones: 1 },
-        resourceLimits: { puppies: 3, food: 100, bones: 100 },
+        resourceCounts: { food: 10, bones: 1 },
+        resourceLimits: { food: 100, bones: 100 },
         buildings: { barn: 1, farm: 0, warehouse: 0 },
         jobAssignments: { farmer: 1, hunter: 0 },
         tickCount: 10,
@@ -71,17 +73,23 @@ describe('Save System', () => {
     )
 
     const loaded = loadGame()
-    expect(loaded.resourceDeltaPerTick).toEqual({ puppies: 0, food: 0, bones: 0 })
+    expect(loaded.resourceDeltaPerTick).toEqual({ food: 0, bones: 0 })
   })
 
-  it('should preserve signed populationGrowthProgress values', () => {
+  it('should preserve population/domestication related fields', () => {
     const state = createInitialGameState()
+    state.population = 3
+    state.populationCap = 7
+    state.isDomesticateEnabled = true
     state.populationGrowthProgress = -0.55
     state.resourceDeltaPerTick.food = 1.25
 
     saveGame(state)
     const loaded = loadGame()
 
+    expect(loaded.population).toBe(3)
+    expect(loaded.populationCap).toBe(7)
+    expect(loaded.isDomesticateEnabled).toBe(true)
     expect(loaded.populationGrowthProgress).toBeCloseTo(-0.55)
     expect(loaded.resourceDeltaPerTick.food).toBeCloseTo(1.25)
   })
