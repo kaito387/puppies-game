@@ -43,14 +43,14 @@ export const RESOURCES: Resource[] = [
 ]
 
 export const RESOURCE_LIMITS: Record<string, number> = {
-  puppies: 1,
-  food: 100,
-  bones: 100,
+  puppies: 0,
+  food: 500,
+  bones: 500,
 }
 
-export const BASE_POPULATION_CAP = 1
-export const POPULATION_GROWTH_BASE_RATE = 0.06
+export const POPULATION_GROWTH_BASE_RATE = 0.02
 export const FOOD_CONSUMPTION_PER_PUPPY_PER_TICK = 1
+export const STARVATION_PROGRESS_BASE_RATE = 0.02
 
 export const JOBS: Job[] = [
   {
@@ -75,7 +75,7 @@ export const BUILDINGS: Building[] = [
     name: '狗舍',
     icon: '🏠',
     description: '可以容纳 2 只小狗。',
-    cost: { bones: 10 },
+    cost: { bones: 20 },
     costGrowthMultiplier: 2.5,
     productionPerTick: {},
     populationCapBonus: 2,
@@ -85,7 +85,7 @@ export const BUILDINGS: Building[] = [
     name: '农场',
     icon: '🌾',
     description: '每秒生产 1 份食物',
-    cost: { bones: 20 },
+    cost: { bones: 10 },
     costGrowthMultiplier: 1.12,
     productionPerTick: { food: 0.2 },
   },
@@ -94,10 +94,10 @@ export const BUILDINGS: Building[] = [
     name: '仓库',
     icon: '📦',
     description: '提升食物与骨头的存储上限。',
-    cost: { bones: 30 },
-    costGrowthMultiplier: 1.12,
+    cost: { bones: 100 },
+    costGrowthMultiplier: 2.5,
     productionPerTick: {},
-    resourceLimitBonuses: { food: 200, bones: 200 },
+    resourceLimitBonuses: { food: 500, bones: 500 },
   },
 ]
 
@@ -111,7 +111,6 @@ export function createInitialGameState(): GameState {
   RESOURCES.forEach((resource) => {
     resources[resource.id] = 0
   })
-  resources.puppies = 1
 
   const buildings: Record<string, number> = {}
   BUILDINGS.forEach((building) => {

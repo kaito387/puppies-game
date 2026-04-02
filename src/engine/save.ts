@@ -28,9 +28,9 @@ export function loadGame(): GameState {
       buildings: saveData.buildings || INITIAL_GAME_STATE.buildings,
       jobAssignments: saveData.jobAssignments || INITIAL_GAME_STATE.jobAssignments,
       populationGrowthProgress:
-        saveData.populationGrowthProgress || INITIAL_GAME_STATE.populationGrowthProgress,
-      tickCount: saveData.tickCount || INITIAL_GAME_STATE.tickCount,
-      lastTickTime: saveData.lastTickTime || INITIAL_GAME_STATE.lastTickTime,
+        saveData.populationGrowthProgress ?? INITIAL_GAME_STATE.populationGrowthProgress,
+      tickCount: saveData.tickCount ?? INITIAL_GAME_STATE.tickCount,
+      lastTickTime: saveData.lastTickTime ?? INITIAL_GAME_STATE.lastTickTime,
     }
   } catch (error) {
     console.error('加载存档失败：', error)

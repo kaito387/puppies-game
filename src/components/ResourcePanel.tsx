@@ -8,10 +8,13 @@ import { Separator } from '@/components/ui/separator'
 export function ResourcePanel() {
   const gameState = useGameStore((store) => store.gameState)
   const population = Math.floor(gameState.resourceCounts.puppies || 0)
-  const growthProgress = Math.floor((gameState.populationGrowthProgress || 0) * 100)
+  const growthProgressRaw = gameState.populationGrowthProgress || 0
+  const growthProgressPercent = Math.floor(Math.abs(growthProgressRaw) * 100)
   const populationCap = Math.floor(gameState.resourceLimits.puppies || 0)
   const totalAssigned = Object.values(gameState.jobAssignments).reduce((sum, count) => sum + count, 0)
-  const idlePopulation = population - totalAssigned
+  const idlePopulation = Math.max(0, population - totalAssigned)
+  const shouldShowProgress = growthProgressPercent > 0
+  const progressText = growthProgressRaw > 0 ? `+${growthProgressPercent}%` : `-${growthProgressPercent}%`
 
   return (
     <Card>
@@ -41,10 +44,19 @@ export function ResourcePanel() {
         <Separator />
 
         <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <Badge variant="outline">人口 {population}/{populationCap}</Badge>
+          <Badge variant="outline">
+            人口 {population}
+            {shouldShowProgress && (
+              <>
+                (
+                <span className={growthProgressRaw > 0 ? 'text-green-600' : 'text-red-600'}>{progressText}</span>
+                )
+              </>
+            )}
+            /{populationCap}
+          </Badge>
           <Badge variant="outline">在岗 {totalAssigned}</Badge>
           <Badge variant="outline">空闲 {idlePopulation}</Badge>
-          <Badge variant="outline">增长 {growthProgress}%</Badge>
         </div>
       </CardContent>
     </Card>

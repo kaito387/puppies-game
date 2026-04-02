@@ -1,13 +1,14 @@
 import {
-  BASE_POPULATION_CAP,
   BUILDINGS,
   FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
   JOBS,
   RESOURCE_LIMITS,
   RESOURCES,
   POPULATION_GROWTH_BASE_RATE,
+  STARVATION_PROGRESS_BASE_RATE,
   type GameState,
 } from '@/engine/types'
+import { rebalanceJobAssignments } from '@/engine/actions'
 import { min } from '@/engine/utils'
 
 export function calculateProduction(gameState: GameState): Record<string, number> {
@@ -28,7 +29,7 @@ export function calculateProduction(gameState: GameState): Record<string, number
 }
 
 export function calculatePopulationCap(gameState: GameState): number {
-  let populationCap = BASE_POPULATION_CAP
+  let populationCap = 0
 
   BUILDINGS.forEach((building) => {
     const count = gameState.buildings[building.id] || 0
@@ -87,24 +88,40 @@ export function applyPopulationGrowth(
   resourceCounts: Record<string, number>,
   populationCap: number,
 ): { population: number; growthProgress: number } {
-  const currentPopulation = Math.floor(resourceCounts.puppies || 0)
+  const currentPopulation = resourceCounts.puppies || 0
   const currentFood = resourceCounts.food || 0
   const foodNeed = currentPopulation * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK
+  const foodDeficit = Math.max(0, foodNeed - currentFood)
 
   const foodAfterUpkeep = Math.max(0, currentFood - foodNeed)
   resourceCounts.food = min(foodAfterUpkeep, state.resourceLimits.food || foodAfterUpkeep)
-  // 此处修改了 resourceCounts.food
+  const previousProgress = state.populationGrowthProgress || 0
 
-  if (currentFood < foodNeed || currentPopulation >= populationCap) {
+  if (foodDeficit > 0) {
+    const crowding = populationCap <= 0 ? 1 : currentPopulation / populationCap
+    const normalizedDeficit = foodNeed <= 0 ? 0 : foodDeficit / foodNeed
+    const starvationDelta = STARVATION_PROGRESS_BASE_RATE * normalizedDeficit * (1 + crowding)
+    const totalStarvationProgress = Math.min(0, previousProgress) - starvationDelta
+    const deaths = Math.floor(-totalStarvationProgress)
+    const nextPopulation = Math.max(0, currentPopulation - deaths)
+    const growthProgress = nextPopulation <= 0 ? 0 : totalStarvationProgress + deaths
+
+    return {
+      population: min(nextPopulation, populationCap),
+      growthProgress,
+    }
+  }
+
+  if (currentPopulation >= populationCap) {
     return {
       population: min(currentPopulation, populationCap),
-      growthProgress: currentPopulation >= populationCap ? 0 : state.populationGrowthProgress,
-    } // 食物不足或者人口已经满了，停止增长
+      growthProgress: 0
+    } // 人口已经满了，停止增长
   }
 
   const crowding = populationCap <= 0 ? 1 : currentPopulation / populationCap
   const growthPerTick = POPULATION_GROWTH_BASE_RATE * (1 - crowding)
-  const totalGrowthProgress = state.populationGrowthProgress + growthPerTick
+  const totalGrowthProgress = Math.max(0, previousProgress) + Math.max(0, growthPerTick)
   const newPuppies = Math.floor(totalGrowthProgress)
   const nextPopulation = min(currentPopulation + newPuppies, populationCap)
   const growthProgress = nextPopulation >= populationCap ? 0 : totalGrowthProgress - newPuppies
@@ -144,6 +161,7 @@ export function tick(state: GameState): GameState {
     ...state,
     resourceCounts: newResourceCounts,
     resourceLimits: nextLimits,
+    jobAssignments: rebalanceJobAssignments(state.jobAssignments, newResourceCounts.puppies),
     populationGrowthProgress: populationUpdate.growthProgress,
     tickCount: state.tickCount + 1,
     lastTickTime: Date.now(),

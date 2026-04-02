@@ -41,3 +41,33 @@ export function setJobAssignment(state: GameState, jobId: string, assignedCount:
     },
   }
 }
+
+export function rebalanceJobAssignments(
+  jobAssignments: Record<string, number>,
+  currentPopulation: number,
+): Record<string, number> {
+  const populationLimit = Math.max(0, Math.floor(currentPopulation))
+  const totalAssigned = Object.values(jobAssignments).reduce((sum, count) => sum + count, 0)
+
+  if (totalAssigned <= populationLimit) {
+    return { ...jobAssignments }
+  }
+
+  const nextAssignments = { ...jobAssignments }
+  let toRemove = totalAssigned - populationLimit
+
+  // Keep assignment reduction deterministic by removing from lower-priority jobs first.
+  for (let i = JOBS.length - 1; i >= 0 && toRemove > 0; i -= 1) {
+    const jobId = JOBS[i].id
+    const assigned = nextAssignments[jobId] || 0
+    if (assigned <= 0) {
+      continue
+    }
+
+    const removed = Math.min(assigned, toRemove)
+    nextAssignments[jobId] = assigned - removed
+    toRemove -= removed
+  }
+
+  return nextAssignments
+}

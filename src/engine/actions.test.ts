@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { clickResource, setJobAssignment } from '@/engine/actions'
+import { clickResource, rebalanceJobAssignments, setJobAssignment } from '@/engine/actions'
 import { type GameState, createInitialGameState } from '@/engine/types'
 
 describe('Actions', () => {
@@ -46,6 +46,21 @@ describe('Actions', () => {
 
     it('should reject negative assignment count', () => {
       expect(() => setJobAssignment(gameState, 'farmer', -1)).toThrow('职业分配数量必须是非负整数')
+    })
+
+    it('should keep assignments unchanged when total assigned is within population', () => {
+      const nextAssignments = rebalanceJobAssignments({ farmer: 2, hunter: 1 }, 4)
+      expect(nextAssignments).toEqual({ farmer: 2, hunter: 1 })
+    })
+
+    it('should reduce assignments from the end of JOBS order first', () => {
+      const nextAssignments = rebalanceJobAssignments({ farmer: 2, hunter: 2 }, 3)
+      expect(nextAssignments).toEqual({ farmer: 2, hunter: 1 })
+    })
+
+    it('should cascade assignment reduction when deaths exceed idle population', () => {
+      const nextAssignments = rebalanceJobAssignments({ farmer: 4, hunter: 3 }, 2)
+      expect(nextAssignments).toEqual({ farmer: 2, hunter: 0 })
     })
   })
 })
