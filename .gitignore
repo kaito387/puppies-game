@@ -24,3 +24,6 @@ coverage/
 
 # npx skills
 .agents
+
+# LLMs
+prompts/

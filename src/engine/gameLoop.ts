@@ -153,7 +153,12 @@ export function tick(state: GameState): GameState {
   for (const [resourceId, amount] of Object.entries(newResourceCounts)) {
     newResourceCounts[resourceId] = min(amount, nextLimits[resourceId] || 0)
   }
-  
+
+  const resourceDeltaPerTick: Record<string, number> = {}
+  RESOURCES.forEach((resource) => {
+    resourceDeltaPerTick[resource.id] = (newResourceCounts[resource.id] || 0) - (state.resourceCounts[resource.id] || 0)
+  })
+
   // tick 的时候，先计算资源生产和消耗，再计算人口和资源的相互影响，再应用资源上限。
   // 这样玩家在这一 tick 内获得的资源可以被这一 tick 内增加的人口消耗掉。
 
@@ -161,6 +166,7 @@ export function tick(state: GameState): GameState {
     ...state,
     resourceCounts: newResourceCounts,
     resourceLimits: nextLimits,
+    resourceDeltaPerTick,
     jobAssignments: rebalanceJobAssignments(state.jobAssignments, newResourceCounts.puppies),
     populationGrowthProgress: populationUpdate.growthProgress,
     tickCount: state.tickCount + 1,

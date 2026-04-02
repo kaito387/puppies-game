@@ -1,4 +1,5 @@
 import { useGameStore } from '@/store/gameStore'
+import { GAME_TICK_INTERVAL_MS } from '@/engine/constants'
 import { RESOURCES } from '@/engine/types'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,6 +8,7 @@ import { Separator } from '@/components/ui/separator'
 
 export function ResourcePanel() {
   const gameState = useGameStore((store) => store.gameState)
+  const ratePerSecondMultiplier = 1000 / GAME_TICK_INTERVAL_MS
   const population = Math.floor(gameState.resourceCounts.puppies || 0)
   const growthProgressRaw = gameState.populationGrowthProgress || 0
   const growthProgressPercent = Math.floor(Math.abs(growthProgressRaw) * 100)
@@ -15,6 +17,20 @@ export function ResourcePanel() {
   const idlePopulation = Math.max(0, population - totalAssigned)
   const shouldShowProgress = growthProgressPercent > 0
   const progressText = growthProgressRaw > 0 ? `+${growthProgressPercent}%` : `-${growthProgressPercent}%`
+
+  const formatRateText = (ratePerSecond: number): string => {
+    const absoluteRate = Math.abs(ratePerSecond)
+
+    if (absoluteRate < 10) {
+      return ratePerSecond.toFixed(2)
+    }
+
+    if (absoluteRate < 100) {
+      return ratePerSecond.toFixed(1)
+    }
+
+    return ratePerSecond.toFixed(0)
+  }
 
   return (
     <Card>
@@ -27,14 +43,31 @@ export function ResourcePanel() {
             {RESOURCES.map((resource) => {
               const amount = gameState.resourceCounts[resource.id] || 0
               const limit = gameState.resourceLimits[resource.id] || 0
+              const deltaPerTick = gameState.resourceDeltaPerTick[resource.id] || 0
+              const ratePerSecond = deltaPerTick * ratePerSecondMultiplier
+              const shouldShowRate = Math.abs(ratePerSecond) > 0.0001
               return (
-                <div key={resource.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+                <div key={resource.id} className="flex items-center justify-between rounded-md border px-3 py-2 gap-3">
                   <span className="text-sm">
                     {resource.icon} {resource.name}
                   </span>
-                  <Badge variant="secondary">
-                    {amount.toFixed(0)} / {limit.toFixed(0)}
-                  </Badge>
+                  <div className="flex items-center gap-1 flex-wrap justify-end">
+                    <Badge variant="secondary">
+                      {amount.toFixed(0)} / {limit.toFixed(0)}
+                    </Badge>
+                    {shouldShowRate && (
+                      <Badge
+                        variant="outline"
+                        className={
+                          ratePerSecond > 0
+                            ? 'border-green-500/30 bg-green-500/10 text-green-700'
+                            : 'border-red-500/30 bg-red-500/10 text-red-700'
+                        }
+                      >
+                        {ratePerSecond > 0 ? '+' : ''}{formatRateText(ratePerSecond)}/s
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               )
             })}

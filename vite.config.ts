@@ -10,6 +10,6 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  base: 'puppies-game/',
+  base: '/puppies-game/',
   plugins: [react(), tailwindcss()],
 })

@@ -28,6 +28,7 @@ export interface Job {
 export interface GameState {
   resourceCounts: Record<string, number>
   resourceLimits: Record<string, number>
+  resourceDeltaPerTick: Record<string, number>
   buildings: Record<string, number>
   jobAssignments: Record<string, number>
   populationGrowthProgress: number
@@ -58,7 +59,7 @@ export const JOBS: Job[] = [
     name: '农夫',
     icon: '🌾',
     description: '每 Tick 生产食物。',
-    productionPerTick: { food: 1 },
+    productionPerTick: { food: 1.25 },
   },
   {
     id: 'hunter',
@@ -106,6 +107,15 @@ export function createInitialResourceLimits(): Record<string, number> {
   return limits
 }
 
+export function createInitialResourceDeltaPerTick(): Record<string, number> {
+  const deltas: Record<string, number> = {}
+  RESOURCES.forEach((resource) => {
+    deltas[resource.id] = 0
+  })
+
+  return deltas
+}
+
 export function createInitialGameState(): GameState {
   const resources: Record<string, number> = {}
   RESOURCES.forEach((resource) => {
@@ -125,6 +135,7 @@ export function createInitialGameState(): GameState {
   return {
     resourceCounts: resources,
     resourceLimits: createInitialResourceLimits(),
+    resourceDeltaPerTick: createInitialResourceDeltaPerTick(),
     buildings,
     jobAssignments,
     populationGrowthProgress: 0,

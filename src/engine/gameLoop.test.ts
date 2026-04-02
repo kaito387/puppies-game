@@ -35,7 +35,7 @@ describe('Game Loop', () => {
       gameState.jobAssignments.farmer = 2
       gameState.jobAssignments.hunter = 1
       const production = calculateJobProduction(gameState)
-      expect(production.food).toBeCloseTo(2)
+      expect(production.food).toBeCloseTo(2.5)
       expect(production.bones).toBeCloseTo(0.08)
       expect(production.puppies).toBe(0)
     })
@@ -67,6 +67,7 @@ describe('Game Loop', () => {
       gameState.buildings.farm = 20
       const newState = tick(gameState)
       expect(newState.resourceCounts.food).toBeCloseTo(500)
+      expect(newState.resourceDeltaPerTick.food).toBeCloseTo(2)
     })
 
     it('should increase population when there is enough food and space', () => {
@@ -90,8 +91,10 @@ describe('Game Loop', () => {
       gameState.jobAssignments.hunter = 1
 
       const next = tick(gameState)
-      expect(next.resourceCounts.food).toBeCloseTo(50 + 2 - 4)
+      expect(next.resourceCounts.food).toBeCloseTo(50 + 2.5 - 4)
       expect(next.resourceCounts.bones).toBeCloseTo(0.08)
+      expect(next.resourceDeltaPerTick.food).toBeCloseTo(-1.5)
+      expect(next.resourceDeltaPerTick.bones).toBeCloseTo(0.08)
     })
 
     it('should accumulate negative progress and eventually reduce population when starving', () => {

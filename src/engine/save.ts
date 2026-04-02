@@ -22,11 +22,23 @@ export function loadGame(): GameState {
   try {
     const saveData = JSON.parse(saveDataStr)
 
+    const mergeRecord = (
+      savedRecord: Record<string, number> | undefined,
+      defaultRecord: Record<string, number>,
+    ): Record<string, number> => ({
+      ...defaultRecord,
+      ...(savedRecord || {}),
+    })
+
     return {
-      resourceCounts: saveData.resourceCounts || INITIAL_GAME_STATE.resourceCounts,
-      resourceLimits: saveData.resourceLimits || INITIAL_GAME_STATE.resourceLimits,
-      buildings: saveData.buildings || INITIAL_GAME_STATE.buildings,
-      jobAssignments: saveData.jobAssignments || INITIAL_GAME_STATE.jobAssignments,
+      resourceCounts: mergeRecord(saveData.resourceCounts, INITIAL_GAME_STATE.resourceCounts),
+      resourceLimits: mergeRecord(saveData.resourceLimits, INITIAL_GAME_STATE.resourceLimits),
+      resourceDeltaPerTick: mergeRecord(
+        saveData.resourceDeltaPerTick,
+        INITIAL_GAME_STATE.resourceDeltaPerTick,
+      ),
+      buildings: mergeRecord(saveData.buildings, INITIAL_GAME_STATE.buildings),
+      jobAssignments: mergeRecord(saveData.jobAssignments, INITIAL_GAME_STATE.jobAssignments),
       populationGrowthProgress:
         saveData.populationGrowthProgress ?? INITIAL_GAME_STATE.populationGrowthProgress,
       tickCount: saveData.tickCount ?? INITIAL_GAME_STATE.tickCount,

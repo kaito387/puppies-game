@@ -56,13 +56,33 @@ describe('Save System', () => {
     expect(loaded.resourceCounts.puppies).toBe(2)
   })
 
+  it('should default missing resourceDeltaPerTick from old saves', () => {
+    localStorage.setItem(
+      'puppies-game-save',
+      JSON.stringify({
+        version: '0.0.0',
+        resourceCounts: { puppies: 2, food: 10, bones: 1 },
+        resourceLimits: { puppies: 3, food: 100, bones: 100 },
+        buildings: { barn: 1, farm: 0, warehouse: 0 },
+        jobAssignments: { farmer: 1, hunter: 0 },
+        tickCount: 10,
+        lastTickTime: 12345,
+      }),
+    )
+
+    const loaded = loadGame()
+    expect(loaded.resourceDeltaPerTick).toEqual({ puppies: 0, food: 0, bones: 0 })
+  })
+
   it('should preserve signed populationGrowthProgress values', () => {
     const state = createInitialGameState()
     state.populationGrowthProgress = -0.55
+    state.resourceDeltaPerTick.food = 1.25
 
     saveGame(state)
     const loaded = loadGame()
 
     expect(loaded.populationGrowthProgress).toBeCloseTo(-0.55)
+    expect(loaded.resourceDeltaPerTick.food).toBeCloseTo(1.25)
   })
 })
