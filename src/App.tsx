@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { toast, Toaster } from 'sonner'
+import { Toaster } from '@/components/ui/sonner'
+import { toast } from 'sonner'
 import { useGameStore } from '@/store/gameStore'
 import { ResourcePanel } from '@/components/ResourcePanel'
 import { BuildingPanel } from '@/components/BuildingPanel'
@@ -52,7 +53,9 @@ function App() {
     const interval = setInterval(() => {
       const lostPopulation = tick()
       if (lostPopulation > 0) {
-        toast.warning(`有 ${lostPopulation} 只小狗死于饥荒`)
+        toast.warning('',{
+          description: `有 ${lostPopulation} 只小狗死亡`,
+        })
       }
 
       gameTickRef.current += 1
