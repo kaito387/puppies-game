@@ -35,6 +35,7 @@ describe('Actions', () => {
   describe('Job Assignment', () => {
     it('should set job assignment when population is enough', () => {
       gameState.population = 3
+      gameState.buildings.farm = 1
       const newState = setJobAssignment(gameState, 'farmer', 2)
       expect(newState.jobAssignments.farmer).toBe(2)
     })
@@ -50,6 +51,7 @@ describe('Actions', () => {
     })
 
     it('should reject negative assignment count', () => {
+      gameState.buildings.farm = 1
       expect(() => setJobAssignment(gameState, 'farmer', -1)).toThrow('职业分配数量必须是非负整数')
     })
 

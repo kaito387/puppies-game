@@ -57,7 +57,7 @@ describe('Buildings', () => {
 
     it('should apply technology cost discount to building costs', () => {
       gameState.researchedTechIds = ['woodworking', 'crop_rotation']
-      expect(getBuildingCost(gameState, 'farm').food).toBe(9)
+      expect(getBuildingCost(gameState, 'farm').food).toBe(8)
     })
 
     it('should build a barn if resources are sufficient', () => {

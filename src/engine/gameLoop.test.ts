@@ -61,24 +61,25 @@ describe('Game Loop', () => {
       gameState.buildings.farm = 2
 
       const production = calculateProduction(gameState)
-      expect(production.food).toBeCloseTo(0.5)
+      expect(production.food).toBeCloseTo(0.48)
     })
 
-    it('should apply researched tech bonus to resource limits', () => {
-      gameState.researchedTechIds = ['woodworking', 'scientific_method']
+    it('should keep resource limits unchanged when no resource-limit tech exists', () => {
+      gameState.researchedTechIds = ['woodworking', 'crop_rotation']
 
       const limits = calculateResourceLimits(gameState)
-      expect(limits.science).toBe(650)
+      expect(limits.food).toBe(3000)
+      expect(limits.wood).toBe(400)
+      expect(limits.science).toBeUndefined()
     })
 
     it('should apply researched tech multiplier to job production', () => {
-      gameState.researchedTechIds = ['woodworking', 'scientific_method']
+      gameState.researchedTechIds = ['woodworking']
       gameState.population = 2
-      gameState.buildings.library = 1
-      gameState.jobAssignments.scientist = 1
+      gameState.jobAssignments.lumberjack = 1
 
       const production = calculateJobProduction(gameState)
-      expect(production.science).toBeCloseTo(0.3)
+      expect(production.wood).toBeCloseTo(0.24)
     })
   })
 
