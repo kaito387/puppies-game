@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { toast, Toaster } from 'sonner'
 import { useGameStore } from '@/store/gameStore'
 import { ResourcePanel } from '@/components/ResourcePanel'
 import { BuildingPanel } from '@/components/BuildingPanel'
@@ -49,7 +50,11 @@ function App() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      tick()
+      const lostPopulation = tick()
+      if (lostPopulation > 0) {
+        toast.warning(`有 ${lostPopulation} 只小狗死于饥荒`)
+      }
+
       gameTickRef.current += 1
 
       if (gameTickRef.current % AUTO_SAVE_INTERVAL_TICKS === 0) {
@@ -145,6 +150,8 @@ function App() {
           </Card>
         </div>
       </SidebarInset>
+
+      <Toaster richColors position="top-center" />
     </SidebarProvider>
   )
 }
