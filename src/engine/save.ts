@@ -1,12 +1,16 @@
-import { type GameState, createInitialGameState } from '@/engine/types'
+import { TECHNOLOGIES, type GameState, createInitialGameState } from '@/engine/types'
 
 const SAVE_KEY = 'puppies-game-save'
 
 export function saveGame(gameState: GameState): void {
+  const knownTechIds = new Set(TECHNOLOGIES.map((technology) => technology.id))
+  const researchedTechIds = gameState.researchedTechIds.filter((techId) => knownTechIds.has(techId))
+
   const saveData = {
     version: '0.0.0',
     timestamp: Date.now(),
     ...gameState,
+    researchedTechIds,
   }
   localStorage.setItem(SAVE_KEY, JSON.stringify(saveData))
 }
@@ -30,6 +34,11 @@ export function loadGame(): GameState {
       ...(savedRecord || {}),
     })
 
+    const knownTechIds = new Set(TECHNOLOGIES.map((technology) => technology.id))
+    const researchedTechIds = Array.isArray(saveData.researchedTechIds)
+      ? saveData.researchedTechIds.filter((techId: unknown) => typeof techId === 'string' && knownTechIds.has(techId))
+      : INITIAL_GAME_STATE.researchedTechIds
+
     return {
       resourceCounts: mergeRecord(saveData.resourceCounts, INITIAL_GAME_STATE.resourceCounts),
       resourceLimits: mergeRecord(saveData.resourceLimits, INITIAL_GAME_STATE.resourceLimits),
@@ -39,6 +48,7 @@ export function loadGame(): GameState {
       ),
       buildings: mergeRecord(saveData.buildings, INITIAL_GAME_STATE.buildings),
       jobAssignments: mergeRecord(saveData.jobAssignments, INITIAL_GAME_STATE.jobAssignments),
+      researchedTechIds,
       population: saveData.population ?? INITIAL_GAME_STATE.population,
       populationCap: saveData.populationCap ?? INITIAL_GAME_STATE.populationCap,
       isDomesticateEnabled:

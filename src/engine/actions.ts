@@ -1,5 +1,6 @@
 import { type GameState, JOBS } from '@/engine/types'
 import { min } from './utils'
+import { isRequirementSatisfied } from '@/engine/technologies'
 
 export function clickResource(state: GameState, resourceId: string, amount: number = 1): GameState {
   const newResourceCounts = { ...state.resourceCounts }
@@ -18,6 +19,10 @@ export function setJobAssignment(state: GameState, jobId: string, assignedCount:
   const job = JOBS.find((j) => j.id === jobId)
   if (!job) {
     throw new Error(`职业 ${jobId} 不存在`)
+  }
+
+  if (!isRequirementSatisfied(state, job)) {
+    throw new Error(`职业 ${jobId} 尚未解锁`)
   }
 
   if (!Number.isInteger(assignedCount) || assignedCount < 0) {

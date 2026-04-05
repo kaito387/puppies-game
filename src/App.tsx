@@ -3,6 +3,7 @@ import { useGameStore } from '@/store/gameStore'
 import { ResourcePanel } from '@/components/ResourcePanel'
 import { BuildingPanel } from '@/components/BuildingPanel'
 import { JobPanel } from '@/components/JobPanel'
+import { TechnologyPanel } from '@/components/TechnologyPanel'
 import { AUTO_SAVE_INTERVAL_TICKS, GAME_TICK_INTERVAL_MS } from '@/engine/constants'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -103,7 +104,7 @@ function App() {
             <TabsList variant="line" className="w-full justify-start overflow-x-auto">
               <TabsTrigger value="buildings">建筑</TabsTrigger>
               <TabsTrigger value="jobs">工作</TabsTrigger>
-              <TabsTrigger value="science">科学</TabsTrigger>
+              <TabsTrigger value="technologies">科技</TabsTrigger>
               <TabsTrigger value="exploration">探索</TabsTrigger>
               <TabsTrigger value="trade">贸易</TabsTrigger>
             </TabsList>
@@ -114,13 +115,8 @@ function App() {
             <TabsContent value="jobs">
               <JobPanel />
             </TabsContent>
-            <TabsContent value="science">
-              <PlaceholderActionPanel
-                title="🔬 科学"
-                description="研究将解锁生产效率与新建筑。"
-                buttonLabel="开始研究"
-                requirement="需要 100 食物"
-              />
+            <TabsContent value="technologies">
+              <TechnologyPanel />
             </TabsContent>
             <TabsContent value="exploration">
               <PlaceholderActionPanel

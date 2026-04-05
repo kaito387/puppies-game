@@ -4,6 +4,13 @@ import { tick } from '@/engine/gameLoop'
 import { clickResource, setDomesticateEnabled, setJobAssignment } from '@/engine/actions'
 import { buildBuilding, canBuildBuilding, getBuildingCost } from '@/engine/buildings'
 import { saveGame, loadGame, resetGame } from '@/engine/save'
+import {
+  canResearchTechnology,
+  getVisibleTechnologiesIds,
+  researchTechnology,
+  getUnlockedBuildingsIds,
+  getUnlockedJobsIds,
+} from '@/engine/technologies'
 
 interface GameStore {
   gameState: GameState
@@ -13,9 +20,14 @@ interface GameStore {
   buildBuilding: (buildingId: string) => void
   getBuildingCost: (buildingId: string) => Record<string, number>
   canBuildBuilding: (buildingId: string) => boolean
+  getUnlockedBuildingIds: () => string[]
+  getUnlockedJobIds: () => string[]
   clickResource: (resourceId: string, amount?: number) => void
   setJobAssignment: (jobId: string, assignedCount: number) => void
   setDomesticateEnabled: (enabled: boolean) => void
+  researchTechnology: (techId: string) => void
+  canResearchTechnology: (techId: string) => boolean
+  getVisibleTechnologiesIds: () => string[]
 
   saveGame: () => void
   loadGame: () => void
@@ -45,6 +57,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return canBuildBuilding(get().gameState, buildingId)
   },
 
+  getUnlockedBuildingIds: () => {
+    return getUnlockedBuildingsIds(get().gameState)
+  },
+
+  getUnlockedJobIds: () => {
+    return getUnlockedJobsIds(get().gameState)
+  },
+
   clickResource: (resourceId: string, amount: number = 1) => {
     set((gameStore) => ({
       gameState: clickResource(gameStore.gameState, resourceId, amount),
@@ -61,6 +81,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set((gameStore) => ({
       gameState: setDomesticateEnabled(gameStore.gameState, enabled),
     }))
+  },
+
+  researchTechnology: (techId: string) => {
+    set((gameStore) => ({
+      gameState: researchTechnology(gameStore.gameState, techId),
+    }))
+  },
+
+  canResearchTechnology: (techId: string) => {
+    return canResearchTechnology(get().gameState, techId)
+  },
+
+  getVisibleTechnologiesIds: () => {
+    return getVisibleTechnologiesIds(get().gameState)
   },
 
   saveGame: () => {

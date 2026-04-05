@@ -1,18 +1,20 @@
 export interface Resource {
   id: string
   name: string
-  icon?: string // TODO Optional
+  icon?: string
 }
-// TODO 资源可以区分浮点数和整数
 
 export interface Building {
   id: string
   name: string
-  icon?: string // TODO Optional
+  icon?: string
   description: string
   cost: Record<string, number>
   costGrowthMultiplier: number
-  productionPerTick: Record<string, number>
+
+  productionPerTick?: Record<string, number>
+  requiredTechs?: string[]
+  requiredBuildings?: string[]
   resourceLimitBonuses?: Record<string, number>
   populationCapBonus?: number
 }
@@ -23,6 +25,39 @@ export interface Job {
   icon?: string
   description: string
   productionPerTick: Record<string, number>
+  requiredTechs?: string[]
+  requiredBuildings?: string[]
+}
+
+export type EffectMode = 'multiplier' | 'additive'
+
+export type EffectType =
+  | 'building_cost'
+  | 'building_production'
+  | 'job_production'
+  | 'resource_limit'
+
+export interface RequirementCarrier {
+  requiredTechs?: string[]
+  requiredBuildings?: string[]
+}
+
+export interface Effect {
+  id: string
+  type: EffectType
+  mode: EffectMode
+  targetId?: string
+  resourceId?: string
+  value: number
+}
+
+export interface Technology {
+  id: string
+  name: string
+  description: string
+  cost: Record<string, number>
+  prerequisites?: RequirementCarrier
+  effects?: Effect[]
 }
 
 export interface GameState {
@@ -31,6 +66,7 @@ export interface GameState {
   resourceDeltaPerTick: Record<string, number>
   buildings: Record<string, number>
   jobAssignments: Record<string, number>
+  researchedTechIds: string[]
 
   population: number
   populationGrowthProgress: number
@@ -44,12 +80,13 @@ export interface GameState {
 
 export const RESOURCES: Resource[] = [
   { id: 'food', name: '食物', icon: '🍖' },
-  { id: 'bones', name: '骨头', icon: '🦴' },
+  { id: 'wood', name: '木材', icon: '🪵' },
+  { id: 'science', name: '科学', icon: '🔬' },
 ]
 
 export const INITIAL_RESOURCE_LIMITS: Record<string, number> = {
-  food: 5000,
-  bones: 300,
+  food: 3000,
+  wood: 400,
 }
 
 export const INITIAL_POPULATION_CAP = 1
@@ -63,14 +100,23 @@ export const JOBS: Job[] = [
     icon: '🌾',
     description: '每 Tick 生产食物。',
     productionPerTick: { food: 1.5 },
+    requiredBuildings: ['farm'],
   },
   {
-    id: 'hunter',
-    name: '猎手',
-    icon: '🏹',
-    description: '每 Tick 采集骨头。',
-    productionPerTick: { bones: 0.2 },
+    id: 'lumberjack',
+    name: '伐木工',
+    icon: '🪓',
+    description: '每 Tick 采集木材。',
+    productionPerTick: { wood: 0.2 },
   },
+  {
+    id: 'scientist',
+    name: '科学家',
+    icon: '🔬',
+    description: '每 Tick 进行科学研究。',
+    productionPerTick: { science: 0.2 },
+    requiredBuildings: ['library'],
+  }
 ]
 
 export const BUILDINGS: Building[] = [
@@ -79,9 +125,8 @@ export const BUILDINGS: Building[] = [
     name: '狗舍',
     icon: '🏠',
     description: '可以容纳 2 只小狗。',
-    cost: { bones: 10, food: 100 },
+    cost: { wood: 10, food: 75 },
     costGrowthMultiplier: 2.5,
-    productionPerTick: {},
     populationCapBonus: 2,
   },
   {
@@ -97,11 +142,65 @@ export const BUILDINGS: Building[] = [
     id: 'warehouse',
     name: '仓库',
     icon: '📦',
-    description: '提升食物与骨头的存储上限。',
-    cost: { bones: 300 },
+    description: '提升食物与木材的存储上限。',
+    cost: { wood: 200 },
     costGrowthMultiplier: 2.5,
-    productionPerTick: {},
-    resourceLimitBonuses: { food: 5000, bones: 300 },
+    resourceLimitBonuses: { food: 3000, wood: 400 },
+  },
+  {
+    id: 'library',
+    name: '图书馆',
+    icon: '📚',
+    description: '解锁科技研究，提升科学产出并增加科学存储上限。',
+    cost: { wood: 25, food: 100 },
+    costGrowthMultiplier: 2,
+    resourceLimitBonuses: { science: 200 },
+  }
+]
+
+export const TECHNOLOGIES: Technology[] = [
+  {
+    id: 'woodworking',
+    name: '木工学',
+    description: '改良木材处理效率，提升伐木工的产量 20%。',
+    cost: { science: 100 },
+    prerequisites: {
+      requiredBuildings: ['library'],
+    },
+    effects: [
+      {
+        id: 'woodworking-lumberjack-bonus',
+        type: 'job_production',
+        targetId: 'lumberjack',
+        value: 1.2,
+        mode: 'multiplier',
+      },
+    ],
+  },
+  {
+    id: 'crop_rotation',
+    name: '轮作农法',
+    description: '农场效率提高 20%，且建造成本略有下降。',
+    cost: { science: 200 },
+    prerequisites: {
+      requiredBuildings: ['library'],
+    },
+    effects: [
+      {
+        id: 'crop-rotation-farm-output',
+        type: 'building_production',
+        targetId: 'farm',
+        value: 1.2,
+        mode: 'multiplier',
+      },
+      {
+        id: 'crop-rotation-farm-cost',
+        type: 'building_cost',
+        targetId: 'farm',
+        value: 0.8,
+        mode: 'multiplier',
+      },
+    ],
   },
 ]
 
@@ -141,6 +240,7 @@ export function createInitialGameState(): GameState {
     resourceDeltaPerTick: createInitialResourceDeltaPerTick(),
     buildings,
     jobAssignments,
+    researchedTechIds: [],
     population: 0,
     populationCap: INITIAL_POPULATION_CAP,
     isDomesticateEnabled: false,

@@ -23,7 +23,7 @@ describe('Game Loop', () => {
   describe('Production', () => {
     it('should calculate production correctly with no buildings', () => {
       const production = calculateProduction(gameState)
-      expect(production).toEqual({ food: 0, bones: 0 })
+      expect(production).toEqual({ food: 0, wood: 0, science: 0 })
     })
 
     it('should calculate production correctly with multiple buildings', () => {
@@ -31,16 +31,17 @@ describe('Game Loop', () => {
       gameState.buildings.farm = 3
       const production = calculateProduction(gameState)
       expect(production.food).toBeCloseTo(0.6)
-      expect(production.bones).toBe(0)
+      expect(production.wood).toBe(0)
+      expect(production.science).toBe(0)
     })
 
     it('should calculate job production correctly', () => {
       gameState.population = 3
       gameState.jobAssignments.farmer = 2
-      gameState.jobAssignments.hunter = 1
+      gameState.jobAssignments.lumberjack = 1
       const production = calculateJobProduction(gameState)
       expect(production.food).toBeCloseTo(3)
-      expect(production.bones).toBeCloseTo(0.2)
+      expect(production.wood).toBeCloseTo(0.2)
     })
 
     it('should calculate population cap from housing buildings', () => {
@@ -51,8 +52,33 @@ describe('Game Loop', () => {
     it('should calculate resource limits with warehouse bonuses', () => {
       gameState.buildings.warehouse = 2
       const limits = calculateResourceLimits(gameState)
-      expect(limits.food).toBe(15000)
-      expect(limits.bones).toBe(900)
+      expect(limits.food).toBe(9000)
+      expect(limits.wood).toBe(1200)
+    })
+
+    it('should apply researched tech multiplier to building production', () => {
+      gameState.researchedTechIds = ['woodworking', 'crop_rotation']
+      gameState.buildings.farm = 2
+
+      const production = calculateProduction(gameState)
+      expect(production.food).toBeCloseTo(0.5)
+    })
+
+    it('should apply researched tech bonus to resource limits', () => {
+      gameState.researchedTechIds = ['woodworking', 'scientific_method']
+
+      const limits = calculateResourceLimits(gameState)
+      expect(limits.science).toBe(650)
+    })
+
+    it('should apply researched tech multiplier to job production', () => {
+      gameState.researchedTechIds = ['woodworking', 'scientific_method']
+      gameState.population = 2
+      gameState.buildings.library = 1
+      gameState.jobAssignments.scientist = 1
+
+      const production = calculateJobProduction(gameState)
+      expect(production.science).toBeCloseTo(0.3)
     })
   })
 
@@ -65,10 +91,11 @@ describe('Game Loop', () => {
     })
 
     it('should not exceed resource limits on tick', () => {
-      gameState.resourceCounts.food = 4999
+      gameState.buildings.warehouse = 2
+      gameState.resourceCounts.food = 8999
       gameState.buildings.farm = 20
       const newState = tick(gameState)
-      expect(newState.resourceCounts.food).toBeCloseTo(5000)
+      expect(newState.resourceCounts.food).toBeCloseTo(9000)
       expect(newState.resourceDeltaPerTick.food).toBeCloseTo(1)
     })
 
@@ -92,13 +119,13 @@ describe('Game Loop', () => {
       gameState.population = 4
       gameState.populationCap = 10
       gameState.jobAssignments.farmer = 2
-      gameState.jobAssignments.hunter = 1
+      gameState.jobAssignments.lumberjack = 1
 
       const next = tick(gameState)
       expect(next.resourceCounts.food).toBeCloseTo(50 + 3 - 4 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK)
-      expect(next.resourceCounts.bones).toBeCloseTo(0.2)
+      expect(next.resourceCounts.wood).toBeCloseTo(0.2)
       expect(next.resourceDeltaPerTick.food).toBeCloseTo(3 - 4 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK)
-      expect(next.resourceDeltaPerTick.bones).toBeCloseTo(0.2)
+      expect(next.resourceDeltaPerTick.wood).toBeCloseTo(0.2)
     })
 
     it('should not increase growth when domestication is enabled but food is not enough for domestication cost', () => {
@@ -169,7 +196,7 @@ describe('Game Loop', () => {
       gameState.population = 5
       gameState.resourceCounts.food = 0
       gameState.jobAssignments.farmer = 3
-      gameState.jobAssignments.hunter = 2
+      gameState.jobAssignments.lumberjack = 2
 
       let next = gameState
       for (let i = 0; i < 10; i += 1) {

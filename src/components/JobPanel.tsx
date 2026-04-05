@@ -7,6 +7,8 @@ import { Separator } from '@/components/ui/separator'
 
 export function JobPanel() {
   const gameState = useGameStore((store) => store.gameState)
+  const getUnlockedJobIds = useGameStore((store) => store.getUnlockedJobIds)
+  const unlockedJobIds = getUnlockedJobIds()
   const setJobAssignment = useGameStore((store) => store.setJobAssignment)
 
   const population = Math.floor(gameState.population || 0)
@@ -41,8 +43,7 @@ export function JobPanel() {
         <Separator />
 
         <div className="flex flex-col gap-3">
-          {JOBS.map((job) => {
-            // TODO move this logic to store
+          {JOBS.filter((job) => unlockedJobIds.includes(job.id)).map((job) => {
             const assigned = gameState.jobAssignments[job.id] || 0
             const canIncrease = idlePopulation > 0
             const canDecrease = assigned > 0

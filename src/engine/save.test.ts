@@ -42,8 +42,8 @@ describe('Save System', () => {
       'puppies-game-save',
       JSON.stringify({
         version: '0.0.0',
-        resourceCounts: { food: 10, bones: 1 },
-        resourceLimits: { food: 100, bones: 100 },
+        resourceCounts: { food: 10, wood: 1 },
+        resourceLimits: { food: 100, wood: 100 },
         buildings: { barn: 1, farm: 0, warehouse: 0 },
         jobAssignments: { farmer: 1, hunter: 0 },
         tickCount: 10,
@@ -63,8 +63,8 @@ describe('Save System', () => {
       'puppies-game-save',
       JSON.stringify({
         version: '0.0.0',
-        resourceCounts: { food: 10, bones: 1 },
-        resourceLimits: { food: 100, bones: 100 },
+        resourceCounts: { food: 10, wood: 1 },
+        resourceLimits: { food: 100, wood: 100 },
         buildings: { barn: 1, farm: 0, warehouse: 0 },
         jobAssignments: { farmer: 1, hunter: 0 },
         tickCount: 10,
@@ -73,7 +73,7 @@ describe('Save System', () => {
     )
 
     const loaded = loadGame()
-    expect(loaded.resourceDeltaPerTick).toEqual({ food: 0, bones: 0 })
+    expect(loaded.resourceDeltaPerTick).toEqual({ food: 0, wood: 0, science: 0 })
   })
 
   it('should preserve population/domestication related fields', () => {
@@ -92,5 +92,28 @@ describe('Save System', () => {
     expect(loaded.isDomesticateEnabled).toBe(true)
     expect(loaded.populationGrowthProgress).toBeCloseTo(-0.55)
     expect(loaded.resourceDeltaPerTick.food).toBeCloseTo(1.25)
+  })
+
+  it('should persist researched technologies', () => {
+    const state = createInitialGameState()
+    state.researchedTechIds = ['woodworking']
+
+    saveGame(state)
+    const loaded = loadGame()
+
+    expect(loaded.researchedTechIds).toEqual(['woodworking'])
+  })
+
+  it('should filter unknown researched technologies while loading', () => {
+    localStorage.setItem(
+      'puppies-game-save',
+      JSON.stringify({
+        version: '0.0.0',
+        researchedTechIds: ['woodworking', 'unknown-tech'],
+      }),
+    )
+
+    const loaded = loadGame()
+    expect(loaded.researchedTechIds).toEqual(['woodworking'])
   })
 })

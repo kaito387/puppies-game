@@ -47,7 +47,7 @@ describe('Buildings', () => {
     })
 
     it('should report whether a building can be built with dynamic cost', () => {
-      gameState.resourceCounts.bones = barn.cost.bones || 0
+      gameState.resourceCounts.wood = barn.cost.wood || 0
       gameState.resourceCounts.food = barn.cost.food || 0
       expect(canBuildBuilding(gameState, 'barn')).toBe(true)
 
@@ -55,18 +55,23 @@ describe('Buildings', () => {
       expect(canBuildBuilding(gameState, 'barn')).toBe(false)
     })
 
+    it('should apply technology cost discount to building costs', () => {
+      gameState.researchedTechIds = ['woodworking', 'crop_rotation']
+      expect(getBuildingCost(gameState, 'farm').food).toBe(9)
+    })
+
     it('should build a barn if resources are sufficient', () => {
-      gameState.resourceCounts.bones = barn.cost.bones || 0
+      gameState.resourceCounts.wood = barn.cost.wood || 0
       gameState.resourceCounts.food = barn.cost.food || 0
       const newState = buildBuilding(gameState, 'barn')
       expect(newState.buildings.barn).toBe(1)
-      expect(newState.resourceCounts.bones).toBe(0)
+      expect(newState.resourceCounts.wood).toBe(0)
       expect(newState.resourceCounts.food).toBe(0)
     })
 
     it('should not build a barn if resources are insufficient', () => {
-      gameState.resourceCounts.bones = 5
-      expect(() => buildBuilding(gameState, 'barn')).toThrow('资源 bones 不足')
+      gameState.resourceCounts.wood = 5
+      expect(() => buildBuilding(gameState, 'barn')).toThrow('资源 wood 不足')
     })
 
     it('should throw an error if building does not exist', () => {

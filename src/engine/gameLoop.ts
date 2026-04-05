@@ -10,9 +10,11 @@ import {
 } from '@/engine/types'
 import { rebalanceJobAssignments } from '@/engine/actions'
 import { min } from '@/engine/utils'
+import { aggregateTechEffects } from '@/engine/technologies'
 
 export function calculateProduction(gameState: GameState): Record<string, number> {
   const production: Record<string, number> = {}
+  const { buildingProductionMultipliers } = aggregateTechEffects(gameState)
 
   RESOURCES.forEach((resource) => {
     production[resource.id] = 0
@@ -20,8 +22,9 @@ export function calculateProduction(gameState: GameState): Record<string, number
 
   BUILDINGS.forEach((building) => {
     const count = gameState.buildings[building.id] || 0
-    for (const [resourceId, amount] of Object.entries(building.productionPerTick)) {
-      production[resourceId] += amount * count
+    const multiplier = buildingProductionMultipliers[building.id] || 1
+    for (const [resourceId, amount] of Object.entries(building.productionPerTick || {})) {
+      production[resourceId] += amount * count * multiplier
     }
   })
 
@@ -45,6 +48,7 @@ export function calculatePopulationCap(gameState: GameState): number {
 
 export function calculateResourceLimits(gameState: GameState): Record<string, number> {
   const limits: Record<string, number> = { ...INITIAL_RESOURCE_LIMITS }
+  const { resourceLimitBonuses } = aggregateTechEffects(gameState)
 
   BUILDINGS.forEach((building) => {
     const count = gameState.buildings[building.id] || 0
@@ -57,11 +61,16 @@ export function calculateResourceLimits(gameState: GameState): Record<string, nu
     }
   })
 
+  for (const [resourceId, bonus] of Object.entries(resourceLimitBonuses)) {
+    limits[resourceId] = (limits[resourceId] || 0) + bonus
+  }
+
   return limits
 }
 
 export function calculateJobProduction(gameState: GameState): Record<string, number> {
   const production: Record<string, number> = {}
+  const { jobProductionMultipliers } = aggregateTechEffects(gameState)
 
   RESOURCES.forEach((resource) => {
     production[resource.id] = 0
@@ -69,12 +78,13 @@ export function calculateJobProduction(gameState: GameState): Record<string, num
 
   JOBS.forEach((job) => {
     const assigned = gameState.jobAssignments[job.id] || 0
+    const multiplier = jobProductionMultipliers[job.id] || 1
     if (assigned <= 0) {
       return
     }
 
     for (const [resourceId, amount] of Object.entries(job.productionPerTick)) {
-      production[resourceId] += amount * assigned
+      production[resourceId] += amount * assigned * multiplier
     }
   })
 

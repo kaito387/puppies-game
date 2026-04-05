@@ -7,6 +7,8 @@ import { Separator } from '@/components/ui/separator'
 
 export function BuildingPanel() {
   const gameState = useGameStore((store) => store.gameState)
+  const getUnlockedBuildingIds = useGameStore((store) => store.getUnlockedBuildingIds)
+  const unlockedBuildingIds = getUnlockedBuildingIds()
   const buildBuilding = useGameStore((store) => store.buildBuilding)
   const clickResource = useGameStore((store) => store.clickResource)
   const getBuildingCost = useGameStore((store) => store.getBuildingCost)
@@ -27,7 +29,7 @@ export function BuildingPanel() {
         <Separator />
 
         <div className="flex flex-col gap-3">
-          {BUILDINGS.map((building) => {
+          {BUILDINGS.filter((building) => unlockedBuildingIds.includes(building.id)).map((building) => {
             const count = gameState.buildings[building.id] || 0
             const buildingCost = getBuildingCost(building.id)
             const canBuild = canBuildBuilding(building.id)

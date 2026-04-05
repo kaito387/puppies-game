@@ -16,19 +16,19 @@ describe('Actions', () => {
 
   describe('Clicking Resources', () => {
     it('should increase resource count when clicking', () => {
-      const newState = clickResource(gameState, 'bones', 3)
-      expect(newState.resourceCounts.bones).toBe(3)
+      const newState = clickResource(gameState, 'wood', 3)
+      expect(newState.resourceCounts.wood).toBe(3)
     })
 
     it('should default to increasing by 1 if amount is not specified', () => {
-      const newState = clickResource(gameState, 'bones')
-      expect(newState.resourceCounts.bones).toBe(1)
+      const newState = clickResource(gameState, 'wood')
+      expect(newState.resourceCounts.wood).toBe(1)
     })
 
     it('should not exceed resource limits when clicking', () => {
-      gameState.resourceLimits.bones = 5
-      const newState = clickResource(gameState, 'bones', 10)
-      expect(newState.resourceCounts.bones).toBe(5)
+      gameState.resourceLimits.wood = 5
+      const newState = clickResource(gameState, 'wood', 10)
+      expect(newState.resourceCounts.wood).toBe(5)
     })
   })
 
@@ -42,7 +42,7 @@ describe('Actions', () => {
     it('should reject assignment when total workers exceed population', () => {
       gameState.population = 2
       gameState.jobAssignments.farmer = 1
-      expect(() => setJobAssignment(gameState, 'hunter', 2)).toThrow('职业分配总人数不能超过当前人口')
+      expect(() => setJobAssignment(gameState, 'lumberjack', 2)).toThrow('职业分配总人数不能超过当前人口')
     })
 
     it('should reject unknown jobs', () => {
@@ -54,18 +54,18 @@ describe('Actions', () => {
     })
 
     it('should keep assignments unchanged when total assigned is within population', () => {
-      const nextAssignments = rebalanceJobAssignments({ farmer: 2, hunter: 1 }, 4)
-      expect(nextAssignments).toEqual({ farmer: 2, hunter: 1 })
+      const nextAssignments = rebalanceJobAssignments({ farmer: 2, lumberjack: 1 }, 4)
+      expect(nextAssignments).toEqual({ farmer: 2, lumberjack: 1 })
     })
 
     it('should reduce assignments from the end of JOBS order first', () => {
-      const nextAssignments = rebalanceJobAssignments({ farmer: 2, hunter: 2 }, 3)
-      expect(nextAssignments).toEqual({ farmer: 2, hunter: 1 })
+      const nextAssignments = rebalanceJobAssignments({ farmer: 2, lumberjack: 2 }, 3)
+      expect(nextAssignments).toEqual({ farmer: 2, lumberjack: 1 })
     })
 
     it('should cascade assignment reduction when deaths exceed idle population', () => {
-      const nextAssignments = rebalanceJobAssignments({ farmer: 4, hunter: 3 }, 2)
-      expect(nextAssignments).toEqual({ farmer: 2, hunter: 0 })
+      const nextAssignments = rebalanceJobAssignments({ farmer: 4, lumberjack: 3 }, 2)
+      expect(nextAssignments).toEqual({ farmer: 2, lumberjack: 0 })
     })
 
     it('should toggle domestication switch state', () => {
