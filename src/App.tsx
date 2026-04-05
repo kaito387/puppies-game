@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { Toaster } from '@/components/ui/sonner'
-import { toast } from 'sonner'
 import { useGameStore } from '@/store/gameStore'
 import { ResourcePanel } from '@/components/ResourcePanel'
 import { BuildingPanel } from '@/components/BuildingPanel'
 import { JobPanel } from '@/components/JobPanel'
 import { TechnologyPanel } from '@/components/TechnologyPanel'
+import { LogPanel } from '@/components/LogPanel'
 import { AUTO_SAVE_INTERVAL_TICKS, GAME_TICK_INTERVAL_MS } from '@/engine/constants'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -52,13 +52,7 @@ function App() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const lostPopulation = tick()
-      if (lostPopulation > 0) {
-        toast.warning('',{
-          description: `有 ${lostPopulation} 只小狗死亡`,
-        })
-      }
-
+      tick()
       gameTickRef.current += 1
 
       if (gameTickRef.current % AUTO_SAVE_INTERVAL_TICKS === 0) {
@@ -100,6 +94,7 @@ function App() {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>Ticks: {gameState.tickCount}</span>
               <span>TPS: ~5</span>
+              <LogPanel />
               <Button variant="outline" onClick={resetGame}>
                 🔄 重置游戏
               </Button>

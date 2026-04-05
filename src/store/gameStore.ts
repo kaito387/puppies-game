@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { type GameState, createInitialGameState } from '@/engine/types'
+import { type GameState, createInitialGameState, addLog, type GameLog } from '@/engine/types'
 import { tick } from '@/engine/gameLoop'
 import { clickResource, setDomesticateEnabled, setJobAssignment } from '@/engine/actions'
 import { buildBuilding, canBuildBuilding, getBuildingCost } from '@/engine/buildings'
@@ -14,6 +14,7 @@ import {
 
 interface GameStore {
   gameState: GameState
+  unreadLogCount: number
 
   tick: () => number
 
@@ -29,6 +30,9 @@ interface GameStore {
   canResearchTechnology: (techId: string) => boolean
   getVisibleTechnologiesIds: () => string[]
 
+  addGameLog: (log: Omit<GameLog, 'id'>) => void
+  markLogsAsRead: () => void
+
   saveGame: () => void
   loadGame: () => void
   resetGame: () => void
@@ -36,13 +40,25 @@ interface GameStore {
 
 export const useGameStore = create<GameStore>((set, get) => ({
   gameState: loadGame(),
+  unreadLogCount: 0,
 
   tick: () => {
     const tickResult = tick(get().gameState)
     const { lostPopulation, ...nextGameState } = tickResult
 
+    let finalState = nextGameState
+    if (lostPopulation > 0) {
+      finalState = addLog(nextGameState, {
+        timestamp: Date.now(),
+        type: 'death',
+        message: `有 ${lostPopulation} 只小狗死亡`,
+        count: lostPopulation,
+      })
+    }
+
     set(() => ({
-      gameState: nextGameState,
+      gameState: finalState,
+      unreadLogCount: get().unreadLogCount + (lostPopulation > 0 ? 1 : 0),
     }))
 
     return lostPopulation
@@ -102,6 +118,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return getVisibleTechnologiesIds(get().gameState)
   },
 
+  addGameLog: (log: Omit<GameLog, 'id'>) => {
+    set((gameStore) => ({
+      gameState: addLog(gameStore.gameState, log),
+      unreadLogCount: gameStore.unreadLogCount + 1,
+    }))
+  },
+
+  markLogsAsRead: () => {
+    set(() => ({
+      unreadLogCount: 0,
+    }))
+  },
+
   saveGame: () => {
     const { gameState } = get()
     saveGame(gameState)
@@ -117,6 +146,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     resetGame()
     set(() => ({
       gameState: createInitialGameState(),
+      unreadLogCount: 0,
     }))
   },
 }))

@@ -60,6 +60,16 @@ export interface Technology {
   effects?: Effect[]
 }
 
+export type GameLogType = 'death' | 'building_constructed' | 'tech_researched'
+
+export interface GameLog {
+  id: string
+  timestamp: number
+  type: GameLogType
+  message: string
+  count?: number
+}
+
 export interface GameState {
   resourceCounts: Record<string, number>
   resourceLimits: Record<string, number>
@@ -76,6 +86,8 @@ export interface GameState {
 
   tickCount: number
   lastTickTime: number
+  
+  logs: GameLog[]
 }
 
 export const RESOURCES: Resource[] = [
@@ -247,5 +259,22 @@ export function createInitialGameState(): GameState {
     populationGrowthProgress: 0,
     tickCount: 0,
     lastTickTime: Date.now(),
+    logs: [],
+  }
+}
+
+const MAX_LOGS = 100
+
+export function addLog(state: GameState, log: Omit<GameLog, 'id'>): GameState {
+  const newLog: GameLog = {
+    ...log,
+    id: `${log.type}-${log.timestamp}-${Math.random().toString(36).substr(2, 9)}`,
+  }
+  
+  const updatedLogs = [newLog, ...state.logs].slice(0, MAX_LOGS)
+  
+  return {
+    ...state,
+    logs: updatedLogs,
   }
 }

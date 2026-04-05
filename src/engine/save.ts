@@ -57,6 +57,7 @@ export function loadGame(): GameState {
         saveData.populationGrowthProgress ?? INITIAL_GAME_STATE.populationGrowthProgress,
       tickCount: saveData.tickCount ?? INITIAL_GAME_STATE.tickCount,
       lastTickTime: saveData.lastTickTime ?? INITIAL_GAME_STATE.lastTickTime,
+      logs: INITIAL_GAME_STATE.logs,
     }
   } catch (error) {
     console.error('加载存档失败：', error)
