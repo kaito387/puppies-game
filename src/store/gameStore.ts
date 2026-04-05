@@ -15,7 +15,7 @@ import {
 interface GameStore {
   gameState: GameState
 
-  tick: () => void
+  tick: () => number
 
   buildBuilding: (buildingId: string) => void
   getBuildingCost: (buildingId: string) => Record<string, number>
@@ -38,9 +38,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
   gameState: loadGame(),
 
   tick: () => {
-    set((gameStore) => ({
-      gameState: tick(gameStore.gameState),
+    const tickResult = tick(get().gameState)
+    const { lostPopulation, ...nextGameState } = tickResult
+
+    set(() => ({
+      gameState: nextGameState,
     }))
+
+    return lostPopulation
   },
 
   buildBuilding: (buildingId: string) => {

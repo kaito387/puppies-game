@@ -95,7 +95,7 @@ export function applyPopulationGrowth(
   state: GameState,
   resourceCounts: Record<string, number>,
   populationCap: number,
-): { population: number; growthProgress: number } {
+): { population: number; growthProgress: number; lostPopulation: number } {
   const currentPopulation = state.population || 0
   const currentFood = resourceCounts.food || 0
   const foodNeed = currentPopulation * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK
@@ -104,7 +104,7 @@ export function applyPopulationGrowth(
   resourceCounts.food = Math.max(0, currentFood - foodNeed)
   let nextProgress = state.populationGrowthProgress || 0
   let nextPopulation = min(currentPopulation, populationCap)
-
+  let lostPopulation = 0
   if (foodDeficit > 0) {
     if (nextProgress > 0) {
       nextProgress = 0
@@ -128,7 +128,7 @@ export function applyPopulationGrowth(
   }
 
   if (nextProgress <= -1) {
-    const lostPopulation = Math.floor(-nextProgress)
+    lostPopulation = Math.floor(-nextProgress)
     nextPopulation = Math.max(0, nextPopulation - lostPopulation)
     nextProgress = nextPopulation <= 0 ? 0 : nextProgress + lostPopulation
   }
@@ -136,10 +136,11 @@ export function applyPopulationGrowth(
   return {
     population: nextPopulation,
     growthProgress: nextProgress,
+    lostPopulation,
   }
 }
 
-export function tick(state: GameState): GameState {
+export function tick(state: GameState): GameState & { lostPopulation: number } {
   const nextPopulationCap = calculatePopulationCap(state)
   const nextLimits = calculateResourceLimits(state)
 
@@ -180,5 +181,6 @@ export function tick(state: GameState): GameState {
     populationGrowthProgress: populationUpdate.growthProgress,
     tickCount: state.tickCount + 1,
     lastTickTime: Date.now(),
+    lostPopulation: populationUpdate.lostPopulation,
   }
 }
