@@ -86,7 +86,7 @@ describe('Game Loop', () => {
   describe('Tick', () => {
     it('should produce resources on tick', () => {
       gameState.buildings.farm = 1
-      const newState = tick(gameState)
+      const { gameState: newState } = tick(gameState)
       expect(newState.resourceCounts.food).toBeCloseTo(0.2)
       expect(newState.tickCount).toBe(1)
     })
@@ -95,7 +95,7 @@ describe('Game Loop', () => {
       gameState.buildings.warehouse = 2
       gameState.resourceCounts.food = 8999
       gameState.buildings.farm = 20
-      const newState = tick(gameState)
+      const { gameState: newState } = tick(gameState)
       expect(newState.resourceCounts.food).toBeCloseTo(9000)
       expect(newState.resourceDeltaPerTick.food).toBeCloseTo(1)
     })
@@ -108,7 +108,8 @@ describe('Game Loop', () => {
 
       let next = gameState
       for (let i = 0; i < 200; i += 1) {
-        next = tick(next)
+        const result = tick(next)
+        next = result.gameState
       }
 
       expect(next.population).toBeGreaterThan(0)
@@ -122,7 +123,7 @@ describe('Game Loop', () => {
       gameState.jobAssignments.farmer = 2
       gameState.jobAssignments.lumberjack = 1
 
-      const next = tick(gameState)
+      const { gameState: next } = tick(gameState)
       expect(next.resourceCounts.food).toBeCloseTo(50 + 3 - 4 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK)
       expect(next.resourceCounts.wood).toBeCloseTo(0.2)
       expect(next.resourceDeltaPerTick.food).toBeCloseTo(3 - 4 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK)
@@ -134,7 +135,7 @@ describe('Game Loop', () => {
       gameState.resourceCounts.food = FOOD_CONSUMPTION_PER_PUPPY_PER_TICK - 0.1
       gameState.isDomesticateEnabled = true
 
-      const next = tick(gameState)
+      const { gameState: next } = tick(gameState)
       expect(next.populationGrowthProgress).toBe(0)
       expect(next.resourceCounts.food).toBeCloseTo(FOOD_CONSUMPTION_PER_PUPPY_PER_TICK - 0.1)
     })
@@ -145,7 +146,7 @@ describe('Game Loop', () => {
       gameState.populationGrowthProgress = 0.4
       gameState.isDomesticateEnabled = false
 
-      const next = tick(gameState)
+      const { gameState: next } = tick(gameState)
       expect(next.populationGrowthProgress).toBeCloseTo(0.4)
       expect(next.population).toBe(0)
     })
@@ -155,7 +156,7 @@ describe('Game Loop', () => {
       gameState.resourceCounts.food = 0
       gameState.populationGrowthProgress = 0.6
 
-      const next = tick(gameState)
+      const { gameState: next } = tick(gameState)
       const expectedStarvationDelta =
         (5 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK / FOOD_CONSUMPTION_PER_PUPPY_PER_TICK) *
         POPULATION_GROWTH_RATE
@@ -171,7 +172,8 @@ describe('Game Loop', () => {
 
       let next = gameState
       for (let i = 0; i < 40; i += 1) {
-        next = tick(next)
+        const result = tick(next)
+        next = result.gameState
       }
 
       expect(next.populationGrowthProgress).toBeLessThan(0)
@@ -186,7 +188,7 @@ describe('Game Loop', () => {
       gameState.populationGrowthProgress = 0.8
       gameState.isDomesticateEnabled = true
 
-      const next = tick(gameState)
+      const { gameState: next } = tick(gameState)
       expect(next.population).toBe(next.populationCap)
       expect(next.resourceCounts.food).toBeCloseTo(200 - 3 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK)
       expect(next.populationGrowthProgress).toBeCloseTo(0.8)
@@ -201,7 +203,8 @@ describe('Game Loop', () => {
 
       let next = gameState
       for (let i = 0; i < 10; i += 1) {
-        next = tick(next)
+        const result = tick(next)
+        next = result.gameState
       }
 
       const totalAssigned = Object.values(next.jobAssignments).reduce((sum, count) => sum + count, 0)

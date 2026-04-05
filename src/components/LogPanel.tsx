@@ -49,7 +49,7 @@ function LogItem({ log }: { log: GameLog }) {
 }
 
 export function LogPanel() {
-  const gameState = useGameStore((store) => store.gameState)
+  const logs = useGameStore((store) => store.logs)
   const unreadLogCount = useGameStore((store) => store.unreadLogCount)
   const markLogsAsRead = useGameStore((store) => store.markLogsAsRead)
   const [open, setOpen] = useState(false)
@@ -60,8 +60,6 @@ export function LogPanel() {
     }
     setOpen(newOpen)
   }
-
-  const logs = gameState.logs || []
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>

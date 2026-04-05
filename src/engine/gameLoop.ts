@@ -7,6 +7,7 @@ import {
   RESOURCES,
   POPULATION_GROWTH_RATE,
   type GameState,
+  type GameEvent,
 } from '@/engine/types'
 import { rebalanceJobAssignments } from '@/engine/actions'
 import { min } from '@/engine/utils'
@@ -140,7 +141,7 @@ export function applyPopulationGrowth(
   }
 }
 
-export function tick(state: GameState): GameState & { lostPopulation: number } {
+export function tick(state: GameState): { gameState: GameState; events: GameEvent[] } {
   const nextPopulationCap = calculatePopulationCap(state)
   const nextLimits = calculateResourceLimits(state)
 
@@ -170,7 +171,12 @@ export function tick(state: GameState): GameState & { lostPopulation: number } {
   // tick 的时候，先计算资源生产和消耗，再计算人口和资源的相互影响，再应用资源上限。
   // 这样玩家在这一 tick 内获得的资源可以被这一 tick 内增加的人口消耗掉。
 
-  return {
+  const events: GameEvent[] = []
+  if (populationUpdate.lostPopulation > 0) {
+    events.push({ type: 'death', count: populationUpdate.lostPopulation })
+  }
+
+  const gameState: GameState = {
     ...state,
     resourceCounts: newResourceCounts,
     resourceLimits: nextLimits,
@@ -181,6 +187,7 @@ export function tick(state: GameState): GameState & { lostPopulation: number } {
     populationGrowthProgress: populationUpdate.growthProgress,
     tickCount: state.tickCount + 1,
     lastTickTime: Date.now(),
-    lostPopulation: populationUpdate.lostPopulation,
   }
+
+  return { gameState, events }
 }

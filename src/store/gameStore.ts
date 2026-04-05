@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import { type GameState, createInitialGameState, addLog, type GameLog } from '@/engine/types'
-import { tick } from '@/engine/gameLoop'
+import { type GameState, createInitialGameState, type GameLog } from '@/engine/types'
+import { tick as engineTick } from '@/engine/gameLoop'
 import { clickResource, setDomesticateEnabled, setJobAssignment } from '@/engine/actions'
 import { buildBuilding, canBuildBuilding, getBuildingCost } from '@/engine/buildings'
 import { saveGame, loadGame, resetGame } from '@/engine/save'
@@ -11,12 +11,25 @@ import {
   getUnlockedBuildingsIds,
   getUnlockedJobsIds,
 } from '@/engine/technologies'
+import { min } from '@/engine/utils'
+
+const MAX_LOGS = 100
+
+function addLog(logs: GameLog[], log: Omit<GameLog, 'id'>): GameLog[] {
+  const newLog: GameLog = {
+    ...log,
+    id: `${log.type}-${log.timestamp}-${Math.random().toString(36).substr(2, 9)}`,
+  }
+  
+  return [newLog, ...logs].slice(0, MAX_LOGS)
+}
 
 interface GameStore {
   gameState: GameState
+  logs: GameLog[]
   unreadLogCount: number
 
-  tick: () => number
+  tick: () => void
 
   buildBuilding: (buildingId: string) => void
   getBuildingCost: (buildingId: string) => Record<string, number>
@@ -40,28 +53,34 @@ interface GameStore {
 
 export const useGameStore = create<GameStore>((set, get) => ({
   gameState: loadGame(),
+  logs: [],
   unreadLogCount: 0,
 
   tick: () => {
-    const tickResult = tick(get().gameState)
-    const { lostPopulation, ...nextGameState } = tickResult
-
-    let finalState = nextGameState
-    if (lostPopulation > 0) {
-      finalState = addLog(nextGameState, {
-        timestamp: Date.now(),
-        type: 'death',
-        message: `有 ${lostPopulation} 只小狗死亡`,
-        count: lostPopulation,
-      })
-    }
-
-    set(() => ({
-      gameState: finalState,
-      unreadLogCount: get().unreadLogCount + (lostPopulation > 0 ? 1 : 0),
-    }))
-
-    return lostPopulation
+    set((gameStore) => {
+      const { gameState, events } = engineTick(gameStore.gameState)
+  
+      let newLogs = gameStore.logs
+      let unreadDelta = 0
+  
+      for (const event of events) {
+        if (event.type === 'death') {
+          newLogs = addLog(newLogs, {
+            timestamp: Date.now(),
+            type: 'death',
+            message: `有 ${event.count} 只小狗死于饥荒`,
+            count: event.count,
+          })
+          unreadDelta += 1
+        }
+      }
+  
+      return {
+        gameState,
+        logs: newLogs,
+        unreadLogCount: min(100, gameStore.unreadLogCount + unreadDelta),
+      }
+    })
   },
 
   buildBuilding: (buildingId: string) => {
@@ -120,7 +139,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   addGameLog: (log: Omit<GameLog, 'id'>) => {
     set((gameStore) => ({
-      gameState: addLog(gameStore.gameState, log),
+      logs: addLog(gameStore.logs, log),
       unreadLogCount: gameStore.unreadLogCount + 1,
     }))
   },
@@ -139,6 +158,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   loadGame: () => {
     set(() => ({
       gameState: loadGame(),
+      logs: [],
+      unreadLogCount: 0,
     }))
   },
 
@@ -146,6 +167,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     resetGame()
     set(() => ({
       gameState: createInitialGameState(),
+      logs: [],
       unreadLogCount: 0,
     }))
   },
