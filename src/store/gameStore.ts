@@ -13,6 +13,7 @@ import {
 } from '@/engine/technologies'
 import { min } from '@/engine/utils'
 
+
 const MAX_LOGS = 100
 
 function addLog(logs: GameLog[], log: Omit<GameLog, 'id'>): GameLog[] {

@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGameStore } from '@/store/gameStore'
+import type { ChangeEvent } from 'react'
+import { SAVE_KEY } from '@/engine/save'
 
 export function SettingsPanel() {
   const resetGame = useGameStore((store) => store.resetGame)
@@ -10,7 +12,7 @@ export function SettingsPanel() {
   // 导出存档 
   const handleExport = () => {
     saveGame()
-    const data = localStorage.getItem('puppies-game-save')
+    const data = localStorage.getItem(SAVE_KEY)
     if (data) {
       const blob = new Blob([data], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
@@ -23,16 +25,24 @@ export function SettingsPanel() {
   }
 
   // 导入存档
-  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImport = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
     reader.onload = (event) => {
       const text = event.target?.result as string
       if (text) {
-        localStorage.setItem('puppies-game-save', text)
-        loadGame()
-        window.location.reload()
+        try {
+          const data = JSON.parse(text)
+          if (!data || typeof data !== 'object' || !('resourceCounts' in data)) {
+            throw new Error('存档格式不正确')
+          }
+          localStorage.setItem(SAVE_KEY, text)
+          loadGame()
+          window.location.reload()
+        } catch (err) {
+          window.alert('导入失败：存档文件格式不正确')
+        }
       }
     }
     reader.readAsText(file)
