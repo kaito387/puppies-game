@@ -17,6 +17,10 @@ export interface Building {
   requiredBuildings?: string[]
   resourceLimitBonuses?: Record<string, number>
   populationCapBonus?: number
+  effects?: Partial<{ // 可扩展多种效果
+    scienceEfficiency: number 
+   
+  }>
 }
 
 export interface Job {
@@ -170,6 +174,7 @@ export const BUILDINGS: Building[] = [
     cost: { wood: 25, food: 100 },
     costGrowthMultiplier: 2,
     resourceLimitBonuses: { science: 200 },
+    effects: { scienceEfficiency: 0.1 },
   }
 ]
 

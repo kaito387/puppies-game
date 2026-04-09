@@ -144,6 +144,18 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     }
   }
 
+ 
+  let totalScienceAdd = 0
+  for (const building of BUILDINGS) {
+    const count = state.buildings[building.id] || 0
+    if (count > 0 && building.effects?.scienceEfficiency) {
+      totalScienceAdd += building.effects.scienceEfficiency * count
+    }
+  }
+  if (totalScienceAdd > 0) {
+    aggregated.jobProductionMultipliers['scientist'] = (aggregated.jobProductionMultipliers['scientist'] || 1) * (1 + totalScienceAdd)
+  }
+
   return aggregated
 }
 
