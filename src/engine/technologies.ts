@@ -155,7 +155,6 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
   if (totalScienceAdd > 0) {
     aggregated.jobProductionMultipliers['scientist'] = (aggregated.jobProductionMultipliers['scientist'] || 1) * (1 + totalScienceAdd)
   }
-
   return aggregated
 }
 

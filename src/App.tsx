@@ -6,6 +6,9 @@ import { BuildingPanel } from '@/components/BuildingPanel'
 import { JobPanel } from '@/components/JobPanel'
 import { TechnologyPanel } from '@/components/TechnologyPanel'
 import { LogPanel } from '@/components/LogPanel'
+import { SettingsPanel } from '@/components/SettingsPanel'
+import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet'
+import { Settings2 } from 'lucide-react'
 import { AUTO_SAVE_INTERVAL_TICKS, GAME_TICK_INTERVAL_MS } from '@/engine/constants'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -95,14 +98,22 @@ function App() {
               <span>Ticks: {gameState.tickCount}</span>
               <span>TPS: ~5</span>
               <LogPanel />
-              <Button variant="outline" onClick={resetGame}>
-                🔄 重置游戏
-              </Button>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" aria-label="游戏设置">
+                    <Settings2 className="size-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="max-w-xs w-full">
+                  <SettingsPanel />
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </header>
 
         <div className="px-4 py-4">
+
           <Tabs defaultValue="buildings" className="gap-4">
             <TabsList variant="line" className="w-full justify-start overflow-x-auto">
               <TabsTrigger value="buildings">建筑</TabsTrigger>
