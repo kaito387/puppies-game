@@ -50,7 +50,6 @@ function App() {
   const tick = useGameStore((store) => store.tick)
   const gameState = useGameStore((store) => store.gameState)
   const saveGame = useGameStore((store) => store.saveGame)
-  const resetGame = useGameStore((store) => store.resetGame)
   const gameTickRef = useRef(0)
 
   useEffect(() => {
