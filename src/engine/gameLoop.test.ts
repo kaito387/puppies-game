@@ -10,6 +10,7 @@ import { type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import {
   FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
+  INITIAL_RESOURCE_LIMITS,
   POPULATION_GROWTH_RATE,
 } from '@/engine/constants'
 import { createDogs } from '@/engine/dogs'
@@ -28,7 +29,7 @@ describe('Game Loop', () => {
   describe('Production', () => {
     it('should calculate production correctly with no buildings', () => {
       const production = calculateProduction(gameState)
-      expect(production).toEqual({ food: 0, wood: 0, science: 0 })
+      expect(production).toEqual({ food: 0, wood: 0, stone: 0, science: 0 })
     })
 
     it('should calculate production correctly with multiple buildings', () => {
@@ -65,8 +66,8 @@ describe('Game Loop', () => {
     it('should calculate resource limits with warehouse bonuses', () => {
       gameState.buildings.warehouse = 2
       const limits = calculateResourceLimits(gameState)
-      expect(limits.food).toBe(9000)
-      expect(limits.wood).toBe(1200)
+      expect(limits.food).toBe(INITIAL_RESOURCE_LIMITS.food + 2 * 5000)
+      expect(limits.wood).toBe(INITIAL_RESOURCE_LIMITS.wood + 2 * 1000)
     })
 
     it('should apply researched tech multiplier to building production', () => {
@@ -81,8 +82,8 @@ describe('Game Loop', () => {
       gameState.researchedTechIds = ['woodworking', 'crop_rotation']
 
       const limits = calculateResourceLimits(gameState)
-      expect(limits.food).toBe(3000)
-      expect(limits.wood).toBe(400)
+      expect(limits.food).toBe(INITIAL_RESOURCE_LIMITS.food)
+      expect(limits.wood).toBe(INITIAL_RESOURCE_LIMITS.wood)
       expect(limits.science).toBeUndefined()
     })
 
@@ -119,10 +120,11 @@ describe('Game Loop', () => {
 
     it('should not exceed resource limits on tick', () => {
       gameState.buildings.warehouse = 2
-      gameState.resourceCounts.food = 8999
+      gameState.resourceCounts.food = 19999
       gameState.buildings.farm = 20
+      const limits = calculateResourceLimits(gameState)
       const { gameState: newState } = tick(gameState)
-      expect(newState.resourceCounts.food).toBeCloseTo(9000)
+      expect(newState.resourceCounts.food).toBeCloseTo(limits.food)
     })
 
     it('should increase population when domestication is enabled and food is enough', () => {

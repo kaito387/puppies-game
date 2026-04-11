@@ -26,17 +26,17 @@ describe('Technologies', () => {
     expect(canResearchTechnology(gameState, 'woodworking')).toBe(false)
 
     gameState.buildings.library = 1
-    gameState.resourceCounts.science = 100
+    gameState.resourceCounts.science = 800
     expect(canResearchTechnology(gameState, 'woodworking')).toBe(true)
   })
 
   it('should block research when resources are insufficient', () => {
-    gameState.resourceCounts.science = 99
+    gameState.resourceCounts.science = 799
     expect(() => researchTechnology(gameState, 'woodworking')).toThrow('所需资源 science 不足')
   })
 
   it('should deduct cost and append researched technology once', () => {
-    gameState.resourceCounts.science = 100
+    gameState.resourceCounts.science = 800
 
     const researched = researchTechnology(gameState, 'woodworking')
     expect(researched.resourceCounts.science).toBe(0)
