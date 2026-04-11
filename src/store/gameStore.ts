@@ -24,6 +24,11 @@ import {
   getUnlockedBuildingsIds,
   getUnlockedJobsIds,
 } from '@/engine/technologies'
+import {
+  canUnlockWorkshopItem,
+  getVisibleWorkshopUnlockIds,
+  unlockWorkshopItem,
+} from '@/engine/workshop'
 import { getJobAssignment } from '@/engine/dogs'
 import { min } from '@/engine/utils'
 
@@ -60,6 +65,9 @@ interface GameStore {
   researchTechnology: (techId: string) => void
   canResearchTechnology: (techId: string) => boolean
   getVisibleTechnologiesIds: () => string[]
+  unlockWorkshopItem: (unlockId: string) => void
+  canUnlockWorkshopItem: (unlockId: string) => boolean
+  getVisibleWorkshopUnlockIds: () => string[]
 
   addGameLog: (log: Omit<GameLog, 'id'>) => void
   markLogsAsRead: () => void
@@ -180,6 +188,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   getVisibleTechnologiesIds: () => {
     return getVisibleTechnologiesIds(get().gameState)
+  },
+
+  unlockWorkshopItem: (unlockId: string) => {
+    set((gameStore) => ({
+      gameState: unlockWorkshopItem(gameStore.gameState, unlockId),
+    }))
+  },
+
+  canUnlockWorkshopItem: (unlockId: string) => {
+    return canUnlockWorkshopItem(get().gameState, unlockId)
+  },
+
+  getVisibleWorkshopUnlockIds: () => {
+    return getVisibleWorkshopUnlockIds(get().gameState)
   },
 
   addGameLog: (log: Omit<GameLog, 'id'>) => {

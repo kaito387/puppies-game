@@ -25,10 +25,11 @@ function getExperienceText(dog: Dog): string {
 
 function DogCard(props: {
   dog: Dog
+  availableJobs: typeof JOBS
   onRename: (dogId: string, nextName: string) => void
   onAssignJob: (dogId: string, jobId: string | null) => void
 }) {
-  const { dog, onRename, onAssignJob } = props
+  const { dog, availableJobs, onRename, onAssignJob } = props
   const [draftName, setDraftName] = useState(dog.name)
   const [nameError, setNameError] = useState<string | null>(null)
 
@@ -69,7 +70,7 @@ function DogCard(props: {
             <Button variant="outline" size="sm" onClick={() => onAssignJob(dog.id, null)} disabled={dog.currentJobId === null}>
               设为空闲
             </Button>
-            {JOBS.map((job) => (
+            {availableJobs.map((job) => (
               <Button
                 key={job.id}
                 variant={dog.currentJobId === job.id ? 'default' : 'outline'}
@@ -189,6 +190,7 @@ export function DogManagementPanel() {
                 <DogCard
                   key={dog.id}
                   dog={dog}
+                  availableJobs={availableJobs}
                   onRename={renameDog}
                   onAssignJob={assignDogJob}
                 />

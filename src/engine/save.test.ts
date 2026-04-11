@@ -115,4 +115,27 @@ describe('Save System', () => {
     const loaded = loadGame()
     expect(loaded.researchedTechIds).toEqual(['woodworking'])
   })
+
+  it('should persist workshop unlocks', () => {
+    const state = createInitialGameState()
+    state.workshopUnlockIds = ['wood_pickaxe']
+
+    saveGame(state)
+    const loaded = loadGame()
+
+    expect(loaded.workshopUnlockIds).toEqual(['wood_pickaxe'])
+  })
+
+  it('should filter unknown workshop unlock IDs while loading', () => {
+    localStorage.setItem(
+      'puppies-game-save',
+      JSON.stringify({
+        version: '0.0.0',
+        workshopUnlockIds: ['wood_pickaxe', 'unknown-unlock'],
+      }),
+    )
+
+    const loaded = loadGame()
+    expect(loaded.workshopUnlockIds).toEqual(['wood_pickaxe'])
+  })
 })

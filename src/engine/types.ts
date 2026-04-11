@@ -25,8 +25,7 @@ export interface Job {
   icon?: string
   description: string
   productionPerTick: Record<string, number>
-  requiredTechs?: string[]
-  requiredBuildings?: string[]
+  prerequisites?: RequirementCarrier
 }
 
 export type EffectMode = 'multiplier' | 'additive'
@@ -40,6 +39,7 @@ export type EffectType =
 export interface RequirementCarrier {
   requiredTechs?: string[]
   requiredBuildings?: string[]
+  requiredWorkshopUnlockIds?: string[]
 }
 
 export interface Effect {
@@ -52,6 +52,15 @@ export interface Effect {
 }
 
 export interface Technology {
+  id: string
+  name: string
+  description: string
+  cost: Record<string, number>
+  prerequisites?: RequirementCarrier
+  effects?: Effect[]
+}
+
+export interface WorkshopUnlock {
   id: string
   name: string
   description: string
@@ -90,6 +99,7 @@ export interface GameState {
   resourceCounts: Record<string, number>
   buildings: Record<string, number>
   researchedTechIds: string[]
+  workshopUnlockIds: string[]
 
   dogs: Dog[]
   populationGrowthProgress: number
@@ -115,7 +125,9 @@ export const JOBS: Job[] = [
     icon: '🌾',
     description: '每 Tick 生产食物。',
     productionPerTick: { food: 1.5 },
-    requiredBuildings: ['farm'],
+    prerequisites: {
+      requiredBuildings: ['farm'],
+    },
   },
   {
     id: 'lumberjack',
@@ -130,7 +142,9 @@ export const JOBS: Job[] = [
     icon: '⛏️',
     description: '每 Tick 采集石材。',
     productionPerTick: { stone: 0.2 },
-    requiredTechs: ['mining'],
+    prerequisites: {
+      requiredWorkshopUnlockIds: ['wood_pickaxe'],
+    },
   },
   {
     id: 'scientist',
@@ -138,7 +152,9 @@ export const JOBS: Job[] = [
     icon: '🔬',
     description: '每 Tick 进行科学研究。',
     productionPerTick: { science: 0.2 },
-    requiredBuildings: ['library'],
+    prerequisites: {
+      requiredBuildings: ['library'],
+    },
   }
 ]
 
@@ -178,10 +194,29 @@ export const BUILDINGS: Building[] = [
     cost: { wood: 25, food: 100 },
     costGrowthMultiplier: 2,
     resourceLimitBonuses: { science: 1500 },
+  },
+  {
+    id: 'workshop',
+    name: '工坊',
+    icon: '🛠️',
+    description: '用于制造工具与探索装备。',
+    cost: { wood: 120, stone: 40, food: 60 },
+    costGrowthMultiplier: 1.8,
+    requiredTechs: ['workshop_engineering'],
   }
 ]
 
 export const TECHNOLOGIES: Technology[] = [
+  {
+    id: 'workshop_engineering',
+    name: '工坊工程',
+    description: '掌握基础工坊建造技术，解锁工坊建筑。',
+    cost: { science: 220 },
+    prerequisites: {
+      requiredBuildings: ['library'],
+    },
+    effects: [],
+  },
   {
     id: 'woodworking',
     name: '木工学',
@@ -228,11 +263,55 @@ export const TECHNOLOGIES: Technology[] = [
   {
     id: 'mining',
     name: '采矿术',
-    description: '学习基本的采矿技术，解锁矿工职业。',
+    description: '学习基本的采矿技术，为工坊制作木镐提供理论基础。',
     cost: { science: 150 },
     prerequisites: {
       requiredBuildings: ['library'],
     },
     effects: [],
   }
+]
+
+export const WORKSHOP_UNLOCKS: WorkshopUnlock[] = [
+  {
+    id: 'wood_pickaxe',
+    name: '木镐',
+    description: '制作基础木镐，为采石与采矿岗位提供工具。',
+    cost: { wood: 80, science: 60 },
+    prerequisites: {
+      requiredTechs: ['mining'],
+      requiredBuildings: ['workshop'],
+    },
+    effects: [],
+  },
+  {
+    id: 'stone_pickaxe',
+    name: '石镐',
+    description: '升级矿工具，提升矿工产量。',
+    cost: { wood: 120, stone: 120, science: 120 },
+    prerequisites: {
+      requiredBuildings: ['workshop'],
+      requiredWorkshopUnlockIds: ['wood_pickaxe'],
+    },
+    effects: [
+      {
+        id: 'stone-pickaxe-miner-output',
+        type: 'job_production',
+        targetId: 'miner',
+        value: 1.5,
+        mode: 'multiplier',
+      },
+    ],
+  },
+  {
+    id: 'exploration_gear',
+    name: '探索装备',
+    description: '整备探索队所需的工具与补给。',
+    cost: { wood: 180, stone: 160, food: 220, science: 160 },
+    prerequisites: {
+      requiredBuildings: ['workshop'],
+      requiredWorkshopUnlockIds: ['stone_pickaxe'],
+    },
+    effects: [],
+  },
 ]

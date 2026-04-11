@@ -31,11 +31,13 @@ describe('Technologies', () => {
   })
 
   it('should block research when resources are insufficient', () => {
+    gameState.buildings.library = 1
     gameState.resourceCounts.science = 799
     expect(() => researchTechnology(gameState, 'woodworking')).toThrow('所需资源 science 不足')
   })
 
   it('should deduct cost and append researched technology once', () => {
+    gameState.buildings.library = 1
     gameState.resourceCounts.science = 800
 
     const researched = researchTechnology(gameState, 'woodworking')
@@ -52,6 +54,15 @@ describe('Technologies', () => {
 
     gameState.buildings.library = 1
     expect(isRequirementSatisfied(gameState, scientistJob)).toBe(true)
+  })
+
+  it('should satisfy workshop unlock requirements for jobs', () => {
+    const minerJob = { requiredWorkshopUnlockIds: ['wood_pickaxe'] }
+
+    expect(isRequirementSatisfied(gameState, minerJob)).toBe(false)
+
+    gameState.workshopUnlockIds = ['wood_pickaxe']
+    expect(isRequirementSatisfied(gameState, minerJob)).toBe(true)
   })
 
   it('should aggregate all v1 effect types', () => {
