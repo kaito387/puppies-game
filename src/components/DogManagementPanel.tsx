@@ -6,11 +6,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { PencilIcon } from 'lucide-react'
 import { JOBS, type Dog } from '@/engine/types'
 import { isDogNameValid, sanitizeDogName } from '@/engine/dogs'
 
 const FILTER_ALL = 'all'
 const FILTER_IDLE = 'idle'
+const DOGS_PER_PAGE = 6
 
 type DogFilter = typeof FILTER_ALL | typeof FILTER_IDLE | string
 
@@ -32,9 +42,16 @@ function DogCard(props: {
   const { dog, availableJobs, onRename, onAssignJob } = props
   const [draftName, setDraftName] = useState(dog.name)
   const [nameError, setNameError] = useState<string | null>(null)
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
 
   const currentJob = dog.currentJobId ? JOBS.find((job) => job.id === dog.currentJobId) : null
   const talentJob = JOBS.find((job) => job.id === dog.talentJobId)
+
+  const openRenameDialog = () => {
+    setDraftName(dog.name)
+    setNameError(null)
+    setIsRenameDialogOpen(true)
+  }
 
   const handleRename = () => {
     const normalizedName = sanitizeDogName(draftName)
@@ -45,15 +62,19 @@ function DogCard(props: {
 
     setNameError(null)
     onRename(dog.id, normalizedName)
+    setIsRenameDialogOpen(false)
   }
 
   return (
     <Card className="border-dashed">
-      <CardContent className="space-y-4 pt-6">
+      <CardContent className="space-y-3 pt-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-base font-semibold">{dog.name}</h3>
+              <Button variant="ghost" size="icon-xs" onClick={openRenameDialog} aria-label={`修改 ${dog.name} 的名字`}>
+                <PencilIcon />
+              </Button>
               <Badge variant={dog.status === 'working' ? 'default' : 'secondary'}>
                 {dog.status === 'working' ? '工作中' : '空闲'}
               </Badge>
@@ -74,7 +95,7 @@ function DogCard(props: {
               <Button
                 key={job.id}
                 variant={dog.currentJobId === job.id ? 'default' : 'outline'}
-                size="sm"
+                size="xs"
                 onClick={() => onAssignJob(dog.id, job.id)}
               >
                 {job.name}
@@ -83,28 +104,49 @@ function DogCard(props: {
           </div>
         </div>
 
-        <Separator />
+        <Dialog
+          open={isRenameDialogOpen}
+          onOpenChange={(open) => {
+            setIsRenameDialogOpen(open)
+            if (open) {
+              setDraftName(dog.name)
+              setNameError(null)
+            } else {
+              setNameError(null)
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>修改名字</DialogTitle>
+              <DialogDescription>给这只狗重新起一个更好记的名字。</DialogDescription>
+            </DialogHeader>
 
-        <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-          <div className="space-y-2">
-            <Input
-              value={draftName}
-              onChange={(event) => {
-                setDraftName(event.target.value)
-                if (nameError) {
-                  setNameError(null)
-                }
-              }}
-              placeholder="输入狗狗名字"
-              maxLength={16}
-              aria-label={`修改 ${dog.name} 的名字`}
-            />
-            {nameError ? <p className="text-xs text-red-600">{nameError}</p> : null}
-          </div>
-          <Button size="sm" onClick={handleRename}>
-            保存名字
-          </Button>
-        </div>
+            <div className="space-y-2">
+              <Input
+                value={draftName}
+                onChange={(event) => {
+                  setDraftName(event.target.value)
+                  if (nameError) {
+                    setNameError(null)
+                  }
+                }}
+                placeholder="输入狗狗名字"
+                maxLength={16}
+                autoFocus
+                aria-label={`修改 ${dog.name} 的名字`}
+              />
+              {nameError ? <p className="text-xs text-red-600">{nameError}</p> : null}
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>
+                取消
+              </Button>
+              <Button onClick={handleRename}>保存名字</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   )
@@ -117,6 +159,7 @@ export function DogManagementPanel() {
   const assignDogJob = useGameStore((store) => store.assignDogJob)
   const visibleJobIds = getVisibleJobIds()
   const [filter, setFilter] = useState<DogFilter>(FILTER_ALL)
+  const [currentPage, setCurrentPage] = useState(1)
 
   const availableJobs = useMemo(
     () => JOBS.filter((job) => visibleJobIds.includes(job.id)),
@@ -142,6 +185,15 @@ export function DogManagementPanel() {
     return dog.currentJobId === effectiveFilter
   })
 
+  const totalPages = Math.max(1, Math.ceil(filteredDogs.length / DOGS_PER_PAGE))
+  const safeCurrentPage = Math.min(currentPage, totalPages)
+  const visibleDogs = filteredDogs.slice((safeCurrentPage - 1) * DOGS_PER_PAGE, safeCurrentPage * DOGS_PER_PAGE)
+
+  const handleFilterChange = (nextFilter: DogFilter) => {
+    setFilter(nextFilter)
+    setCurrentPage(1)
+  }
+
   const idleCount = gameState.dogs.filter((dog) => dog.currentJobId === null).length
   const workingCount = gameState.dogs.length - idleCount
 
@@ -159,10 +211,10 @@ export function DogManagementPanel() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Button variant={effectiveFilter === FILTER_ALL ? 'default' : 'outline'} size="sm" onClick={() => setFilter(FILTER_ALL)}>
+          <Button variant={effectiveFilter === FILTER_ALL ? 'default' : 'outline'} size="sm" onClick={() => handleFilterChange(FILTER_ALL)}>
             全部
           </Button>
-          <Button variant={effectiveFilter === FILTER_IDLE ? 'default' : 'outline'} size="sm" onClick={() => setFilter(FILTER_IDLE)}>
+          <Button variant={effectiveFilter === FILTER_IDLE ? 'default' : 'outline'} size="sm" onClick={() => handleFilterChange(FILTER_IDLE)}>
             空闲
           </Button>
           {availableJobs.map((job) => (
@@ -170,7 +222,7 @@ export function DogManagementPanel() {
               key={job.id}
               variant={effectiveFilter === job.id ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setFilter(job.id)}
+              onClick={() => handleFilterChange(job.id)}
             >
               {job.name}
             </Button>
@@ -184,19 +236,40 @@ export function DogManagementPanel() {
             当前筛选下没有狗狗
           </div>
         ) : (
-          <ScrollArea className="max-h-[60vh] pr-3">
-            <div className="space-y-3">
-              {filteredDogs.map((dog) => (
-                <DogCard
-                  key={dog.id}
-                  dog={dog}
-                  availableJobs={availableJobs}
-                  onRename={renameDog}
-                  onAssignJob={assignDogJob}
-                />
-              ))}
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span>
+                第 {safeCurrentPage} / {totalPages} 页，每页 {DOGS_PER_PAGE} 只
+              </span>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} disabled={safeCurrentPage <= 1}>
+                  上一页
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={safeCurrentPage >= totalPages}
+                >
+                  下一页
+                </Button>
+              </div>
             </div>
-          </ScrollArea>
+
+            <ScrollArea className="max-h-[58vh] pr-3">
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {visibleDogs.map((dog) => (
+                  <DogCard
+                    key={dog.id}
+                    dog={dog}
+                    availableJobs={availableJobs}
+                    onRename={renameDog}
+                    onAssignJob={assignDogJob}
+                  />
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
         )}
       </CardContent>
     </Card>

@@ -50,7 +50,7 @@ export function WorkshopPanel() {
 
         <Separator />
 
-        <div className="flex flex-col gap-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {visibleUnlockIds.map((unlockId) => {
             const unlock = WORKSHOP_UNLOCKS.find((item) => item.id === unlockId)
             if (!unlock) {
@@ -64,14 +64,14 @@ export function WorkshopPanel() {
               .join(' + ')
 
             return (
-              <div key={unlock.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3">
-                <div className="space-y-1">
-                  <div className="font-medium">{unlock.name}</div>
-                  <div className="text-sm text-muted-foreground">{unlock.description}</div>
+              <div key={unlock.id} className="rounded-md border p-3">
+                <div className="space-y-1.5">
+                  <div className="font-medium leading-none">{unlock.name}</div>
+                  <div className="text-xs text-muted-foreground">{unlock.description}</div>
                   <div className="text-xs text-muted-foreground">花费: {costText}</div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button disabled={unlocked || !unlockable} onClick={() => unlockWorkshopItem(unlock.id)}>
+                <div className="mt-3 flex items-center gap-2">
+                  <Button size="sm" disabled={unlocked || !unlockable} onClick={() => unlockWorkshopItem(unlock.id)}>
                     {unlocked ? '已解锁' : '解锁'}
                   </Button>
                   {unlocked ? <Badge variant="outline">永久</Badge> : null}

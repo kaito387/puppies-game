@@ -21,14 +21,14 @@ export function BuildingPanel() {
         <CardDescription>建造基础设施，扩展你的产能与容量。</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-wrap items-center gap-3 rounded-md border p-3">
-          <Button onClick={() => clickResource('food')}>🍖 采集浆果</Button>
-          <span className="text-sm text-muted-foreground">手动采集基础资源。</span>
+        <div className="flex flex-wrap items-center gap-2 rounded-md border p-3">
+          <Button size="sm" onClick={() => clickResource('food')}>🍖 采集浆果</Button>
+          <span className="text-xs text-muted-foreground">手动采集基础资源。</span>
         </div>
 
         <Separator />
 
-        <div className="flex flex-col gap-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {BUILDINGS.filter((building) => unlockedBuildingIds.includes(building.id)).map((building) => {
             const count = gameState.buildings[building.id] || 0
             const buildingCost = getBuildingCost(building.id)
@@ -39,16 +39,16 @@ export function BuildingPanel() {
               .join(' + ')
 
             return (
-              <div key={building.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3">
-                <div className="space-y-1">
-                  <div className="font-medium">
+              <div key={building.id} className="rounded-md border p-3">
+                <div className="space-y-1.5">
+                  <div className="font-medium leading-none">
                     {building.icon} {building.name}
                   </div>
-                  <div className="text-sm text-muted-foreground">{building.description}</div>
+                  <div className="text-xs text-muted-foreground">{building.description}</div>
                   <div className="text-xs text-muted-foreground">花费: {costText}</div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button onClick={() => buildBuilding(building.id)} disabled={!canBuild}>
+                <div className="mt-3 flex items-center gap-2">
+                  <Button size="sm" onClick={() => buildBuilding(building.id)} disabled={!canBuild}>
                     建造
                   </Button>
                   <Badge variant="outline">已有 {count}</Badge>

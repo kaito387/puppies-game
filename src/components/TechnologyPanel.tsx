@@ -39,7 +39,7 @@ export function TechnologyPanel() {
 
         <Separator />
 
-        <div className="flex flex-col gap-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {visibleTechnologiesIds.map((techId) => {
             const technology = TECHNOLOGIES.find((t) => t.id === techId)
             if (!technology) return null
@@ -51,14 +51,15 @@ export function TechnologyPanel() {
               .join(' + ')
 
             return (
-              <div key={technology.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3">
-                <div className="space-y-1">
-                  <div className="font-medium">{technology.name}</div>
-                  <div className="text-sm text-muted-foreground">{technology.description}</div>
+              <div key={technology.id} className="rounded-md border p-3">
+                <div className="space-y-1.5">
+                  <div className="font-medium leading-none">{technology.name}</div>
+                  <div className="text-xs text-muted-foreground">{technology.description}</div>
                   <div className="text-xs text-muted-foreground">花费: {costText}</div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="mt-3 flex items-center gap-2">
                   <Button
+                    size="sm"
                     disabled={researched || !researchable}
                     onClick={() => researchTechnology(technology.id)}
                   >
