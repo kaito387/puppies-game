@@ -1,14 +1,16 @@
 import {
   BUILDINGS,
-  FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
-  INITIAL_POPULATION_CAP,
   JOBS,
-  INITIAL_RESOURCE_LIMITS,
   RESOURCES,
-  POPULATION_GROWTH_RATE,
   type GameState,
   type GameEvent,
 } from '@/engine/types'
+import {
+  FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
+  INITIAL_POPULATION_CAP,
+  INITIAL_RESOURCE_LIMITS,
+  POPULATION_GROWTH_RATE,
+} from '@/engine/constants'
 import { min } from '@/engine/utils'
 import { aggregateTechEffects } from '@/engine/technologies'
 import {

@@ -4,7 +4,6 @@ import {
   createInitialGameState,
   createInitialResourceDeltaPerTick,
   type GameLog,
-  JOBS,
 } from '@/engine/types'
 import { calculateResourceLimits, tick as engineTick } from '@/engine/gameLoop'
 import {
@@ -148,41 +147,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   assignDogJob: (dogId: string, jobId: string | null) => {
-    const beforeState = get().gameState
-    const beforeDog = beforeState.dogs.find((dog) => dog.id === dogId)
-    const nextGameState = assignDogJob(beforeState, dogId, jobId)
+    const nextGameState = assignDogJob(get().gameState, dogId, jobId)
     set(() => ({
       gameState: nextGameState,
     }))
-
-    const nextDog = nextGameState.dogs.find((dog) => dog.id === dogId)
-    if (beforeDog && nextDog && beforeDog.currentJobId !== nextDog.currentJobId) {
-      const targetJobName = jobId ? JOBS.find((job) => job.id === jobId)?.name ?? jobId : '空闲'
-
-      get().addGameLog({
-        timestamp: Date.now(),
-        type: 'dog_assigned',
-        message: `${beforeDog.name} 调整为 ${targetJobName}`,
-      })
-    }
   },
 
   renameDog: (dogId: string, nextName: string) => {
-    const beforeState = get().gameState
-    const beforeDog = beforeState.dogs.find((dog) => dog.id === dogId)
-    const nextGameState = renameDog(beforeState, dogId, nextName)
+    const nextGameState = renameDog(get().gameState, dogId, nextName)
     set(() => ({
       gameState: nextGameState,
     }))
-
-    const nextDog = nextGameState.dogs.find((dog) => dog.id === dogId)
-    if (beforeDog && nextDog && beforeDog.name !== nextDog.name) {
-      get().addGameLog({
-        timestamp: Date.now(),
-        type: 'dog_renamed',
-        message: `${beforeDog.name} 改名为 ${nextDog.name}`,
-      })
-    }
   },
 
   setDomesticateEnabled: (enabled: boolean) => {

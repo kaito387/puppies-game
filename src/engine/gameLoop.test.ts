@@ -7,11 +7,13 @@ import {
   calculateResourceLimits,
 } from '@/engine/gameLoop'
 import {
-  FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
-  POPULATION_GROWTH_RATE,
   type GameState,
   createInitialGameState,
 } from '@/engine/types'
+import {
+  FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
+  POPULATION_GROWTH_RATE,
+} from '@/engine/constants'
 import { createDogs } from '@/engine/dogs'
 
 describe('Game Loop', () => {

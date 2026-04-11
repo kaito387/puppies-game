@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -31,11 +31,6 @@ function DogCard(props: {
   const { dog, onRename, onAssignJob } = props
   const [draftName, setDraftName] = useState(dog.name)
   const [nameError, setNameError] = useState<string | null>(null)
-
-  useEffect(() => {
-    setDraftName(dog.name)
-    setNameError(null)
-  }, [dog.id, dog.name])
 
   const currentJob = dog.currentJobId ? JOBS.find((job) => job.id === dog.currentJobId) : null
   const talentJob = JOBS.find((job) => job.id === dog.talentJobId)
@@ -93,7 +88,12 @@ function DogCard(props: {
           <div className="space-y-2">
             <Input
               value={draftName}
-              onChange={(event) => setDraftName(event.target.value)}
+              onChange={(event) => {
+                setDraftName(event.target.value)
+                if (nameError) {
+                  setNameError(null)
+                }
+              }}
               placeholder="输入狗狗名字"
               maxLength={16}
               aria-label={`修改 ${dog.name} 的名字`}
@@ -122,22 +122,23 @@ export function DogManagementPanel() {
     [unlockedJobIds],
   )
 
-  useEffect(() => {
-    if (filter !== FILTER_ALL && filter !== FILTER_IDLE && !availableJobs.some((job) => job.id === filter)) {
-      setFilter(FILTER_ALL)
-    }
-  }, [availableJobs, filter])
+  const effectiveFilter =
+    filter !== FILTER_ALL &&
+    filter !== FILTER_IDLE &&
+    !availableJobs.some((job) => job.id === filter)
+      ? FILTER_ALL
+      : filter
 
   const filteredDogs = gameState.dogs.filter((dog) => {
-    if (filter === FILTER_ALL) {
+    if (effectiveFilter === FILTER_ALL) {
       return true
     }
 
-    if (filter === FILTER_IDLE) {
+    if (effectiveFilter === FILTER_IDLE) {
       return dog.currentJobId === null
     }
 
-    return dog.currentJobId === filter
+    return dog.currentJobId === effectiveFilter
   })
 
   const idleCount = gameState.dogs.filter((dog) => dog.currentJobId === null).length
@@ -157,16 +158,16 @@ export function DogManagementPanel() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Button variant={filter === FILTER_ALL ? 'default' : 'outline'} size="sm" onClick={() => setFilter(FILTER_ALL)}>
+          <Button variant={effectiveFilter === FILTER_ALL ? 'default' : 'outline'} size="sm" onClick={() => setFilter(FILTER_ALL)}>
             全部
           </Button>
-          <Button variant={filter === FILTER_IDLE ? 'default' : 'outline'} size="sm" onClick={() => setFilter(FILTER_IDLE)}>
+          <Button variant={effectiveFilter === FILTER_IDLE ? 'default' : 'outline'} size="sm" onClick={() => setFilter(FILTER_IDLE)}>
             空闲
           </Button>
           {availableJobs.map((job) => (
             <Button
               key={job.id}
-              variant={filter === job.id ? 'default' : 'outline'}
+              variant={effectiveFilter === job.id ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilter(job.id)}
             >

@@ -1,13 +1,15 @@
 import {
+  JOBS,
+  type Dog,
+  type DogStatus,
+} from '@/engine/types'
+import {
   DOG_EXPERIENCE_GAIN_FOR_TALENT_MULTIPLIER,
   DOG_EXPERIENCE_GAIN_PER_TICK,
   DOG_EXPERIENCE_OUTPUT_BONUS_CAP,
   DOG_EXPERIENCE_OUTPUT_BONUS_COEFFICIENT,
   DOG_EXPERIENCE_OUTPUT_BONUS_CONSTANT,
-  JOBS,
-  type Dog,
-  type DogStatus,
-} from '@/engine/types'
+} from '@/engine/constants'
 
 const DOG_NAME_PREFIX = [
   '阿',

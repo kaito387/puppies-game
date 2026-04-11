@@ -1,3 +1,5 @@
+import { INITIAL_POPULATION_CAP, INITIAL_RESOURCE_LIMITS } from '@/engine/constants'
+
 export interface Resource {
   id: string
   name: string
@@ -62,15 +64,9 @@ export interface Technology {
 
 export type GameEvent =
   | { type: 'death'; dogId: string; dogName: string }
-  | { type: 'building_constructed'; buildingId: string; buildingName: string }
-  | { type: 'tech_researched'; techId: string; techName: string }
 
 export type GameLogType =
   | 'death'
-  | 'building_constructed'
-  | 'tech_researched'
-  | 'dog_renamed'
-  | 'dog_assigned'
 
 export interface GameLog {
   id: string
@@ -112,21 +108,6 @@ export const RESOURCES: Resource[] = [
   { id: 'wood', name: '木材', icon: '🪵' },
   { id: 'science', name: '科学', icon: '🔬' },
 ]
-
-export const INITIAL_RESOURCE_LIMITS: Record<string, number> = {
-  food: 3000,
-  wood: 400,
-}
-
-export const INITIAL_POPULATION_CAP = 1
-export const POPULATION_GROWTH_RATE = 0.02
-export const FOOD_CONSUMPTION_PER_PUPPY_PER_TICK = 1.2
-export const DOG_EXPERIENCE_OUTPUT_BONUS_COEFFICIENT = 1
-export const DOG_EXPERIENCE_OUTPUT_BONUS_CONSTANT = 0.5
-// coeff * log(exp) + constant, capped at 3x bonus
-export const DOG_EXPERIENCE_OUTPUT_BONUS_CAP = 3
-export const DOG_EXPERIENCE_GAIN_PER_TICK = 1
-export const DOG_EXPERIENCE_GAIN_FOR_TALENT_MULTIPLIER = 1.5
 
 export const JOBS: Job[] = [
   {
