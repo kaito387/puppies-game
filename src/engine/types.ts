@@ -164,7 +164,7 @@ export const BUILDINGS: Building[] = [
     name: '狗舍',
     icon: '🏠',
     description: '可以容纳 2 只小狗。',
-    cost: { wood: 20, food: 80 },
+    cost: { wood: 20 },
     costGrowthMultiplier: 2.5,
     populationCapBonus: 2,
   },
@@ -191,7 +191,7 @@ export const BUILDINGS: Building[] = [
     name: '图书馆',
     icon: '📚',
     description: '解锁科技研究，提升科学产出并增加科学存储上限。',
-    cost: { wood: 25, food: 100 },
+    cost: { wood: 25 },
     costGrowthMultiplier: 2,
     resourceLimitBonuses: { science: 1500 },
   },
@@ -200,7 +200,7 @@ export const BUILDINGS: Building[] = [
     name: '工坊',
     icon: '🛠️',
     description: '用于制造工具与探索装备。',
-    cost: { wood: 120, stone: 40, food: 60 },
+    cost: { wood: 60 },
     costGrowthMultiplier: 1.8,
     requiredTechs: ['workshop_engineering'],
   }
@@ -211,35 +211,27 @@ export const TECHNOLOGIES: Technology[] = [
     id: 'workshop_engineering',
     name: '工坊工程',
     description: '掌握基础工坊建造技术，解锁工坊建筑。',
-    cost: { science: 220 },
+    cost: { science: 60 },
     prerequisites: {
       requiredBuildings: ['library'],
     },
     effects: [],
   },
   {
-    id: 'woodworking',
-    name: '木工学',
-    description: '改良木材处理效率，提升伐木工的产量 20%。',
-    cost: { science: 800 },
+    id: 'mining',
+    name: '采矿术',
+    description: '学习基本的采矿技术。',
+    cost: { science: 150 },
     prerequisites: {
       requiredBuildings: ['library'],
     },
-    effects: [
-      {
-        id: 'woodworking-lumberjack-bonus',
-        type: 'job_production',
-        targetId: 'lumberjack',
-        value: 1.2,
-        mode: 'multiplier',
-      },
-    ],
+    effects: [],
   },
   {
     id: 'crop_rotation',
     name: '轮作农法',
     description: '农场效率提高 20%，且建造成本略有下降。',
-    cost: { science: 500 },
+    cost: { science: 300 },
     prerequisites: {
       requiredBuildings: ['library'],
     },
@@ -261,15 +253,23 @@ export const TECHNOLOGIES: Technology[] = [
     ],
   },
   {
-    id: 'mining',
-    name: '采矿术',
-    description: '学习基本的采矿技术，为工坊制作木镐提供理论基础。',
-    cost: { science: 150 },
+    id: 'woodworking',
+    name: '木工学',
+    description: '改良木材处理效率，提升伐木工的产量 20%。',
+    cost: { science: 600, wood: 200 },
     prerequisites: {
       requiredBuildings: ['library'],
     },
-    effects: [],
-  }
+    effects: [
+      {
+        id: 'woodworking-lumberjack-bonus',
+        type: 'job_production',
+        targetId: 'lumberjack',
+        value: 1.2,
+        mode: 'multiplier',
+      },
+    ],
+  },
 ]
 
 export const WORKSHOP_UNLOCKS: WorkshopUnlock[] = [
@@ -288,7 +288,7 @@ export const WORKSHOP_UNLOCKS: WorkshopUnlock[] = [
     id: 'stone_pickaxe',
     name: '石镐',
     description: '升级矿工具，提升矿工产量。',
-    cost: { wood: 120, stone: 120, science: 120 },
+    cost: { wood: 240, stone: 120, science: 300 },
     prerequisites: {
       requiredBuildings: ['workshop'],
       requiredWorkshopUnlockIds: ['wood_pickaxe'],
@@ -307,7 +307,7 @@ export const WORKSHOP_UNLOCKS: WorkshopUnlock[] = [
     id: 'exploration_gear',
     name: '探索装备',
     description: '整备探索队所需的工具与补给。',
-    cost: { wood: 180, stone: 160, food: 220, science: 160 },
+    cost: { wood: 150, stone: 150, science: 150 },
     prerequisites: {
       requiredBuildings: ['workshop'],
       requiredWorkshopUnlockIds: ['stone_pickaxe'],
