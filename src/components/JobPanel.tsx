@@ -8,8 +8,8 @@ import { Separator } from '@/components/ui/separator'
 
 export function JobPanel() {
   const gameState = useGameStore((store) => store.gameState)
-  const getUnlockedJobIds = useGameStore((store) => store.getUnlockedJobIds)
-  const unlockedJobIds = getUnlockedJobIds()
+  const getVisibleJobIds = useGameStore((store) => store.getVisibleJobIds)
+  const visibleJobIds = getVisibleJobIds()
   const setJobAssignment = useGameStore((store) => store.setJobAssignment)
   const getJobAssignment = useGameStore((store) => store.getJobAssignment)
 
@@ -45,7 +45,7 @@ export function JobPanel() {
         <Separator />
 
         <div className="flex flex-col gap-3">
-          {JOBS.filter((job) => unlockedJobIds.includes(job.id)).map((job) => {
+          {JOBS.filter((job) => visibleJobIds.includes(job.id)).map((job) => {
             const assigned = getJobAssignment(job.id)
             const assignedDogs = gameState.dogs.filter((dog) => dog.currentJobId === job.id)
             const canIncrease = idlePopulation > 0

@@ -22,6 +22,7 @@ import {
   getVisibleTechnologiesIds,
   researchTechnology,
   getUnlockedBuildingsIds,
+  getVisibleJobsIds,
   getUnlockedJobsIds,
 } from '@/engine/technologies'
 import {
@@ -55,6 +56,7 @@ interface GameStore {
   getBuildingCost: (buildingId: string) => Record<string, number>
   canBuildBuilding: (buildingId: string) => boolean
   getUnlockedBuildingIds: () => string[]
+  getVisibleJobIds: () => string[]
   getUnlockedJobIds: () => string[]
   getJobAssignment: (jobId: string) => number
   clickResource: (resourceId: string, amount?: number) => void
@@ -131,6 +133,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   getUnlockedBuildingIds: () => {
     return getUnlockedBuildingsIds(get().gameState)
+  },
+
+  getVisibleJobIds: () => {
+    return getVisibleJobsIds(get().gameState)
   },
 
   getUnlockedJobIds: () => {

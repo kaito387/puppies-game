@@ -4,6 +4,7 @@ import { createInitialGameState } from '@/engine/initialState'
 import {
   aggregateTechEffects,
   canResearchTechnology,
+  getVisibleJobsIds,
   getVisibleTechnologiesIds,
   isRequirementSatisfied,
   researchTechnology,
@@ -63,6 +64,16 @@ describe('Technologies', () => {
 
     gameState.workshopUnlockIds = ['wood_pickaxe']
     expect(isRequirementSatisfied(gameState, minerJob)).toBe(true)
+  })
+
+  it('should only show jobs whose prerequisites are satisfied', () => {
+    expect(getVisibleJobsIds(gameState)).toEqual(['lumberjack'])
+
+    gameState.buildings.farm = 1
+    expect(getVisibleJobsIds(gameState)).toContain('farmer')
+
+    gameState.workshopUnlockIds = ['wood_pickaxe']
+    expect(getVisibleJobsIds(gameState)).toContain('miner')
   })
 
   it('should aggregate all v1 effect types', () => {

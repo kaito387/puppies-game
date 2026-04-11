@@ -30,7 +30,7 @@ export function setJobAssignment(state: GameState, jobId: string, assignedCount:
     throw new Error(`职业 ${jobId} 不存在`)
   }
 
-  if (!isRequirementSatisfied(state, job)) {
+  if (!isRequirementSatisfied(state, job.prerequisites || {})) {
     throw new Error(`职业 ${jobId} 尚未解锁`)
   }
 
@@ -104,7 +104,7 @@ export function assignDogJob(state: GameState, dogId: string, jobId: string | nu
       throw new Error(`职业 ${jobId} 不存在`)
     }
 
-    if (!isRequirementSatisfied(state, job)) {
+    if (!isRequirementSatisfied(state, job.prerequisites || {})) {
       throw new Error(`职业 ${jobId} 尚未解锁`)
     }
   }

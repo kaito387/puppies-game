@@ -112,15 +112,15 @@ function DogCard(props: {
 
 export function DogManagementPanel() {
   const gameState = useGameStore((store) => store.gameState)
-  const getUnlockedJobIds = useGameStore((store) => store.getUnlockedJobIds)
+  const getVisibleJobIds = useGameStore((store) => store.getVisibleJobIds)
   const renameDog = useGameStore((store) => store.renameDog)
   const assignDogJob = useGameStore((store) => store.assignDogJob)
-  const unlockedJobIds = getUnlockedJobIds()
+  const visibleJobIds = getVisibleJobIds()
   const [filter, setFilter] = useState<DogFilter>(FILTER_ALL)
 
   const availableJobs = useMemo(
-    () => JOBS.filter((job) => unlockedJobIds.includes(job.id)),
-    [unlockedJobIds],
+    () => JOBS.filter((job) => visibleJobIds.includes(job.id)),
+    [visibleJobIds],
   )
 
   const effectiveFilter =

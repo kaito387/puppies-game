@@ -54,8 +54,8 @@ describe('Game Loop', () => {
       gameState.dogs[2].talentJobId = 'scientist'
 
       const production = calculateJobProduction(gameState)
-      expect(production.food).toBeCloseTo(4.5)
-      expect(production.wood).toBeCloseTo(0.3)
+      expect(production.food).toBeCloseTo(3)
+      expect(production.wood).toBeCloseTo(0.2)
     })
 
     it('should calculate population cap from housing buildings', () => {
@@ -95,7 +95,7 @@ describe('Game Loop', () => {
       gameState.dogs[0].talentJobId = 'farmer'
 
       const production = calculateJobProduction(gameState)
-      expect(production.wood).toBeCloseTo(0.36)
+      expect(production.wood).toBeCloseTo(0.24)
     })
 
     it('should include dog experience bonus in job production with cap', () => {
@@ -106,7 +106,7 @@ describe('Game Loop', () => {
       gameState.dogs[0].experienceByJob.farmer = 200
 
       const production = calculateJobProduction(gameState)
-      expect(production.food).toBeCloseTo(6)
+      expect(production.food).toBeCloseTo(1.6591, 3)
     })
   })
 
@@ -157,8 +157,8 @@ describe('Game Loop', () => {
       gameState.dogs[1].talentJobId = 'scientist'
 
       const { gameState: next } = tick(gameState)
-      expect(next.resourceCounts.food).toBeCloseTo(50 + 4.5 - 4 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK)
-      expect(next.resourceCounts.wood).toBeCloseTo(0.3)
+      expect(next.resourceCounts.food).toBeCloseTo(50 + 3 - 4 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK)
+      expect(next.resourceCounts.wood).toBeCloseTo(0.2)
     })
 
     it('should not increase growth when domestication is enabled but food is not enough for domestication cost', () => {

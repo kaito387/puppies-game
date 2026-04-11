@@ -66,6 +66,17 @@ describe('Actions', () => {
       expect(() => setJobAssignment(gameState, 'farmer', -1)).toThrow('职业分配数量必须是非负整数')
     })
 
+    it('should reject assignment when job prerequisites are not met', () => {
+      withDogs(1)
+      expect(() => setJobAssignment(gameState, 'farmer', 1)).toThrow('职业 farmer 尚未解锁')
+    })
+
+    it('should reject assigning locked job to individual dog', () => {
+      withDogs(1)
+      const targetDogId = gameState.dogs[0].id
+      expect(() => assignDogJob(gameState, targetDogId, 'miner')).toThrow('职业 miner 尚未解锁')
+    })
+
     it('should assign and unassign an individual dog by id', () => {
       withDogs(2)
       gameState.buildings.farm = 1

@@ -201,6 +201,21 @@ export function getUnlockedBuildingsIds(state: GameState): string[] {
   return BUILDINGS.filter((building) => isRequirementSatisfied(state, building)).map((building) => building.id)
 }
 
+export function isJobVisible(state: GameState, jobId: string): boolean {
+  const job = JOBS.find((item) => item.id === jobId)
+  if (!job) {
+    throw new Error(`职业 ${jobId} 不存在`)
+  }
+
+  return isRequirementSatisfied(state, job.prerequisites || {})
+}
+
+export function getVisibleJobsIds(state: GameState): string[] {
+  return JOBS
+    .filter((job) => isRequirementSatisfied(state, job.prerequisites || {}))
+    .map((job) => job.id)
+}
+
 export function getUnlockedJobsIds(state: GameState): string[] {
-  return JOBS.filter((job) => isRequirementSatisfied(state, job)).map((job) => job.id)
+  return getVisibleJobsIds(state)
 }
