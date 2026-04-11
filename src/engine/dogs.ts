@@ -111,7 +111,7 @@ export function getJobAssignment(dogs: Dog[], jobId: string): number {
 export function calculateDogOutputMultiplier(dog: Dog, jobId: string): number {
   const experience = dog.experienceByJob[jobId] || 0
   const bonus = Math.min(DOG_EXPERIENCE_OUTPUT_BONUS_CAP, Math.log(experience + 1) * DOG_EXPERIENCE_OUTPUT_BONUS_COEFFICIENT + DOG_EXPERIENCE_OUTPUT_BONUS_CONSTANT)
-  return 1 + bonus
+  return bonus
 }
 
 export function calculateDogExperienceGain(dog: Dog, jobId: string): number {
