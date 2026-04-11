@@ -104,6 +104,7 @@ export interface GameState {
 export const RESOURCES: Resource[] = [
   { id: 'food', name: '食物', icon: '🍖' },
   { id: 'wood', name: '木材', icon: '🪵' },
+  { id: 'stone', name: '石材', icon: '🪨' },
   { id: 'science', name: '科学', icon: '🔬' },
 ]
 
@@ -124,6 +125,14 @@ export const JOBS: Job[] = [
     productionPerTick: { wood: 0.2 },
   },
   {
+    id: 'miner',
+    name: '矿工',
+    icon: '⛏️',
+    description: '每 Tick 采集石材。',
+    productionPerTick: { stone: 0.2 },
+    requiredTechs: ['mining'],
+  },
+  {
     id: 'scientist',
     name: '科学家',
     icon: '🔬',
@@ -139,7 +148,7 @@ export const BUILDINGS: Building[] = [
     name: '狗舍',
     icon: '🏠',
     description: '可以容纳 2 只小狗。',
-    cost: { wood: 10, food: 75 },
+    cost: { wood: 20, food: 80 },
     costGrowthMultiplier: 2.5,
     populationCapBonus: 2,
   },
@@ -157,9 +166,9 @@ export const BUILDINGS: Building[] = [
     name: '仓库',
     icon: '📦',
     description: '提升食物与木材的存储上限。',
-    cost: { wood: 200 },
-    costGrowthMultiplier: 2.5,
-    resourceLimitBonuses: { food: 3000, wood: 400 },
+    cost: { wood: 50 },
+    costGrowthMultiplier: 2,
+    resourceLimitBonuses: { food: 5000, wood: 1000, stone: 1000 },
   },
   {
     id: 'library',
@@ -168,7 +177,7 @@ export const BUILDINGS: Building[] = [
     description: '解锁科技研究，提升科学产出并增加科学存储上限。',
     cost: { wood: 25, food: 100 },
     costGrowthMultiplier: 2,
-    resourceLimitBonuses: { science: 200 },
+    resourceLimitBonuses: { science: 1500 },
   }
 ]
 
@@ -177,7 +186,7 @@ export const TECHNOLOGIES: Technology[] = [
     id: 'woodworking',
     name: '木工学',
     description: '改良木材处理效率，提升伐木工的产量 20%。',
-    cost: { science: 100 },
+    cost: { science: 800 },
     prerequisites: {
       requiredBuildings: ['library'],
     },
@@ -195,7 +204,7 @@ export const TECHNOLOGIES: Technology[] = [
     id: 'crop_rotation',
     name: '轮作农法',
     description: '农场效率提高 20%，且建造成本略有下降。',
-    cost: { science: 200 },
+    cost: { science: 500 },
     prerequisites: {
       requiredBuildings: ['library'],
     },
@@ -216,4 +225,14 @@ export const TECHNOLOGIES: Technology[] = [
       },
     ],
   },
+  {
+    id: 'mining',
+    name: '采矿术',
+    description: '学习基本的采矿技术，解锁矿工职业。',
+    cost: { science: 150 },
+    prerequisites: {
+      requiredBuildings: ['library'],
+    },
+    effects: [],
+  }
 ]
