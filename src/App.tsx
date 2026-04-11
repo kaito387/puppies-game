@@ -4,6 +4,7 @@ import { useGameStore } from '@/store/gameStore'
 import { ResourcePanel } from '@/components/ResourcePanel'
 import { BuildingPanel } from '@/components/BuildingPanel'
 import { JobPanel } from '@/components/JobPanel'
+import { DogManagementPanel } from '@/components/DogManagementPanel'
 import { TechnologyPanel } from '@/components/TechnologyPanel'
 import { LogPanel } from '@/components/LogPanel'
 import { AUTO_SAVE_INTERVAL_TICKS, GAME_TICK_INTERVAL_MS } from '@/engine/constants'
@@ -107,6 +108,7 @@ function App() {
             <TabsList variant="line" className="w-full justify-start overflow-x-auto">
               <TabsTrigger value="buildings">建筑</TabsTrigger>
               <TabsTrigger value="jobs">工作</TabsTrigger>
+              <TabsTrigger value="dogs">狗狗</TabsTrigger>
               <TabsTrigger value="technologies">科技</TabsTrigger>
               <TabsTrigger value="exploration">探索</TabsTrigger>
               <TabsTrigger value="trade">贸易</TabsTrigger>
@@ -117,6 +119,9 @@ function App() {
             </TabsContent>
             <TabsContent value="jobs">
               <JobPanel />
+            </TabsContent>
+            <TabsContent value="dogs">
+              <DogManagementPanel />
             </TabsContent>
             <TabsContent value="technologies">
               <TechnologyPanel />

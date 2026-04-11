@@ -1,5 +1,5 @@
 import { useGameStore } from '@/store/gameStore'
-import { JOBS } from '@/engine/types'
+import { getAssignedCount, getPopulationCount, JOBS } from '@/engine/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,9 +10,10 @@ export function JobPanel() {
   const getUnlockedJobIds = useGameStore((store) => store.getUnlockedJobIds)
   const unlockedJobIds = getUnlockedJobIds()
   const setJobAssignment = useGameStore((store) => store.setJobAssignment)
+  const getJobAssignment = useGameStore((store) => store.getJobAssignment)
 
-  const population = Math.floor(gameState.population || 0)
-  const totalAssigned = Object.values(gameState.jobAssignments).reduce((sum, count) => sum + count, 0)
+  const population = getPopulationCount(gameState.dogs)
+  const totalAssigned = getAssignedCount(gameState.dogs)
   const idlePopulation = Math.max(0, population - totalAssigned)
 
   function setWithDelta(jobId: string, currentAssigned: number, delta: number) {
@@ -44,7 +45,8 @@ export function JobPanel() {
 
         <div className="flex flex-col gap-3">
           {JOBS.filter((job) => unlockedJobIds.includes(job.id)).map((job) => {
-            const assigned = gameState.jobAssignments[job.id] || 0
+            const assigned = getJobAssignment(job.id)
+            const assignedDogs = gameState.dogs.filter((dog) => dog.currentJobId === job.id)
             const canIncrease = idlePopulation > 0
             const canDecrease = assigned > 0
             const canIncreaseTen = idlePopulation > 0
@@ -57,6 +59,17 @@ export function JobPanel() {
                     {job.icon} {job.name}
                   </div>
                   <p className="text-sm text-muted-foreground">{job.description}</p>
+                  <div className="mt-2 flex flex-wrap gap-1 text-xs text-muted-foreground">
+                    {assignedDogs.length === 0 ? (
+                      <span>暂无分配狗狗</span>
+                    ) : (
+                      assignedDogs.map((dog) => (
+                        <Badge key={dog.id} variant="secondary">
+                          {dog.name}
+                        </Badge>
+                      ))
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" disabled={!canDecreaseTen} onClick={() => setWithDelta(job.id, assigned, -10)}>

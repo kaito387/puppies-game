@@ -24,6 +24,10 @@ function LogItem({ log }: { log: GameLog }) {
     switch (type) {
       case 'death':
         return '💀'
+      case 'dog_renamed':
+        return '✏️'
+      case 'dog_assigned':
+        return '👷'
       case 'building_constructed':
         return '🏗️'
       case 'tech_researched':

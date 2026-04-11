@@ -41,15 +41,9 @@ export function loadGame(): GameState {
 
     return {
       resourceCounts: mergeRecord(saveData.resourceCounts, INITIAL_GAME_STATE.resourceCounts),
-      resourceLimits: mergeRecord(saveData.resourceLimits, INITIAL_GAME_STATE.resourceLimits),
-      resourceDeltaPerTick: mergeRecord(
-        saveData.resourceDeltaPerTick,
-        INITIAL_GAME_STATE.resourceDeltaPerTick,
-      ),
       buildings: mergeRecord(saveData.buildings, INITIAL_GAME_STATE.buildings),
-      jobAssignments: mergeRecord(saveData.jobAssignments, INITIAL_GAME_STATE.jobAssignments),
       researchedTechIds,
-      population: saveData.population ?? INITIAL_GAME_STATE.population,
+      dogs: saveData.dogs ?? INITIAL_GAME_STATE.dogs,
       populationCap: saveData.populationCap ?? INITIAL_GAME_STATE.populationCap,
       isDomesticateEnabled:
         saveData.isDomesticateEnabled ?? INITIAL_GAME_STATE.isDomesticateEnabled,

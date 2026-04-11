@@ -61,11 +61,16 @@ export interface Technology {
 }
 
 export type GameEvent =
-  | { type: 'death'; count: number }
+  | { type: 'death'; dogId: string; dogName: string }
   | { type: 'building_constructed'; buildingId: string; buildingName: string }
   | { type: 'tech_researched'; techId: string; techName: string }
 
-export type GameLogType = 'death' | 'building_constructed' | 'tech_researched'
+export type GameLogType =
+  | 'death'
+  | 'building_constructed'
+  | 'tech_researched'
+  | 'dog_renamed'
+  | 'dog_assigned'
 
 export interface GameLog {
   id: string
@@ -75,15 +80,24 @@ export interface GameLog {
   count?: number
 }
 
+export type DogStatus = 'idle' | 'working' | 'exploring'
+
+export interface Dog {
+  id: string
+  name: string
+  age: number
+  experienceByJob: Record<string, number>
+  talentJobId: string
+  status: DogStatus
+  currentJobId: string | null
+}
+
 export interface GameState {
   resourceCounts: Record<string, number>
-  resourceLimits: Record<string, number>
-  resourceDeltaPerTick: Record<string, number>
   buildings: Record<string, number>
-  jobAssignments: Record<string, number>
   researchedTechIds: string[]
 
-  population: number
+  dogs: Dog[]
   populationGrowthProgress: number
   populationCap: number
   
@@ -107,6 +121,12 @@ export const INITIAL_RESOURCE_LIMITS: Record<string, number> = {
 export const INITIAL_POPULATION_CAP = 1
 export const POPULATION_GROWTH_RATE = 0.02
 export const FOOD_CONSUMPTION_PER_PUPPY_PER_TICK = 1.2
+export const DOG_EXPERIENCE_OUTPUT_BONUS_COEFFICIENT = 1
+export const DOG_EXPERIENCE_OUTPUT_BONUS_CONSTANT = 0.5
+// coeff * log(exp) + constant, capped at 3x bonus
+export const DOG_EXPERIENCE_OUTPUT_BONUS_CAP = 3
+export const DOG_EXPERIENCE_GAIN_PER_TICK = 1
+export const DOG_EXPERIENCE_GAIN_FOR_TALENT_MULTIPLIER = 1.5
 
 export const JOBS: Job[] = [
   {
@@ -244,23 +264,27 @@ export function createInitialGameState(): GameState {
     buildings[building.id] = 0
   })
 
-  const jobAssignments: Record<string, number> = {}
-  JOBS.forEach((job) => {
-    jobAssignments[job.id] = 0
-  })
-
   return {
     resourceCounts: resources,
-    resourceLimits: createInitialResourceLimits(),
-    resourceDeltaPerTick: createInitialResourceDeltaPerTick(),
     buildings,
-    jobAssignments,
     researchedTechIds: [],
-    population: 0,
+    dogs: [],
     populationCap: INITIAL_POPULATION_CAP,
     isDomesticateEnabled: false,
     populationGrowthProgress: 0,
     tickCount: 0,
     lastTickTime: Date.now(),
   }
+}
+
+export function getPopulationCount(dogs: Dog[]): number {
+  return dogs.length
+}
+
+export function getIdleDogs(dogs: Dog[]): Dog[] {
+  return dogs.filter((dog) => dog.currentJobId === null)
+}
+
+export function getAssignedCount(dogs: Dog[]): number {
+  return dogs.length - getIdleDogs(dogs).length
 }
