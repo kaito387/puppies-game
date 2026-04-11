@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { loadGame, resetGame, saveGame } from '@/engine/save'
-import { createInitialGameState } from '@/engine/types'
+import { createInitialGameState } from '@/engine/initialState'
 import { createDogs } from '@/engine/dogs'
 
 function createMemoryStorage(): Storage {

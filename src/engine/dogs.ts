@@ -92,6 +92,18 @@ export function normalizeDogStatus(currentJobId: string | null): DogStatus {
   return currentJobId ? 'working' : 'idle'
 }
 
+export function getPopulationCount(dogs: Dog[]): number {
+  return dogs.length
+}
+
+export function getIdleDogs(dogs: Dog[]): Dog[] {
+  return dogs.filter((dog) => dog.currentJobId === null)
+}
+
+export function getAssignedCount(dogs: Dog[]): number {
+  return dogs.length - getIdleDogs(dogs).length
+}
+
 export function getJobAssignment(dogs: Dog[], jobId: string): number {
   return dogs.filter((dog) => dog.currentJobId === jobId).length
 }

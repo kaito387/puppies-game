@@ -1,4 +1,5 @@
-import { TECHNOLOGIES, type GameState, createInitialGameState } from '@/engine/types'
+import { TECHNOLOGIES, type GameState } from '@/engine/types'
+import { createInitialGameState } from '@/engine/initialState'
 
 const SAVE_KEY = 'puppies-game-save'
 

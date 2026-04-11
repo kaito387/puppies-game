@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createInitialGameState, type GameState } from '@/engine/types'
+import { type GameState } from '@/engine/types'
+import { createInitialGameState } from '@/engine/initialState'
 import {
   aggregateTechEffects,
   canResearchTechnology,

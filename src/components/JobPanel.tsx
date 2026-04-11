@@ -1,5 +1,6 @@
 import { useGameStore } from '@/store/gameStore'
-import { getAssignedCount, getPopulationCount, JOBS } from '@/engine/types'
+import { JOBS } from '@/engine/types'
+import { getAssignedCount, getPopulationCount } from '@/engine/dogs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

@@ -7,7 +7,8 @@ import {
   setDomesticateEnabled,
   setJobAssignment,
 } from '@/engine/actions'
-import { type GameState, createInitialGameState } from '@/engine/types'
+import { type GameState } from '@/engine/types'
+import { createInitialGameState } from '@/engine/initialState'
 import { createDogs } from '@/engine/dogs'
 import { calculateResourceLimits } from '@/engine/gameLoop'
 

@@ -6,10 +6,8 @@ import {
   calculatePopulationCap,
   calculateResourceLimits,
 } from '@/engine/gameLoop'
-import {
-  type GameState,
-  createInitialGameState,
-} from '@/engine/types'
+import { type GameState } from '@/engine/types'
+import { createInitialGameState } from '@/engine/initialState'
 import {
   FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
   POPULATION_GROWTH_RATE,

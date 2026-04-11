@@ -1,10 +1,12 @@
 import { create } from 'zustand'
 import {
   type GameState,
-  createInitialGameState,
-  createInitialResourceDeltaPerTick,
   type GameLog,
 } from '@/engine/types'
+import {
+  createInitialGameState,
+  createInitialResourceDeltaPerTick,
+} from '@/engine/initialState'
 import { calculateResourceLimits, tick as engineTick } from '@/engine/gameLoop'
 import {
   assignDogJob,

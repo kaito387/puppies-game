@@ -1,5 +1,3 @@
-import { INITIAL_POPULATION_CAP, INITIAL_RESOURCE_LIMITS } from '@/engine/constants'
-
 export interface Resource {
   id: string
   name: string
@@ -219,53 +217,3 @@ export const TECHNOLOGIES: Technology[] = [
     ],
   },
 ]
-
-export function createInitialResourceLimits(): Record<string, number> {
-  const limits: Record<string, number> = structuredClone(INITIAL_RESOURCE_LIMITS)
-  return limits
-}
-
-export function createInitialResourceDeltaPerTick(): Record<string, number> {
-  const deltas: Record<string, number> = {}
-  RESOURCES.forEach((resource) => {
-    deltas[resource.id] = 0
-  })
-
-  return deltas
-}
-
-export function createInitialGameState(): GameState {
-  const resources: Record<string, number> = {}
-  RESOURCES.forEach((resource) => {
-    resources[resource.id] = 0
-  })
-
-  const buildings: Record<string, number> = {}
-  BUILDINGS.forEach((building) => {
-    buildings[building.id] = 0
-  })
-
-  return {
-    resourceCounts: resources,
-    buildings,
-    researchedTechIds: [],
-    dogs: [],
-    populationCap: INITIAL_POPULATION_CAP,
-    isDomesticateEnabled: false,
-    populationGrowthProgress: 0,
-    tickCount: 0,
-    lastTickTime: Date.now(),
-  }
-}
-
-export function getPopulationCount(dogs: Dog[]): number {
-  return dogs.length
-}
-
-export function getIdleDogs(dogs: Dog[]): Dog[] {
-  return dogs.filter((dog) => dog.currentJobId === null)
-}
-
-export function getAssignedCount(dogs: Dog[]): number {
-  return dogs.length - getIdleDogs(dogs).length
-}
