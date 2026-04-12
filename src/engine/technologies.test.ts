@@ -9,6 +9,7 @@ import {
   getUnlockedBuildingsIds,
   getTechnologyById,
   getUnlockedJobsIds,
+  isJobVisible,
   isRequirementSatisfied,
   isTechnologyVisible,
   researchTechnology,
@@ -135,4 +136,23 @@ describe('Technologies', () => {
     const ids = getUnlockedJobsIds(gameState)
     expect(ids.every((id) => JOBS.some((job) => job.id === id))).toBe(true)
   })
+  it('should throw when job does not exist', () => {
+    expect(() => isJobVisible(gameState, 'test')).toThrow('职业 test 不存在')
+  })
+
+  it('should return false when job prerequisites are not satisfied', () => {
+    expect(isJobVisible(gameState, 'scientist')).toBe(false)
+  })
+
+  it('should return true when job prerequisites are satisfied', () => {
+    gameState.buildings.library = 1
+    expect(isJobVisible(gameState, 'scientist')).toBe(true)
+  })
+  it('returns false when any required resource is not enough', () => {
+    gameState.buildings.library = 1
+    gameState.resourceCounts.science = 600
+    gameState.resourceCounts.wood = 199 // woodworking 需要 200
+
+   expect(canResearchTechnology(gameState, 'woodworking')).toBe(false)
+})
 })

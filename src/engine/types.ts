@@ -197,11 +197,8 @@ export const BUILDINGS: Building[] = [
     description: '解锁科技研究，提升科学产出并增加科学存储上限。',
     cost: { wood: 25 },
     costGrowthMultiplier: 2,
-<<<<<<< HEAD
-    resourceLimitBonuses: { science: 200 },
-    effects: { scienceEfficiency: 0.1 },
-=======
     resourceLimitBonuses: { science: 1500 },
+    effects: { scienceEfficiency: 0.1 },
   },
   {
     id: 'workshop',
@@ -211,7 +208,6 @@ export const BUILDINGS: Building[] = [
     cost: { wood: 60 },
     costGrowthMultiplier: 1.8,
     requiredTechs: ['workshop_engineering'],
->>>>>>> origin/develop
   }
 ]
 
