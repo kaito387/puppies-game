@@ -3,11 +3,16 @@ import { createInitialGameState, type GameState } from '@/engine/types'
 import {
   aggregateTechEffects,
   canResearchTechnology,
+  getTechnologyById,
   getVisibleTechnologiesIds,
+  getUnlockedBuildingsIds,
+  getUnlockedJobsIds,
   isRequirementSatisfied,
+  isTechnologyVisible,
   researchTechnology,
 } from '@/engine/technologies'
 import { getBuildingById, getBuildingCost } from '@/engine/buildings'
+import { BUILDINGS, JOBS } from '@/engine/types'
 
 describe('Technologies', () => {
   let gameState: GameState
@@ -24,9 +29,16 @@ describe('Technologies', () => {
   it('should require enough resources to research visible technology', () => {
     expect(canResearchTechnology(gameState, 'woodworking')).toBe(false)
 
+
     gameState.buildings.library = 1
+    gameState.resourceCounts.science = 99
+    expect(canResearchTechnology(gameState, 'woodworking')).toBe(false)
+
     gameState.resourceCounts.science = 100
     expect(canResearchTechnology(gameState, 'woodworking')).toBe(true)
+
+    gameState.researchedTechIds = ['woodworking']
+    expect(canResearchTechnology(gameState, 'woodworking')).toBe(false)
   })
 
   it('should block research when resources are insufficient', () => {
@@ -51,15 +63,22 @@ describe('Technologies', () => {
 
     gameState.buildings.library = 1
     expect(isRequirementSatisfied(gameState, scientistJob)).toBe(true)
+
+    const requirement = { requiredTechs: ['woodworking'] }
+    expect(isRequirementSatisfied(gameState, requirement)).toBe(false)
+
+    gameState.researchedTechIds = ['woodworking']
+    expect(isRequirementSatisfied(gameState, requirement)).toBe(true)
   })
 
   it('should aggregate all v1 effect types', () => {
     gameState.researchedTechIds = ['woodworking', 'crop_rotation']
-
+    gameState.buildings.library = 2
     const aggregated = aggregateTechEffects(gameState)
     expect(aggregated.buildingCostMultipliers.farm).toBeCloseTo(0.8)
     expect(aggregated.buildingProductionMultipliers.farm).toBeCloseTo(1.2)
     expect(aggregated.jobProductionMultipliers.lumberjack).toBeCloseTo(1.2)
+    expect(aggregated.jobProductionMultipliers.scientist).toBeCloseTo(1.2)
     expect(aggregated.resourceLimitBonuses).toEqual({})
   })
 
@@ -69,5 +88,27 @@ describe('Technologies', () => {
 
     const discountedCost = getBuildingCost(gameState, 'farm')
     expect(discountedCost.food).toBe(Math.ceil((farm.cost.food || 0) * 0.8))
+  })
+
+  it('should return technology if it exists', () => {
+    expect(() => getTechnologyById('test')).toThrow('科技 test 不存在')
+  })
+
+  it('should return technology if it is visible', () => {
+    const tech = getTechnologyById('woodworking')
+    expect(isTechnologyVisible(gameState, tech)).toBe(false)
+
+    gameState.researchedTechIds = ['woodworking']
+    expect(isTechnologyVisible(gameState, tech)).toBe(true)
+  })
+
+  it('should return unlocked building ids', () => {
+    const ids = getUnlockedBuildingsIds(gameState)
+    expect(ids.every((id) => BUILDINGS.some((building) => building.id === id))).toBe(true)
+  })
+
+  it('should return unlocked job ids', () => {
+    const ids = getUnlockedJobsIds(gameState)
+    expect(ids.every((id) => JOBS.some((job) => job.id === id))).toBe(true)
   })
 })

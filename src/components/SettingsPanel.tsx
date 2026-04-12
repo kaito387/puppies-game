@@ -40,7 +40,7 @@ export function SettingsPanel() {
           localStorage.setItem(SAVE_KEY, text)
           loadGame()
           window.location.reload()
-        } catch (err) {
+        } catch {
           window.alert('导入失败：存档文件格式不正确')
         }
       }
