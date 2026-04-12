@@ -2,7 +2,7 @@ import { TECHNOLOGIES, type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import { WORKSHOP_UNLOCKS } from '@/engine/types'
 
-const SAVE_KEY = 'puppies-game-save'
+export const SAVE_KEY = 'puppies-game-save'
 
 export function saveGame(gameState: GameState): void {
   const knownTechIds = new Set(TECHNOLOGIES.map((technology) => technology.id))

@@ -84,6 +84,7 @@ export function calculateJobProduction(gameState: GameState): Record<string, num
   RESOURCES.forEach((resource) => {
     production[resource.id] = 0
   })
+  
 
   gameState.dogs.forEach((dog) => {
     if (!dog.currentJobId) {
