@@ -1,6 +1,8 @@
 import { useGameStore } from '@/store/gameStore'
 import { GAME_TICK_INTERVAL_MS } from '@/engine/constants'
+import { calculateResourceLimits } from '@/engine/gameLoop'
 import { RESOURCES } from '@/engine/types'
+import { getAssignedCount, getPopulationCount } from '@/engine/dogs'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -9,13 +11,15 @@ import { Switch } from '@/components/ui/switch'
 
 export function ResourcePanel() {
   const gameState = useGameStore((store) => store.gameState)
+  const resourceDeltaPerTick = useGameStore((store) => store.resourceDeltaPerTick)
   const setDomesticateEnabled = useGameStore((store) => store.setDomesticateEnabled)
+  const resourceLimits = calculateResourceLimits(gameState)
   const ratePerSecondMultiplier = 1000 / GAME_TICK_INTERVAL_MS
-  const population = Math.floor(gameState.population || 0)
+  const population = getPopulationCount(gameState.dogs)
   const growthProgressRaw = gameState.populationGrowthProgress || 0
   const growthProgressPercent = Math.floor(Math.abs(growthProgressRaw) * 100)
   const populationCap = Math.floor(gameState.populationCap || 0)
-  const totalAssigned = Object.values(gameState.jobAssignments).reduce((sum, count) => sum + count, 0)
+  const totalAssigned = getAssignedCount(gameState.dogs)
   const idlePopulation = Math.max(0, population - totalAssigned)
   const shouldShowProgress = growthProgressPercent > 0
   const progressText = growthProgressRaw > 0 ? `+${growthProgressPercent}%` : `-${growthProgressPercent}%`
@@ -44,8 +48,8 @@ export function ResourcePanel() {
           <div className="flex flex-col gap-2">
             {RESOURCES.map((resource) => {
               const amount = gameState.resourceCounts[resource.id] || 0
-              const limit = gameState.resourceLimits[resource.id] || 0
-              const deltaPerTick = gameState.resourceDeltaPerTick[resource.id] || 0
+              const limit = resourceLimits[resource.id] || 0
+              const deltaPerTick = resourceDeltaPerTick[resource.id] || 0
               const ratePerSecond = deltaPerTick * ratePerSecondMultiplier
               const shouldShowRate = Math.abs(ratePerSecond) > 0.0001
               return (

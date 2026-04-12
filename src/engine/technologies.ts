@@ -2,6 +2,7 @@ import {
   BUILDINGS,
   JOBS,
   TECHNOLOGIES,
+  WORKSHOP_UNLOCKS,
   type RequirementCarrier,
   type Effect,
   type GameState,
@@ -36,12 +37,23 @@ function hasRequiredBuildings(state: GameState, requiredBuildings: string[]): bo
   return requiredBuildings.every((buildingId) => (state.buildings[buildingId] || 0) > 0)
 }
 
+function hasRequiredWorkshopUnlocks(state: GameState, requiredWorkshopUnlockIds: string[]): boolean {
+  return requiredWorkshopUnlockIds.every((unlockId) => state.workshopUnlockIds.includes(unlockId))
+}
+
 export function isRequirementSatisfied(state: GameState, requirement: RequirementCarrier): boolean {
   if (requirement.requiredTechs && !hasRequiredTechs(state, requirement.requiredTechs)) {
     return false
   }
 
   if (requirement.requiredBuildings && !hasRequiredBuildings(state, requirement.requiredBuildings)) {
+    return false
+  }
+
+  if (
+    requirement.requiredWorkshopUnlockIds &&
+    !hasRequiredWorkshopUnlocks(state, requirement.requiredWorkshopUnlockIds)
+  ) {
     return false
   }
 
@@ -100,20 +112,30 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     resourceLimitBonuses: {},
   }
 
+  const allEffects: Effect[] = []
+
   for (const techId of state.researchedTechIds) {
     const technology = getTechnologyById(techId)
-    if (!technology || !technology.effects) {
-      continue
+    if (technology.effects) {
+      allEffects.push(...technology.effects)
     }
+  }
 
-    for (const effect of technology.effects) {
+  for (const unlockId of state.workshopUnlockIds) {
+    const unlock = WORKSHOP_UNLOCKS.find((item) => item.id === unlockId)
+    if (unlock?.effects) {
+      allEffects.push(...unlock.effects)
+    }
+  }
+
+  for (const effect of allEffects) {
       switch (effect.type) {
         case 'building_cost': {
           applyMultiplierEffect(
             aggregated.buildingCostMultipliers,
             effect.targetId,
             effect.value,
-        )
+          )
           break
         }
         case 'building_production': {
@@ -129,7 +151,7 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
             aggregated.jobProductionMultipliers,
             effect.targetId,
             effect.value,
-        )
+          )
           break
         }
         case 'resource_limit': {
@@ -141,7 +163,6 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
           }
         }
       }
-    }
   }
 
  
@@ -165,7 +186,7 @@ export function researchTechnology(state: GameState, techId: string): GameState 
     throw new Error(`科技 ${techId} 已经被研究过了`)
   }
 
-  if (!hasRequiredTechs(state, technology.prerequisites?.requiredTechs || [])) {
+  if (!isRequirementSatisfied(state, technology.prerequisites || {})) {
     throw new Error(`科技 ${techId} 前置条件未满足`)
   }
 
@@ -191,6 +212,21 @@ export function getUnlockedBuildingsIds(state: GameState): string[] {
   return BUILDINGS.filter((building) => isRequirementSatisfied(state, building)).map((building) => building.id)
 }
 
+export function isJobVisible(state: GameState, jobId: string): boolean {
+  const job = JOBS.find((item) => item.id === jobId)
+  if (!job) {
+    throw new Error(`职业 ${jobId} 不存在`)
+  }
+
+  return isRequirementSatisfied(state, job.prerequisites || {})
+}
+
+export function getVisibleJobsIds(state: GameState): string[] {
+  return JOBS
+    .filter((job) => isRequirementSatisfied(state, job.prerequisites || {}))
+    .map((job) => job.id)
+}
+
 export function getUnlockedJobsIds(state: GameState): string[] {
-  return JOBS.filter((job) => isRequirementSatisfied(state, job)).map((job) => job.id)
+  return getVisibleJobsIds(state)
 }

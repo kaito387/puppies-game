@@ -1,17 +1,24 @@
 import {
   BUILDINGS,
-  FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
-  INITIAL_POPULATION_CAP,
   JOBS,
-  INITIAL_RESOURCE_LIMITS,
   RESOURCES,
-  POPULATION_GROWTH_RATE,
   type GameState,
   type GameEvent,
 } from '@/engine/types'
-import { rebalanceJobAssignments } from '@/engine/actions'
+import {
+  FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
+  INITIAL_POPULATION_CAP,
+  INITIAL_RESOURCE_LIMITS,
+  POPULATION_GROWTH_RATE,
+} from '@/engine/constants'
 import { min } from '@/engine/utils'
 import { aggregateTechEffects } from '@/engine/technologies'
+import {
+  calculateDogExperienceGain,
+  calculateDogOutputMultiplier,
+  createDog,
+  normalizeDogStatus,
+} from '@/engine/dogs'
 
 export function calculateProduction(gameState: GameState): Record<string, number> {
   const production: Record<string, number> = {}
@@ -72,21 +79,28 @@ export function calculateResourceLimits(gameState: GameState): Record<string, nu
 export function calculateJobProduction(gameState: GameState): Record<string, number> {
   const production: Record<string, number> = {}
   const { jobProductionMultipliers } = aggregateTechEffects(gameState)
+  const jobsById = new Map(JOBS.map((job) => [job.id, job]))
 
   RESOURCES.forEach((resource) => {
     production[resource.id] = 0
   })
   
 
-  JOBS.forEach((job) => {
-    const assigned = gameState.jobAssignments[job.id] || 0
-    const multiplier = jobProductionMultipliers[job.id] || 1
-    if (assigned <= 0) {
+  gameState.dogs.forEach((dog) => {
+    if (!dog.currentJobId) {
       return
     }
 
+    const job = jobsById.get(dog.currentJobId)
+    if (!job) {
+      return
+    }
+
+    const jobMultiplier = jobProductionMultipliers[job.id] || 1
+    const dogMultiplier = calculateDogOutputMultiplier(dog, job.id)
+
     for (const [resourceId, amount] of Object.entries(job.productionPerTick)) {
-      production[resourceId] += amount * assigned * multiplier
+      production[resourceId] += amount * jobMultiplier * dogMultiplier
     }
   })
 
@@ -97,16 +111,23 @@ export function applyPopulationGrowth(
   state: GameState,
   resourceCounts: Record<string, number>,
   populationCap: number,
-): { population: number; growthProgress: number; lostPopulation: number } {
-  const currentPopulation = state.population || 0
+): { dogs: GameState['dogs']; growthProgress: number; lostDogs: GameState['dogs'] } {
+  const currentPopulation = state.dogs.length
   const currentFood = resourceCounts.food || 0
   const foodNeed = currentPopulation * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK
   const foodDeficit = Math.max(0, foodNeed - currentFood)
 
   resourceCounts.food = Math.max(0, currentFood - foodNeed)
   let nextProgress = state.populationGrowthProgress || 0
-  let nextPopulation = min(currentPopulation, populationCap)
-  let lostPopulation = 0
+  let nextDogs = [...state.dogs]
+  const lostDogs: GameState['dogs'] = []
+
+  if (nextDogs.length > populationCap) {
+    const overflow = nextDogs.length - populationCap
+    const removed = nextDogs.splice(nextDogs.length - overflow, overflow)
+    lostDogs.push(...removed)
+  }
+
   if (foodDeficit > 0) {
     if (nextProgress > 0) {
       nextProgress = 0
@@ -115,7 +136,7 @@ export function applyPopulationGrowth(
     const starvationDelta =
       (foodDeficit / FOOD_CONSUMPTION_PER_PUPPY_PER_TICK) * POPULATION_GROWTH_RATE
     nextProgress -= starvationDelta
-  } else if (state.isDomesticateEnabled && nextPopulation < populationCap) {
+  } else if (state.isDomesticateEnabled && nextDogs.length < populationCap) {
     const domesticateCost = FOOD_CONSUMPTION_PER_PUPPY_PER_TICK
     if (resourceCounts.food >= domesticateCost) {
       resourceCounts.food -= domesticateCost
@@ -125,21 +146,53 @@ export function applyPopulationGrowth(
 
   if (nextProgress >= 1) {
     const gainedPopulation = Math.floor(nextProgress)
-    nextPopulation = Math.min(populationCap, nextPopulation + gainedPopulation)
-    nextProgress = nextPopulation >= populationCap ? 0 : nextProgress - gainedPopulation
+    const availableSlots = Math.max(0, populationCap - nextDogs.length)
+    const toAdd = Math.min(availableSlots, gainedPopulation)
+    for (let i = 0; i < toAdd; i += 1) {
+      nextDogs.push(createDog())
+    }
+    nextProgress = nextDogs.length >= populationCap ? 0 : nextProgress - gainedPopulation
   }
 
   if (nextProgress <= -1) {
-    lostPopulation = Math.floor(-nextProgress)
-    nextPopulation = Math.max(0, nextPopulation - lostPopulation)
-    nextProgress = nextPopulation <= 0 ? 0 : nextProgress + lostPopulation
+    const lostPopulation = Math.floor(-nextProgress)
+    const toRemove = Math.min(lostPopulation, nextDogs.length)
+    const removed = nextDogs.splice(nextDogs.length - toRemove, toRemove)
+    lostDogs.push(...removed)
+    nextProgress = nextDogs.length <= 0 ? 0 : nextProgress + lostPopulation
   }
 
+  nextDogs = nextDogs.map((dog) => ({
+    ...dog,
+    age: dog.age + 1,
+  }))
+
   return {
-    population: nextPopulation,
+    dogs: nextDogs,
     growthProgress: nextProgress,
-    lostPopulation,
+    lostDogs,
   }
+}
+
+function applyDogExperience(dogs: GameState['dogs']): GameState['dogs'] {
+  return dogs.map((dog) => {
+    if (!dog.currentJobId) {
+      return {
+        ...dog,
+        status: normalizeDogStatus(dog.currentJobId),
+      }
+    }
+
+    const gainedExperience = calculateDogExperienceGain(dog, dog.currentJobId)
+    return {
+      ...dog,
+      status: normalizeDogStatus(dog.currentJobId),
+      experienceByJob: {
+        ...dog.experienceByJob,
+        [dog.currentJobId]: (dog.experienceByJob[dog.currentJobId] || 0) + gainedExperience,
+      },
+    }
+  })
 }
 
 export function tick(state: GameState): { gameState: GameState; events: GameEvent[] } {
@@ -164,27 +217,21 @@ export function tick(state: GameState): { gameState: GameState; events: GameEven
     newResourceCounts[resourceId] = min(amount, nextLimits[resourceId] || 0)
   }
 
-  const resourceDeltaPerTick: Record<string, number> = {}
-  RESOURCES.forEach((resource) => {
-    resourceDeltaPerTick[resource.id] = (newResourceCounts[resource.id] || 0) - (state.resourceCounts[resource.id] || 0)
-  })
-
   // tick 的时候，先计算资源生产和消耗，再计算人口和资源的相互影响，再应用资源上限。
   // 这样玩家在这一 tick 内获得的资源可以被这一 tick 内增加的人口消耗掉。
 
   const events: GameEvent[] = []
-  if (populationUpdate.lostPopulation > 0) {
-    events.push({ type: 'death', count: populationUpdate.lostPopulation })
-  }
+  populationUpdate.lostDogs.forEach((dog) => {
+    events.push({ type: 'death', dogId: dog.id, dogName: dog.name })
+  })
+
+  const dogsWithExperience = applyDogExperience(populationUpdate.dogs)
 
   const gameState: GameState = {
     ...state,
     resourceCounts: newResourceCounts,
-    resourceLimits: nextLimits,
-    resourceDeltaPerTick,
-    population: populationUpdate.population,
+    dogs: dogsWithExperience,
     populationCap: nextPopulationCap,
-    jobAssignments: rebalanceJobAssignments(state.jobAssignments, populationUpdate.population),
     populationGrowthProgress: populationUpdate.growthProgress,
     tickCount: state.tickCount + 1,
     lastTickTime: Date.now(),

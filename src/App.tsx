@@ -4,7 +4,9 @@ import { useGameStore } from '@/store/gameStore'
 import { ResourcePanel } from '@/components/ResourcePanel'
 import { BuildingPanel } from '@/components/BuildingPanel'
 import { JobPanel } from '@/components/JobPanel'
+import { DogManagementPanel } from '@/components/DogManagementPanel'
 import { TechnologyPanel } from '@/components/TechnologyPanel'
+import { WorkshopPanel } from '@/components/WorkshopPanel'
 import { LogPanel } from '@/components/LogPanel'
 import { SettingsPanel } from '@/components/SettingsPanel'
 import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet'
@@ -28,9 +30,10 @@ function PlaceholderActionPanel(props: {
   title: string
   description: string
   buttonLabel: string
-  requirement: string
+  requirement?: string
+  locked?: boolean
 }) {
-  const { title, description, buttonLabel, requirement } = props
+  const { title, description, buttonLabel, requirement, locked = true } = props
 
   return (
     <Card>
@@ -39,8 +42,8 @@ function PlaceholderActionPanel(props: {
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap items-center gap-3">
-        <Button disabled>{buttonLabel}</Button>
-        <span className="text-sm text-muted-foreground">前置条件: {requirement}</span>
+        <Button disabled={locked}>{buttonLabel}</Button>
+        {requirement ? <span className="text-sm text-muted-foreground">前置条件: {requirement}</span> : null}
       </CardContent>
     </Card>
   )
@@ -51,6 +54,7 @@ function App() {
   const gameState = useGameStore((store) => store.gameState)
   const saveGame = useGameStore((store) => store.saveGame)
   const gameTickRef = useRef(0)
+  const hasExplorationGear = gameState.workshopUnlockIds.includes('exploration_gear')
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -117,7 +121,9 @@ function App() {
             <TabsList variant="line" className="w-full justify-start overflow-x-auto">
               <TabsTrigger value="buildings">建筑</TabsTrigger>
               <TabsTrigger value="jobs">工作</TabsTrigger>
+              <TabsTrigger value="dogs">狗狗</TabsTrigger>
               <TabsTrigger value="technologies">科技</TabsTrigger>
+              <TabsTrigger value="workshop">工坊</TabsTrigger>
               <TabsTrigger value="exploration">探索</TabsTrigger>
               <TabsTrigger value="trade">贸易</TabsTrigger>
             </TabsList>
@@ -128,16 +134,33 @@ function App() {
             <TabsContent value="jobs">
               <JobPanel />
             </TabsContent>
+            <TabsContent value="dogs">
+              <DogManagementPanel />
+            </TabsContent>
             <TabsContent value="technologies">
               <TechnologyPanel />
             </TabsContent>
+            <TabsContent value="workshop">
+              <WorkshopPanel />
+            </TabsContent>
             <TabsContent value="exploration">
-              <PlaceholderActionPanel
-                title="🧭 探索"
-                description="派出队伍探索附近区域，寻找新资源。"
-                buttonLabel="派出探索队"
-                requirement="需要 3 空闲人口"
-              />
+              {hasExplorationGear ? (
+                <PlaceholderActionPanel
+                  title="🧭 探索"
+                  description="派出队伍探索附近区域，寻找新资源。"
+                  buttonLabel="派出探索队"
+                  requirement="需要 3 空闲人口"
+                  locked={false}
+                />
+              ) : (
+                <PlaceholderActionPanel
+                  title="🧭 探索"
+                  description="先在工坊中解锁探索装备，才能开展探索行动。"
+                  buttonLabel="派出探索队"
+                  requirement="需要工坊项目：探索装备"
+                  locked
+                />
+              )}
             </TabsContent>
             <TabsContent value="trade">
               <PlaceholderActionPanel

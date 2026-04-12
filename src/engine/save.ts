@@ -1,16 +1,21 @@
-import { TECHNOLOGIES, type GameState, createInitialGameState } from '@/engine/types'
+import { TECHNOLOGIES, type GameState } from '@/engine/types'
+import { createInitialGameState } from '@/engine/initialState'
+import { WORKSHOP_UNLOCKS } from '@/engine/types'
 
 export const SAVE_KEY = 'puppies-game-save'
 
 export function saveGame(gameState: GameState): void {
   const knownTechIds = new Set(TECHNOLOGIES.map((technology) => technology.id))
   const researchedTechIds = gameState.researchedTechIds.filter((techId) => knownTechIds.has(techId))
+  const knownWorkshopUnlockIds = new Set(WORKSHOP_UNLOCKS.map((unlock) => unlock.id))
+  const workshopUnlockIds = gameState.workshopUnlockIds.filter((unlockId) => knownWorkshopUnlockIds.has(unlockId))
 
   const saveData = {
     version: '0.0.0',
     timestamp: Date.now(),
     ...gameState,
     researchedTechIds,
+    workshopUnlockIds,
   }
   localStorage.setItem(SAVE_KEY, JSON.stringify(saveData))
 }
@@ -38,18 +43,19 @@ export function loadGame(): GameState {
     const researchedTechIds = Array.isArray(saveData.researchedTechIds)
       ? saveData.researchedTechIds.filter((techId: unknown) => typeof techId === 'string' && knownTechIds.has(techId))
       : INITIAL_GAME_STATE.researchedTechIds
+    const knownWorkshopUnlockIds = new Set(WORKSHOP_UNLOCKS.map((unlock) => unlock.id))
+    const workshopUnlockIds = Array.isArray(saveData.workshopUnlockIds)
+      ? saveData.workshopUnlockIds.filter(
+          (unlockId: unknown) => typeof unlockId === 'string' && knownWorkshopUnlockIds.has(unlockId),
+        )
+      : INITIAL_GAME_STATE.workshopUnlockIds
 
     return {
       resourceCounts: mergeRecord(saveData.resourceCounts, INITIAL_GAME_STATE.resourceCounts),
-      resourceLimits: mergeRecord(saveData.resourceLimits, INITIAL_GAME_STATE.resourceLimits),
-      resourceDeltaPerTick: mergeRecord(
-        saveData.resourceDeltaPerTick,
-        INITIAL_GAME_STATE.resourceDeltaPerTick,
-      ),
       buildings: mergeRecord(saveData.buildings, INITIAL_GAME_STATE.buildings),
-      jobAssignments: mergeRecord(saveData.jobAssignments, INITIAL_GAME_STATE.jobAssignments),
       researchedTechIds,
-      population: saveData.population ?? INITIAL_GAME_STATE.population,
+      workshopUnlockIds,
+      dogs: saveData.dogs ?? INITIAL_GAME_STATE.dogs,
       populationCap: saveData.populationCap ?? INITIAL_GAME_STATE.populationCap,
       isDomesticateEnabled:
         saveData.isDomesticateEnabled ?? INITIAL_GAME_STATE.isDomesticateEnabled,

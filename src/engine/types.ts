@@ -29,8 +29,7 @@ export interface Job {
   icon?: string
   description: string
   productionPerTick: Record<string, number>
-  requiredTechs?: string[]
-  requiredBuildings?: string[]
+  prerequisites?: RequirementCarrier
 }
 
 export type EffectMode = 'multiplier' | 'additive'
@@ -44,6 +43,7 @@ export type EffectType =
 export interface RequirementCarrier {
   requiredTechs?: string[]
   requiredBuildings?: string[]
+  requiredWorkshopUnlockIds?: string[]
 }
 
 export interface Effect {
@@ -64,12 +64,20 @@ export interface Technology {
   effects?: Effect[]
 }
 
-export type GameEvent =
-  | { type: 'death'; count: number }
-  | { type: 'building_constructed'; buildingId: string; buildingName: string }
-  | { type: 'tech_researched'; techId: string; techName: string }
+export interface WorkshopUnlock {
+  id: string
+  name: string
+  description: string
+  cost: Record<string, number>
+  prerequisites?: RequirementCarrier
+  effects?: Effect[]
+}
 
-export type GameLogType = 'death' | 'building_constructed' | 'tech_researched'
+export type GameEvent =
+  | { type: 'death'; dogId: string; dogName: string }
+
+export type GameLogType =
+  | 'death'
 
 export interface GameLog {
   id: string
@@ -79,15 +87,25 @@ export interface GameLog {
   count?: number
 }
 
+export type DogStatus = 'idle' | 'working' | 'exploring'
+
+export interface Dog {
+  id: string
+  name: string
+  age: number
+  experienceByJob: Record<string, number>
+  talentJobId: string
+  status: DogStatus
+  currentJobId: string | null
+}
+
 export interface GameState {
   resourceCounts: Record<string, number>
-  resourceLimits: Record<string, number>
-  resourceDeltaPerTick: Record<string, number>
   buildings: Record<string, number>
-  jobAssignments: Record<string, number>
   researchedTechIds: string[]
+  workshopUnlockIds: string[]
 
-  population: number
+  dogs: Dog[]
   populationGrowthProgress: number
   populationCap: number
   
@@ -100,17 +118,9 @@ export interface GameState {
 export const RESOURCES: Resource[] = [
   { id: 'food', name: '食物', icon: '🍖' },
   { id: 'wood', name: '木材', icon: '🪵' },
+  { id: 'stone', name: '石材', icon: '🪨' },
   { id: 'science', name: '科学', icon: '🔬' },
 ]
-
-export const INITIAL_RESOURCE_LIMITS: Record<string, number> = {
-  food: 3000,
-  wood: 400,
-}
-
-export const INITIAL_POPULATION_CAP = 1
-export const POPULATION_GROWTH_RATE = 0.02
-export const FOOD_CONSUMPTION_PER_PUPPY_PER_TICK = 1.2
 
 export const JOBS: Job[] = [
   {
@@ -119,7 +129,9 @@ export const JOBS: Job[] = [
     icon: '🌾',
     description: '每 Tick 生产食物。',
     productionPerTick: { food: 1.5 },
-    requiredBuildings: ['farm'],
+    prerequisites: {
+      requiredBuildings: ['farm'],
+    },
   },
   {
     id: 'lumberjack',
@@ -129,12 +141,24 @@ export const JOBS: Job[] = [
     productionPerTick: { wood: 0.2 },
   },
   {
+    id: 'miner',
+    name: '矿工',
+    icon: '⛏️',
+    description: '每 Tick 采集石材。',
+    productionPerTick: { stone: 0.2 },
+    prerequisites: {
+      requiredWorkshopUnlockIds: ['wood_pickaxe'],
+    },
+  },
+  {
     id: 'scientist',
     name: '科学家',
     icon: '🔬',
     description: '每 Tick 进行科学研究。',
     productionPerTick: { science: 0.2 },
-    requiredBuildings: ['library'],
+    prerequisites: {
+      requiredBuildings: ['library'],
+    },
   }
 ]
 
@@ -144,7 +168,7 @@ export const BUILDINGS: Building[] = [
     name: '狗舍',
     icon: '🏠',
     description: '可以容纳 2 只小狗。',
-    cost: { wood: 10, food: 75 },
+    cost: { wood: 20 },
     costGrowthMultiplier: 2.5,
     populationCapBonus: 2,
   },
@@ -162,46 +186,61 @@ export const BUILDINGS: Building[] = [
     name: '仓库',
     icon: '📦',
     description: '提升食物与木材的存储上限。',
-    cost: { wood: 200 },
-    costGrowthMultiplier: 2.5,
-    resourceLimitBonuses: { food: 3000, wood: 400 },
+    cost: { wood: 50 },
+    costGrowthMultiplier: 2,
+    resourceLimitBonuses: { food: 5000, wood: 1000, stone: 1000 },
   },
   {
     id: 'library',
     name: '图书馆',
     icon: '📚',
     description: '解锁科技研究，提升科学产出并增加科学存储上限。',
-    cost: { wood: 25, food: 100 },
+    cost: { wood: 25 },
     costGrowthMultiplier: 2,
+<<<<<<< HEAD
     resourceLimitBonuses: { science: 200 },
     effects: { scienceEfficiency: 0.1 },
+=======
+    resourceLimitBonuses: { science: 1500 },
+  },
+  {
+    id: 'workshop',
+    name: '工坊',
+    icon: '🛠️',
+    description: '用于制造工具与探索装备。',
+    cost: { wood: 60 },
+    costGrowthMultiplier: 1.8,
+    requiredTechs: ['workshop_engineering'],
+>>>>>>> origin/develop
   }
 ]
 
 export const TECHNOLOGIES: Technology[] = [
   {
-    id: 'woodworking',
-    name: '木工学',
-    description: '改良木材处理效率，提升伐木工的产量 20%。',
-    cost: { science: 100 },
+    id: 'workshop_engineering',
+    name: '工坊工程',
+    description: '掌握基础工坊建造技术，解锁工坊建筑。',
+    cost: { science: 60 },
     prerequisites: {
       requiredBuildings: ['library'],
     },
-    effects: [
-      {
-        id: 'woodworking-lumberjack-bonus',
-        type: 'job_production',
-        targetId: 'lumberjack',
-        value: 1.2,
-        mode: 'multiplier',
-      },
-    ],
+    effects: [],
+  },
+  {
+    id: 'mining',
+    name: '采矿术',
+    description: '学习基本的采矿技术。',
+    cost: { science: 150 },
+    prerequisites: {
+      requiredBuildings: ['library'],
+    },
+    effects: [],
   },
   {
     id: 'crop_rotation',
     name: '轮作农法',
     description: '农场效率提高 20%，且建造成本略有下降。',
-    cost: { science: 200 },
+    cost: { science: 300 },
     prerequisites: {
       requiredBuildings: ['library'],
     },
@@ -222,50 +261,66 @@ export const TECHNOLOGIES: Technology[] = [
       },
     ],
   },
+  {
+    id: 'woodworking',
+    name: '木工学',
+    description: '改良木材处理效率，提升伐木工的产量 20%。',
+    cost: { science: 600, wood: 200 },
+    prerequisites: {
+      requiredBuildings: ['library'],
+    },
+    effects: [
+      {
+        id: 'woodworking-lumberjack-bonus',
+        type: 'job_production',
+        targetId: 'lumberjack',
+        value: 1.2,
+        mode: 'multiplier',
+      },
+    ],
+  },
 ]
 
-export function createInitialResourceLimits(): Record<string, number> {
-  const limits: Record<string, number> = structuredClone(INITIAL_RESOURCE_LIMITS)
-  return limits
-}
-
-export function createInitialResourceDeltaPerTick(): Record<string, number> {
-  const deltas: Record<string, number> = {}
-  RESOURCES.forEach((resource) => {
-    deltas[resource.id] = 0
-  })
-
-  return deltas
-}
-
-export function createInitialGameState(): GameState {
-  const resources: Record<string, number> = {}
-  RESOURCES.forEach((resource) => {
-    resources[resource.id] = 0
-  })
-
-  const buildings: Record<string, number> = {}
-  BUILDINGS.forEach((building) => {
-    buildings[building.id] = 0
-  })
-
-  const jobAssignments: Record<string, number> = {}
-  JOBS.forEach((job) => {
-    jobAssignments[job.id] = 0
-  })
-
-  return {
-    resourceCounts: resources,
-    resourceLimits: createInitialResourceLimits(),
-    resourceDeltaPerTick: createInitialResourceDeltaPerTick(),
-    buildings,
-    jobAssignments,
-    researchedTechIds: [],
-    population: 0,
-    populationCap: INITIAL_POPULATION_CAP,
-    isDomesticateEnabled: false,
-    populationGrowthProgress: 0,
-    tickCount: 0,
-    lastTickTime: Date.now(),
-  }
-}
+export const WORKSHOP_UNLOCKS: WorkshopUnlock[] = [
+  {
+    id: 'wood_pickaxe',
+    name: '木镐',
+    description: '制作基础木镐，为采石与采矿岗位提供工具。',
+    cost: { wood: 80, science: 60 },
+    prerequisites: {
+      requiredTechs: ['mining'],
+      requiredBuildings: ['workshop'],
+    },
+    effects: [],
+  },
+  {
+    id: 'stone_pickaxe',
+    name: '石镐',
+    description: '升级矿工具，提升矿工产量。',
+    cost: { wood: 240, stone: 120, science: 300 },
+    prerequisites: {
+      requiredBuildings: ['workshop'],
+      requiredWorkshopUnlockIds: ['wood_pickaxe'],
+    },
+    effects: [
+      {
+        id: 'stone-pickaxe-miner-output',
+        type: 'job_production',
+        targetId: 'miner',
+        value: 1.5,
+        mode: 'multiplier',
+      },
+    ],
+  },
+  {
+    id: 'exploration_gear',
+    name: '探索装备',
+    description: '整备探索队所需的工具与补给。',
+    cost: { wood: 150, stone: 150, science: 150 },
+    prerequisites: {
+      requiredBuildings: ['workshop'],
+      requiredWorkshopUnlockIds: ['stone_pickaxe'],
+    },
+    effects: [],
+  },
+]

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { buildBuilding, canBuildBuilding, getBuildingCost } from '@/engine/buildings'
-import { BUILDINGS, type GameState, createInitialGameState } from '@/engine/types'
+import { BUILDINGS, type GameState } from '@/engine/types'
+import { createInitialGameState } from '@/engine/initialState'
 
 // NOTE 这里的测试都不是硬编码，依赖计算逻辑本身
 // 主要是为了适应开发阶段频繁调整建筑数值的情况，避免每次调整都要修改测试数据
