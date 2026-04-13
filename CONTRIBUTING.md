@@ -7,7 +7,7 @@
 ### 1. 环境准备
 
 ```bash
-git clone https://github.com/<org>/puppies-game.git
+git clone https://github.com/kaito387/puppies-game.git
 cd puppies-game
 npm install
 npm run dev  # 启动开发服务器
@@ -16,9 +16,9 @@ npm run dev  # 启动开发服务器
 ### 2. 创建功能分支
 
 ```bash
-# 从 main 分支创建新分支
-git checkout main
-git pull origin main
+# 从 develop 分支创建新分支
+git checkout develop
+git pull origin develop
 git checkout -b feat/<your-feature-name>
 ```
 
@@ -39,9 +39,9 @@ git checkout -b feat/<your-feature-name>
 git add <file>
 git commit -m "feat: add xxx functionality"
 
-# 保持与 main 同步
+# 保持与 develop 同步
 git fetch origin
-git rebase origin/main
+git rebase origin/develop
 ```
 
 ### 4. 本地测试
@@ -51,9 +51,6 @@ git rebase origin/main
 ```bash
 # 代码质量检查
 npm run lint
-
-# 代码格式化
-npm run format
 
 # 运行所有测试
 npm run test:run
@@ -84,7 +81,7 @@ git push origin feat/<your-feature-name>
 - 等待至少 1 名团队成员的审查
 - 根据反馈进行修改
 - 推送更新 (`git push origin feat/your-feature-name`)
-- 审查通过后，等待合并到 main
+- 审查通过后，等待合并到 develop
 
 ## 代码规范
 
@@ -249,7 +246,7 @@ npm run preview  # 预览构建结果
 
 ### 持续集成 (CI)
 
-任何 PR 都会自动运行:
+任何到 develop/main 分支的 PR 都会自动运行:
 
 1. ESLint 检查
 2. 单元测试
