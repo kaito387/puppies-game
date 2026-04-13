@@ -165,17 +165,19 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
       }
   }
 
- 
-  let totalScienceAdd = 0
-  for (const building of BUILDINGS) {
-    const count = state.buildings[building.id] || 0
-    if (count > 0 && building.effects?.scienceEfficiency) {
-      totalScienceAdd += building.effects.scienceEfficiency * count
+for (const building of BUILDINGS) {
+  const count = state.buildings[building.id] || 0
+  if (count <= 0 || !building.Effects) continue
+
+    for (const effect of building.Effects) {
+      if (effect.mode !== 'additive' || !effect.targetId) continue
+      if (!aggregated.jobProductionMultipliers[effect.targetId]) {
+        aggregated.jobProductionMultipliers[effect.targetId] = 1
+      }
+      aggregated.jobProductionMultipliers[effect.targetId] += effect.value * count
     }
   }
-  if (totalScienceAdd > 0) {
-    aggregated.jobProductionMultipliers['scientist'] = (aggregated.jobProductionMultipliers['scientist'] || 1) * (1 + totalScienceAdd)
-  }
+
   return aggregated
 }
 
@@ -225,7 +227,8 @@ export function getVisibleJobsIds(state: GameState): string[] {
   return JOBS
     .filter((job) => isRequirementSatisfied(state, job.prerequisites || {}))
     .map((job) => job.id)
-}
+
+  }
 
 export function getUnlockedJobsIds(state: GameState): string[] {
   return getVisibleJobsIds(state)

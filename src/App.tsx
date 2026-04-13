@@ -9,8 +9,6 @@ import { TechnologyPanel } from '@/components/TechnologyPanel'
 import { WorkshopPanel } from '@/components/WorkshopPanel'
 import { LogPanel } from '@/components/LogPanel'
 import { SettingsPanel } from '@/components/SettingsPanel'
-import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet'
-import { Settings2 } from 'lucide-react'
 import { AUTO_SAVE_INTERVAL_TICKS, GAME_TICK_INTERVAL_MS } from '@/engine/constants'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -43,7 +41,9 @@ function PlaceholderActionPanel(props: {
       </CardHeader>
       <CardContent className="flex flex-wrap items-center gap-3">
         <Button disabled={locked}>{buttonLabel}</Button>
-        {requirement ? <span className="text-sm text-muted-foreground">前置条件: {requirement}</span> : null}
+        {requirement ? (
+          <span className="text-sm text-muted-foreground">前置条件: {requirement}</span>
+        ) : null}
       </CardContent>
     </Card>
   )
@@ -101,22 +101,11 @@ function App() {
               <span>Ticks: {gameState.tickCount}</span>
               <span>TPS: ~5</span>
               <LogPanel />
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label="游戏设置">
-                    <Settings2 className="size-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="max-w-xs w-full">
-                  <SettingsPanel />
-                </SheetContent>
-              </Sheet>
+              <SettingsPanel />
             </div>
           </div>
         </header>
-
         <div className="px-4 py-4">
-
           <Tabs defaultValue="buildings" className="gap-4">
             <TabsList variant="line" className="w-full justify-start overflow-x-auto">
               <TabsTrigger value="buildings">建筑</TabsTrigger>
@@ -173,7 +162,9 @@ function App() {
           </Tabs>
 
           <Card className="mt-4">
-            <CardContent className="pt-6 text-xs text-muted-foreground">💾 游戏会自动保存到浏览器存储。</CardContent>
+            <CardContent className="pt-6 text-xs text-muted-foreground">
+              💾 游戏会自动保存到浏览器存储。
+            </CardContent>
           </Card>
         </div>
       </SidebarInset>

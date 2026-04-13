@@ -1,15 +1,15 @@
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGameStore } from '@/store/gameStore'
 import type { ChangeEvent } from 'react'
 import { SAVE_KEY } from '@/engine/save'
-
+import { toast } from 'sonner'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 export function SettingsPanel() {
   const resetGame = useGameStore((store) => store.resetGame)
   const saveGame = useGameStore((store) => store.saveGame)
   const loadGame = useGameStore((store) => store.loadGame)
 
-  // 导出存档 
+  // 导出存档
   const handleExport = () => {
     saveGame()
     const data = localStorage.getItem(SAVE_KEY)
@@ -39,9 +39,9 @@ export function SettingsPanel() {
           }
           localStorage.setItem(SAVE_KEY, text)
           loadGame()
-          window.location.reload()
+          toast.success('存档导入成功')
         } catch {
-          window.alert('导入失败：存档文件格式不正确')
+          toast.error('导入失败：存档文件格式不正确')
         }
       }
     }
@@ -49,22 +49,35 @@ export function SettingsPanel() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>设置</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label="游戏设置">
+          ⚙️
+        </Button>
+      </SheetTrigger>
+
+      <SheetContent side="right" className="max-w-xs w-full">
+        <SheetHeader>
+          <SheetTitle>设置</SheetTitle>
+        </SheetHeader>
+
+        <div className="flex flex-col gap-3 mt-6">
           <Button variant="outline" asChild className="w-full">
-            <label className="w-full block cursor-pointer text-center">
+            <label className="w-full cursor-pointer text-center">
               导入存档
-              <input type="file" accept="application/json" style={{ display: 'none' }} onChange={handleImport} />
+              <input type="file" accept="application/json" hidden onChange={handleImport} />
             </label>
           </Button>
-          <Button variant="outline" onClick={handleExport} className="w-full">导出存档</Button>
-          <Button variant="destructive" onClick={resetGame} className="w-full">重置游戏</Button>
+
+          <Button variant="outline" onClick={handleExport} className="w-full">
+            导出存档
+          </Button>
+
+          <Button variant="destructive" onClick={resetGame} className="w-full">
+            重置游戏
+          </Button>
         </div>
-      </CardContent>
-    </Card>
+      </SheetContent>
+    </Sheet>
   )
 }
