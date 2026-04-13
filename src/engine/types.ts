@@ -17,6 +17,7 @@ export interface Building {
   requiredBuildings?: string[]
   resourceLimitBonuses?: Record<string, number>
   populationCapBonus?: number
+  Effects?: Effect[]
 }
 
 export interface Job {
@@ -47,7 +48,6 @@ export interface Effect {
   type: EffectType
   mode: EffectMode
   targetId?: string
-  resourceId?: string
   value: number
 }
 
@@ -69,11 +69,9 @@ export interface WorkshopUnlock {
   effects?: Effect[]
 }
 
-export type GameEvent =
-  | { type: 'death'; dogId: string; dogName: string }
+export type GameEvent = { type: 'death'; dogId: string; dogName: string }
 
-export type GameLogType =
-  | 'death'
+export type GameLogType = 'death'
 
 export interface GameLog {
   id: string
@@ -104,7 +102,7 @@ export interface GameState {
   dogs: Dog[]
   populationGrowthProgress: number
   populationCap: number
-  
+
   isDomesticateEnabled: boolean
 
   tickCount: number
@@ -155,7 +153,7 @@ export const JOBS: Job[] = [
     prerequisites: {
       requiredBuildings: ['library'],
     },
-  }
+  },
 ]
 
 export const BUILDINGS: Building[] = [
@@ -194,6 +192,15 @@ export const BUILDINGS: Building[] = [
     cost: { wood: 25 },
     costGrowthMultiplier: 2,
     resourceLimitBonuses: { science: 1500 },
+    Effects: [
+      {
+        id: 'library-science-efficiency',
+        type: 'job_production',
+        targetId: 'scientist',
+        value: 0.1,
+        mode: 'additive',
+      },
+    ],
   },
   {
     id: 'workshop',
@@ -203,7 +210,7 @@ export const BUILDINGS: Building[] = [
     cost: { wood: 60 },
     costGrowthMultiplier: 1.8,
     requiredTechs: ['workshop_engineering'],
-  }
+  },
 ]
 
 export const TECHNOLOGIES: Technology[] = [

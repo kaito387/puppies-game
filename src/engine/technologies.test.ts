@@ -1,15 +1,21 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { type GameState } from '@/engine/types'
+import { TECHNOLOGIES, type GameState, type Technology } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import {
   aggregateTechEffects,
   canResearchTechnology,
   getVisibleJobsIds,
   getVisibleTechnologiesIds,
+  getUnlockedBuildingsIds,
+  getTechnologyById,
+  getUnlockedJobsIds,
+  isJobVisible,
   isRequirementSatisfied,
+  isTechnologyVisible,
   researchTechnology,
 } from '@/engine/technologies'
 import { getBuildingById, getBuildingCost } from '@/engine/buildings'
+import { BUILDINGS, JOBS } from '@/engine/types'
 
 describe('Technologies', () => {
   let gameState: GameState
@@ -26,10 +32,14 @@ describe('Technologies', () => {
   it('should require enough resources to research visible technology', () => {
     expect(canResearchTechnology(gameState, 'woodworking')).toBe(false)
 
+
     gameState.buildings.library = 1
     gameState.resourceCounts.science = 600
     gameState.resourceCounts.wood = 200
     expect(canResearchTechnology(gameState, 'woodworking')).toBe(true)
+
+    gameState.researchedTechIds = ['woodworking']
+    expect(canResearchTechnology(gameState, 'woodworking')).toBe(false)
   })
 
   it('should block research when resources are insufficient', () => {
@@ -59,6 +69,12 @@ describe('Technologies', () => {
 
     gameState.buildings.library = 1
     expect(isRequirementSatisfied(gameState, scientistJob)).toBe(true)
+
+    const requirement = { requiredTechs: ['woodworking'] }
+    expect(isRequirementSatisfied(gameState, requirement)).toBe(false)
+
+    gameState.researchedTechIds = ['woodworking']
+    expect(isRequirementSatisfied(gameState, requirement)).toBe(true)
   })
 
   it('should satisfy workshop unlock requirements for jobs', () => {
@@ -80,14 +96,43 @@ describe('Technologies', () => {
     expect(getVisibleJobsIds(gameState)).toContain('miner')
   })
 
-  it('should aggregate all v1 effect types', () => {
-    gameState.researchedTechIds = ['woodworking', 'crop_rotation']
+  it('should aggregate additive and multiplier effect modes', () => {
+    const stackingTech: Technology = {
+      id: 'stacking_test_tech',
+      name: 'stacking test',
+      description: 'temporary test technology',
+      cost: {},
+      effects: [
+        {
+          id: 'stacking-test-additive',
+          type: 'job_production',
+          targetId: 'lumberjack',
+          value: 0.1,
+          mode: 'additive',
+        },
+        {
+          id: 'stacking-test-multiplier',
+          type: 'job_production',
+          targetId: 'lumberjack',
+          value: 1.2,
+          mode: 'multiplier',
+        },
+      ],
+    }
 
-    const aggregated = aggregateTechEffects(gameState)
-    expect(aggregated.buildingCostMultipliers.farm).toBeCloseTo(0.8)
-    expect(aggregated.buildingProductionMultipliers.farm).toBeCloseTo(1.2)
-    expect(aggregated.jobProductionMultipliers.lumberjack).toBeCloseTo(1.2)
-    expect(aggregated.resourceLimitBonuses).toEqual({})
+    TECHNOLOGIES.push(stackingTech)
+
+    try {
+      gameState.researchedTechIds = ['woodworking', 'crop_rotation', stackingTech.id]
+      gameState.buildings.library = 2
+      const aggregated = aggregateTechEffects(gameState)
+      expect(aggregated.buildingCostMultipliers.farm).toBeCloseTo(0.8)
+      expect(aggregated.buildingProductionMultipliers.farm).toBeCloseTo(1.2)
+      expect(aggregated.jobProductionMultipliers.lumberjack).toBeCloseTo(1.584)
+      expect(aggregated.jobProductionMultipliers.scientist).toBeCloseTo(1.2)
+    } finally {
+      TECHNOLOGIES.pop()
+    }
   })
 
   it('should apply technology discount to building cost calculation', () => {
@@ -97,4 +142,45 @@ describe('Technologies', () => {
     const discountedCost = getBuildingCost(gameState, 'farm')
     expect(discountedCost.food).toBe(Math.ceil((farm.cost.food || 0) * 0.8))
   })
+
+  it('should return technology if it exists', () => {
+    expect(() => getTechnologyById('test')).toThrow('科技 test 不存在')
+  })
+
+  it('should return technology if it is visible', () => {
+    const tech = getTechnologyById('woodworking')
+    expect(isTechnologyVisible(gameState, tech)).toBe(false)
+
+    gameState.researchedTechIds = ['woodworking']
+    expect(isTechnologyVisible(gameState, tech)).toBe(true)
+  })
+
+  it('should return unlocked building ids', () => {
+    const ids = getUnlockedBuildingsIds(gameState)
+    expect(ids.every((id: string) => BUILDINGS.some((building) => building.id === id))).toBe(true)
+  })
+
+  it('should return unlocked job ids', () => {
+    const ids = getUnlockedJobsIds(gameState)
+    expect(ids.every((id: string) => JOBS.some((job) => job.id === id))).toBe(true)
+  })
+  it('should throw when job does not exist', () => {
+    expect(() => isJobVisible(gameState, 'test')).toThrow('职业 test 不存在')
+  })
+
+  it('should return false when job prerequisites are not satisfied', () => {
+    expect(isJobVisible(gameState, 'scientist')).toBe(false)
+  })
+
+  it('should return true when job prerequisites are satisfied', () => {
+    gameState.buildings.library = 1
+    expect(isJobVisible(gameState, 'scientist')).toBe(true)
+  })
+  it('returns false when any required resource is not enough', () => {
+    gameState.buildings.library = 1
+    gameState.resourceCounts.science = 600
+    gameState.resourceCounts.wood = 199 // woodworking 需要 200
+
+   expect(canResearchTechnology(gameState, 'woodworking')).toBe(false)
+})
 })
