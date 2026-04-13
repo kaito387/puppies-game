@@ -101,7 +101,8 @@ function applyMultiplierEffect(
     return
   }
 
-  source[targetId] = (source[targetId] || 1) * value
+  // diffrent multipliers stock additively
+  source[targetId] = (source[targetId] || 1) + value
 }
 
 export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
@@ -125,6 +126,17 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     const unlock = WORKSHOP_UNLOCKS.find((item) => item.id === unlockId)
     if (unlock?.effects) {
       allEffects.push(...unlock.effects)
+    }
+  }
+
+  for (const buildingId of getUnlockedBuildingsIds(state)) {
+    const building = BUILDINGS.find((item) => item.id === buildingId)
+    if (building?.Effects) {
+      const count = state.buildings[buildingId] || 0
+      for (const effect of building.Effects) {
+        const scaledEffect = { ...effect, value: effect.value * count }
+        allEffects.push(scaledEffect)
+      }
     }
   }
 
@@ -163,19 +175,6 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
           }
         }
       }
-  }
-
-for (const building of BUILDINGS) {
-  const count = state.buildings[building.id] || 0
-  if (count <= 0 || !building.Effects) continue
-
-    for (const effect of building.Effects) {
-      if (effect.mode !== 'additive' || !effect.targetId) continue
-      if (!aggregated.jobProductionMultipliers[effect.targetId]) {
-        aggregated.jobProductionMultipliers[effect.targetId] = 1
-      }
-      aggregated.jobProductionMultipliers[effect.targetId] += effect.value * count
-    }
   }
 
   return aggregated
