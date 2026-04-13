@@ -48,7 +48,6 @@ export interface Effect {
   type: EffectType
   mode: EffectMode
   targetId?: string
-  resourceId?: string
   value: number
 }
 

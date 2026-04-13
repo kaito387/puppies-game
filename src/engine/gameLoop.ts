@@ -56,8 +56,6 @@ export function calculatePopulationCap(gameState: GameState): number {
 
 export function calculateResourceLimits(gameState: GameState): Record<string, number> {
   const limits: Record<string, number> = { ...INITIAL_RESOURCE_LIMITS }
-  const { resourceLimitBonuses } = aggregateTechEffects(gameState)
-
   BUILDINGS.forEach((building) => {
     const count = gameState.buildings[building.id] || 0
     if (!building.resourceLimitBonuses || count <= 0) {
@@ -68,10 +66,6 @@ export function calculateResourceLimits(gameState: GameState): Record<string, nu
       limits[resourceId] = (limits[resourceId] || 0) + amount * count
     }
   })
-
-  for (const [resourceId, bonus] of Object.entries(resourceLimitBonuses)) {
-    limits[resourceId] = (limits[resourceId] || 0) + bonus
-  }
 
   return limits
 }

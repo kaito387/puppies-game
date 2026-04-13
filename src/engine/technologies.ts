@@ -13,7 +13,11 @@ export interface AggregatedTechEffects {
   buildingCostMultipliers: Record<string, number>
   buildingProductionMultipliers: Record<string, number>
   jobProductionMultipliers: Record<string, number>
-  resourceLimitBonuses: Record<string, number>
+}
+
+interface EffectAccumulator {
+  additiveTotals: Record<string, number>
+  multiplierTotals: Record<string, number>
 }
 
 export function getTechnologyById(techId: string): Technology {
@@ -92,17 +96,39 @@ export function getVisibleTechnologiesIds(state: GameState): string[] {
   return TECHNOLOGIES.filter((technology) => isTechnologyVisible(state, technology)).map((tech) => tech.id)
 }
 
-function applyMultiplierEffect(
-  source: Record<string, number>,
-  targetId: string | undefined,
-  value: number,
+
+function addEffectContribution(
+  accumulator: EffectAccumulator,
+  effect: Effect,
+  occurrences: number = 1,
 ): void {
+  const targetId = effect.targetId
   if (!targetId) {
     return
   }
 
-  // diffrent multipliers stock additively
-  source[targetId] = (source[targetId] || 1) + value
+  if (effect.mode === 'additive') {
+    accumulator.additiveTotals[targetId] = (accumulator.additiveTotals[targetId] || 0) + effect.value * occurrences
+    return
+  }
+
+  accumulator.multiplierTotals[targetId] =
+    (accumulator.multiplierTotals[targetId] || 1) * effect.value ** occurrences
+}
+
+function finalizeEffects(accumulator: EffectAccumulator): Record<string, number> {
+  const targets = new Set([
+    ...Object.keys(accumulator.additiveTotals),
+    ...Object.keys(accumulator.multiplierTotals),
+  ])
+
+  const finalized: Record<string, number> = {}
+  for (const targetId of targets) {
+    finalized[targetId] =
+      (1 + (accumulator.additiveTotals[targetId] || 0)) * (accumulator.multiplierTotals[targetId] || 1)
+  }
+
+  return finalized
 }
 
 export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
@@ -110,22 +136,64 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     buildingCostMultipliers: {},
     buildingProductionMultipliers: {},
     jobProductionMultipliers: {},
-    resourceLimitBonuses: {},
   }
 
-  const allEffects: Effect[] = []
+  const buildingCostEffects: EffectAccumulator = {
+    additiveTotals: {},
+    multiplierTotals: {},
+  }
+  const buildingProductionEffects: EffectAccumulator = {
+    additiveTotals: {},
+    multiplierTotals: {},
+  }
+  const jobProductionEffects: EffectAccumulator = {
+    additiveTotals: {},
+    multiplierTotals: {},
+  }
 
   for (const techId of state.researchedTechIds) {
     const technology = getTechnologyById(techId)
     if (technology.effects) {
-      allEffects.push(...technology.effects)
+      for (const effect of technology.effects) {
+        switch (effect.type) {
+          case 'building_cost':
+            addEffectContribution(buildingCostEffects, effect)
+            break
+          case 'building_production':
+            addEffectContribution(buildingProductionEffects, effect)
+            break
+          case 'job_production':
+            addEffectContribution(jobProductionEffects, effect)
+            break
+          default:
+            if (import.meta.env.DEV) {
+              console.warn(`未知科技效果类型: ${(effect as Effect).type}`)
+            }
+        }
+      }
     }
   }
 
   for (const unlockId of state.workshopUnlockIds) {
     const unlock = WORKSHOP_UNLOCKS.find((item) => item.id === unlockId)
     if (unlock?.effects) {
-      allEffects.push(...unlock.effects)
+      for (const effect of unlock.effects) {
+        switch (effect.type) {
+          case 'building_cost':
+            addEffectContribution(buildingCostEffects, effect)
+            break
+          case 'building_production':
+            addEffectContribution(buildingProductionEffects, effect)
+            break
+          case 'job_production':
+            addEffectContribution(jobProductionEffects, effect)
+            break
+          default:
+            if (import.meta.env.DEV) {
+              console.warn(`未知工坊效果类型: ${(effect as Effect).type}`)
+            }
+        }
+      }
     }
   }
 
@@ -134,48 +202,28 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     if (building?.Effects) {
       const count = state.buildings[buildingId] || 0
       for (const effect of building.Effects) {
-        const scaledEffect = { ...effect, value: effect.value * count }
-        allEffects.push(scaledEffect)
+        switch (effect.type) {
+          case 'building_cost':
+            addEffectContribution(buildingCostEffects, effect, count)
+            break
+          case 'building_production':
+            addEffectContribution(buildingProductionEffects, effect, count)
+            break
+          case 'job_production':
+            addEffectContribution(jobProductionEffects, effect, count)
+            break
+          default:
+            if (import.meta.env.DEV) {
+              console.warn(`未知建筑效果类型: ${(effect as Effect).type}`)
+            }
+        }
       }
     }
   }
 
-  for (const effect of allEffects) {
-      switch (effect.type) {
-        case 'building_cost': {
-          applyMultiplierEffect(
-            aggregated.buildingCostMultipliers,
-            effect.targetId,
-            effect.value,
-          )
-          break
-        }
-        case 'building_production': {
-          applyMultiplierEffect(
-            aggregated.buildingProductionMultipliers,
-            effect.targetId,
-            effect.value,
-          )
-          break
-        }
-        case 'job_production': {
-          applyMultiplierEffect(
-            aggregated.jobProductionMultipliers,
-            effect.targetId,
-            effect.value,
-          )
-          break
-        }
-        case 'resource_limit': {
-          throw new Error('Not implemented yet: resource_limit effect type aggregation')
-        }
-        default: {
-          if (import.meta.env.DEV) {
-            console.warn(`未知科技效果类型: ${(effect as Effect).type}`)
-          }
-        }
-      }
-  }
+  aggregated.buildingCostMultipliers = finalizeEffects(buildingCostEffects)
+  aggregated.buildingProductionMultipliers = finalizeEffects(buildingProductionEffects)
+  aggregated.jobProductionMultipliers = finalizeEffects(jobProductionEffects)
 
   return aggregated
 }
@@ -226,8 +274,7 @@ export function getVisibleJobsIds(state: GameState): string[] {
   return JOBS
     .filter((job) => isRequirementSatisfied(state, job.prerequisites || {}))
     .map((job) => job.id)
-
-  }
+}
 
 export function getUnlockedJobsIds(state: GameState): string[] {
   return getVisibleJobsIds(state)
