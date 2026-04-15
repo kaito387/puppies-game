@@ -26,3 +26,6 @@ npm run preview  # 预览构建结果
 ## 链接和资源
 
 - 📚 [Kittens Game 参考](https://kittensgame.com/)
+
+
+foo
