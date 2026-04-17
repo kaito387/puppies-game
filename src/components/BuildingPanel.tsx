@@ -22,7 +22,7 @@ export function BuildingPanel() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-center gap-3 rounded-md border p-3">
-          <Button onClick={() => clickResource('food')}>🍖 采集浆果</Button>
+          <Button onClick={() => clickResource('food',2)}>🍖 采集浆果</Button>
           <span className="text-sm text-muted-foreground">手动采集基础资源。</span>
         </div>
 
