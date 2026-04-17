@@ -92,7 +92,7 @@ function App() {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>Ticks: {gameState.tickCount}</span>
               <span>TPS: ~5</span>
-              <Button variant="outline" onClick={resetGame}>
+              <Button variant="outline" onClick={resetGame} className="w-[90%] mx-auto">
                 🔄 重置游戏
               </Button>
             </div>
