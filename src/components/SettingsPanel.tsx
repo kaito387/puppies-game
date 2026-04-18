@@ -62,18 +62,18 @@ export function SettingsPanel() {
         </SheetHeader>
 
         <div className="flex flex-col gap-3 mt-6">
-          <Button variant="outline" asChild className="w-full">
+          <Button variant="outline" className="w-[90%] mx-auto">
             <label className="w-full cursor-pointer text-center">
               导入存档
               <input type="file" accept="application/json" hidden onChange={handleImport} />
             </label>
           </Button>
 
-          <Button variant="outline" onClick={handleExport} className="w-full">
+          <Button variant="outline" onClick={handleExport} className="w-[90%] mx-auto">
             导出存档
           </Button>
 
-          <Button variant="destructive" onClick={resetGame} className="w-full">
+          <Button variant="destructive" onClick={resetGame} className="w-[90%] mx-auto">
             重置游戏
           </Button>
         </div>
