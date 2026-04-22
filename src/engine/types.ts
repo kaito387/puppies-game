@@ -69,6 +69,38 @@ export interface WorkshopUnlock {
   effects?: Effect[]
 }
 
+const SEASON_EFFECTS: Record<string, Effect[]> = {
+  spring: [
+    {
+      id: 'spring-farm-bonus',
+      type: 'building_production',
+      targetId: 'farm',
+      value: 0.15,
+      mode: 'multiplier',
+    },
+  ],
+  summer: [
+    {
+      id: 'summer-farm-bonus',
+      type: 'building_production',
+      targetId: 'farm',
+      value: 0.5,
+      mode: 'multiplier',
+    },
+  ],
+  autumn: [
+  ],
+  winter: [
+    {
+      id: 'winter-farm-bonus',
+      type: 'building_production',
+      targetId: 'farm',
+      value: -0.75,
+      mode: 'multiplier',
+    },
+  ],
+}
+
 export type GameEvent = { type: 'death'; dogId: string; dogName: string }
 
 export type GameLogType = 'death'
@@ -282,6 +314,16 @@ export const TECHNOLOGIES: Technology[] = [
       },
     ],
   },
+  {
+    id: 'calendar',
+    name: '历法',
+    description: '解锁季节显示，农作物产量将随季节变化。',
+    cost: { science: 1200 },
+    prerequisites: {
+      requiredBuildings: ['library'],
+    },
+    effects: [],
+  }
 ]
 
 export const WORKSHOP_UNLOCKS: WorkshopUnlock[] = [
