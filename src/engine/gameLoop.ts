@@ -6,6 +6,7 @@ import {
   type GameEvent,
 } from '@/engine/types'
 import {
+  DOG_EXPERIENCE_GAIN_PER_TICK,
   FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
   INITIAL_POPULATION_CAP,
   INITIAL_RESOURCE_LIMITS,
@@ -14,7 +15,6 @@ import {
 import { min } from '@/engine/utils'
 import { aggregateTechEffects } from '@/engine/technologies'
 import {
-  calculateDogExperienceGain,
   calculateDogOutputMultiplier,
   createDog,
   normalizeDogStatus,
@@ -177,13 +177,11 @@ function applyDogExperience(dogs: GameState['dogs']): GameState['dogs'] {
       }
     }
 
-    const gainedExperience = calculateDogExperienceGain(dog, dog.currentJobId)
     return {
       ...dog,
-      status: normalizeDogStatus(dog.currentJobId),
       experienceByJob: {
         ...dog.experienceByJob,
-        [dog.currentJobId]: (dog.experienceByJob[dog.currentJobId] || 0) + gainedExperience,
+        [dog.currentJobId]: (dog.experienceByJob[dog.currentJobId] || 0) + DOG_EXPERIENCE_GAIN_PER_TICK,
       },
     }
   })

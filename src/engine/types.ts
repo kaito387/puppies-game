@@ -83,13 +83,20 @@ export interface GameLog {
 
 export type DogStatus = 'idle' | 'working' | 'exploring'
 
+export interface Trait {
+  id: string
+  name: string
+  description: string
+  effect: Effect
+}
+
 export interface Dog {
   id: string
   name: string
   color: string
   age: number
   experienceByJob: Record<string, number>
-  talentJobId: string
+  traitId: string
   status: DogStatus
   currentJobId: string | null
 }
@@ -282,6 +289,15 @@ export const TECHNOLOGIES: Technology[] = [
       },
     ],
   },
+  {
+    id: 'administration',
+    name: '管理学',
+    description: '解锁领导系统。',
+    cost: { science: 1000 },
+    prerequisites: {
+      requiredBuildings: ['workshop'],
+    },
+  },
 ]
 
 export const WORKSHOP_UNLOCKS: WorkshopUnlock[] = [
@@ -325,5 +341,32 @@ export const WORKSHOP_UNLOCKS: WorkshopUnlock[] = [
       requiredWorkshopUnlockIds: ['stone_pickaxe'],
     },
     effects: [],
+  },
+]
+
+export const TRAITS: Trait[] = [
+  {
+    id: 'scientist',
+    name: '科学家',
+    description: '提升科学研究效率。',
+    effect: {
+      id: 'talent-scientist-job-production',
+      type: 'job_production',
+      targetId: 'scientist',
+      value: 1.1,
+      mode: 'multiplier',
+    },
+  },
+  {
+    id: 'agriculturalist',
+    name: '农学家',
+    description: '提高农业效率。',
+    effect: {
+      id: 'talent-agriculturalist-job-production',
+      type: 'job_production',
+      targetId: 'farmer',
+      value: 1.1,
+      mode: 'multiplier',
+    },
   },
 ]
