@@ -113,7 +113,11 @@ export const RESOURCES: Resource[] = [
   { id: 'food', name: '食物', icon: '🍖' },
   { id: 'wood', name: '木材', icon: '🪵' },
   { id: 'stone', name: '石材', icon: '🪨' },
+  { id: 'iron', name: '铁矿', icon: '⛓️' },
+  { id: 'coal', name: '煤炭', icon: '🪨' },
+  { id: 'gold', name: '黄金', icon: '🥇' },
   { id: 'science', name: '科学', icon: '🔬' },
+  { id: 'culture', name: '文化', icon: '🎨' }
 ]
 
 export const JOBS: Job[] = [
