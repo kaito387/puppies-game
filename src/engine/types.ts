@@ -86,6 +86,7 @@ export type DogStatus = 'idle' | 'working' | 'exploring'
 export interface Dog {
   id: string
   name: string
+  color: string
   age: number
   experienceByJob: Record<string, number>
   talentJobId: string
