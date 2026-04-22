@@ -89,7 +89,7 @@ function pickRandom<T>(items: T[]): T {
 function createRandomDogName(): string {
   const prefix = pickRandom(DOG_NAME_PREFIX)
   const suffix = pickRandom(DOG_NAME_SUFFIX)
-  return `${prefix}${suffix}`
+  return `${prefix} ${suffix}`
 }
 
 function getRandomTalentJobId(): string {
