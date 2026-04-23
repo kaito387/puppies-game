@@ -33,6 +33,7 @@ import {
 import { getJobAssignment } from '@/engine/dogs'
 import { min } from '@/engine/utils'
 
+
 const MAX_LOGS = 100
 
 function addLog(logs: GameLog[], log: Omit<GameLog, 'id'>): GameLog[] {

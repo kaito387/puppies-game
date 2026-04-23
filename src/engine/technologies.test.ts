@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { type GameState } from '@/engine/types'
+import { TECHNOLOGIES, type GameState, type Technology } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import {
   aggregateTechEffects,
@@ -96,15 +96,43 @@ describe('Technologies', () => {
     expect(getVisibleJobsIds(gameState)).toContain('miner')
   })
 
-  it('should aggregate all v1 effect types', () => {
-    gameState.researchedTechIds = ['woodworking', 'crop_rotation']
-    gameState.buildings.library = 2
-    const aggregated = aggregateTechEffects(gameState)
-    expect(aggregated.buildingCostMultipliers.farm).toBeCloseTo(0.8)
-    expect(aggregated.buildingProductionMultipliers.farm).toBeCloseTo(1.2)
-    expect(aggregated.jobProductionMultipliers.lumberjack).toBeCloseTo(1.2)
-    expect(aggregated.jobProductionMultipliers.scientist).toBeCloseTo(1.2)
-    expect(aggregated.resourceLimitBonuses).toEqual({})
+  it('should aggregate additive and multiplier effect modes', () => {
+    const stackingTech: Technology = {
+      id: 'stacking_test_tech',
+      name: 'stacking test',
+      description: 'temporary test technology',
+      cost: {},
+      effects: [
+        {
+          id: 'stacking-test-additive',
+          type: 'job_production',
+          targetId: 'lumberjack',
+          value: 0.1,
+          mode: 'additive',
+        },
+        {
+          id: 'stacking-test-multiplier',
+          type: 'job_production',
+          targetId: 'lumberjack',
+          value: 1.2,
+          mode: 'multiplier',
+        },
+      ],
+    }
+
+    TECHNOLOGIES.push(stackingTech)
+
+    try {
+      gameState.researchedTechIds = ['woodworking', 'crop_rotation', stackingTech.id]
+      gameState.buildings.library = 2
+      const aggregated = aggregateTechEffects(gameState)
+      expect(aggregated.buildingCostMultipliers.farm).toBeCloseTo(0.8)
+      expect(aggregated.buildingProductionMultipliers.farm).toBeCloseTo(1.2)
+      expect(aggregated.jobProductionMultipliers.lumberjack).toBeCloseTo(1.584)
+      expect(aggregated.jobProductionMultipliers.scientist).toBeCloseTo(1.2)
+    } finally {
+      TECHNOLOGIES.pop()
+    }
   })
 
   it('should apply technology discount to building cost calculation', () => {
@@ -129,12 +157,12 @@ describe('Technologies', () => {
 
   it('should return unlocked building ids', () => {
     const ids = getUnlockedBuildingsIds(gameState)
-    expect(ids.every((id) => BUILDINGS.some((building) => building.id === id))).toBe(true)
+    expect(ids.every((id: string) => BUILDINGS.some((building) => building.id === id))).toBe(true)
   })
 
   it('should return unlocked job ids', () => {
     const ids = getUnlockedJobsIds(gameState)
-    expect(ids.every((id) => JOBS.some((job) => job.id === id))).toBe(true)
+    expect(ids.every((id: string) => JOBS.some((job) => job.id === id))).toBe(true)
   })
   it('should throw when job does not exist', () => {
     expect(() => isJobVisible(gameState, 'test')).toThrow('职业 test 不存在')

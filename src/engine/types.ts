@@ -48,7 +48,6 @@ export interface Effect {
   type: EffectType
   mode: EffectMode
   targetId?: string
-  resourceId?: string
   value: number
 }
 
@@ -70,11 +69,9 @@ export interface WorkshopUnlock {
   effects?: Effect[]
 }
 
-export type GameEvent =
-  | { type: 'death'; dogId: string; dogName: string }
+export type GameEvent = { type: 'death'; dogId: string; dogName: string }
 
-export type GameLogType =
-  | 'death'
+export type GameLogType = 'death'
 
 export interface GameLog {
   id: string
@@ -89,6 +86,7 @@ export type DogStatus = 'idle' | 'working' | 'exploring'
 export interface Dog {
   id: string
   name: string
+  color: string
   age: number
   experienceByJob: Record<string, number>
   talentJobId: string
@@ -105,7 +103,7 @@ export interface GameState {
   dogs: Dog[]
   populationGrowthProgress: number
   populationCap: number
-  
+
   isDomesticateEnabled: boolean
 
   tickCount: number
@@ -116,7 +114,11 @@ export const RESOURCES: Resource[] = [
   { id: 'food', name: '食物', icon: '🍖' },
   { id: 'wood', name: '木材', icon: '🪵' },
   { id: 'stone', name: '石材', icon: '🪨' },
+  { id: 'iron', name: '铁矿', icon: '⛓️' },
+  { id: 'coal', name: '煤炭', icon: '🪨' },
+  { id: 'gold', name: '黄金', icon: '🥇' },
   { id: 'science', name: '科学', icon: '🔬' },
+  { id: 'culture', name: '文化', icon: '🎨' }
 ]
 
 export const JOBS: Job[] = [
@@ -156,7 +158,7 @@ export const JOBS: Job[] = [
     prerequisites: {
       requiredBuildings: ['library'],
     },
-  }
+  },
 ]
 
 export const BUILDINGS: Building[] = [
@@ -196,14 +198,14 @@ export const BUILDINGS: Building[] = [
     costGrowthMultiplier: 2,
     resourceLimitBonuses: { science: 1500 },
     Effects: [
-    {
-      id: 'library-science-efficiency',
-      type: 'job_production',
-      targetId: 'scientist',
-      value: 0.1,
-      mode: 'additive',
-    },
-      ],
+      {
+        id: 'library-science-efficiency',
+        type: 'job_production',
+        targetId: 'scientist',
+        value: 0.1,
+        mode: 'additive',
+      },
+    ],
   },
   {
     id: 'workshop',
@@ -213,7 +215,7 @@ export const BUILDINGS: Building[] = [
     cost: { wood: 60 },
     costGrowthMultiplier: 1.8,
     requiredTechs: ['workshop_engineering'],
-  }
+  },
 ]
 
 export const TECHNOLOGIES: Technology[] = [
