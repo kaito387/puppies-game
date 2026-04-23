@@ -16,3 +16,4 @@ export const DOG_EXPERIENCE_OUTPUT_BONUS_CONSTANT = 1
 // coeff * log(exp) + constant, capped at 3x bonus
 export const DOG_EXPERIENCE_OUTPUT_BONUS_CAP = 3
 export const DOG_EXPERIENCE_GAIN_PER_TICK = 1
+export const DOG_EXPERIENCE_GAIN_FOR_TRAIT_MULTIPLIER = 1.5

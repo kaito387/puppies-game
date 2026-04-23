@@ -9,6 +9,7 @@ import {
   type Technology,
 } from '@/engine/types'
 
+import { getLeaderTrait } from '@/engine/dogs'
 export interface AggregatedTechEffects {
   buildingCostMultipliers: Record<string, number>
   buildingProductionMultipliers: Record<string, number>
@@ -150,7 +151,28 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     additiveTotals: {},
     multiplierTotals: {},
   }
+  
+  const leaderTrait = getLeaderTrait(state.dogs, state.leaderDogId)
 
+  if (leaderTrait) {
+    const effect = leaderTrait.effect
+    switch (effect.type) {
+      case 'building_cost':
+        addEffectContribution(buildingCostEffects, effect)
+        break
+      case 'building_production':
+        addEffectContribution(buildingProductionEffects, effect)
+        break
+      case 'job_production':
+        addEffectContribution(jobProductionEffects, effect)
+        break
+      default:
+        if (import.meta.env.DEV) {
+          console.warn(`未知领导者效果类型: ${(effect as Effect).type}`)
+        }
+    }
+  }
+  
   for (const techId of state.researchedTechIds) {
     const technology = getTechnologyById(techId)
     if (technology.effects) {
@@ -221,6 +243,7 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     }
   }
 
+  
   aggregated.buildingCostMultipliers = finalizeEffects(buildingCostEffects)
   aggregated.buildingProductionMultipliers = finalizeEffects(buildingProductionEffects)
   aggregated.jobProductionMultipliers = finalizeEffects(jobProductionEffects)

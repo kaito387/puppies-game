@@ -57,6 +57,7 @@ export function loadGame(): GameState {
       workshopUnlockIds,
       dogs: saveData.dogs ?? INITIAL_GAME_STATE.dogs,
       populationCap: saveData.populationCap ?? INITIAL_GAME_STATE.populationCap,
+      leaderDogId: saveData.leaderDogId ?? INITIAL_GAME_STATE.leaderDogId,
       isDomesticateEnabled:
         saveData.isDomesticateEnabled ?? INITIAL_GAME_STATE.isDomesticateEnabled,
       populationGrowthProgress:

@@ -110,6 +110,7 @@ export interface GameState {
   dogs: Dog[]
   populationGrowthProgress: number
   populationCap: number
+  leaderDogId: string | null
 
   isDomesticateEnabled: boolean
 
@@ -350,7 +351,7 @@ export const TRAITS: Trait[] = [
     name: '科学家',
     description: '提升科学研究效率。',
     effect: {
-      id: 'talent-scientist-job-production',
+      id: 'trait-scientist-job-production',
       type: 'job_production',
       targetId: 'scientist',
       value: 1.1,
@@ -362,7 +363,7 @@ export const TRAITS: Trait[] = [
     name: '农学家',
     description: '提高农业效率。',
     effect: {
-      id: 'talent-agriculturalist-job-production',
+      id: 'trait-agriculturalist-job-production',
       type: 'job_production',
       targetId: 'farmer',
       value: 1.1,
