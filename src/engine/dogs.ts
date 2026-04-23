@@ -3,7 +3,6 @@ import {
   TRAITS,
   type Dog,
   type DogStatus,
-  type Effect,
   type Trait,
 } from '@/engine/types'
 import {
