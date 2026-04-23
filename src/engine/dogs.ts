@@ -7,8 +7,6 @@ import {
   type Trait,
 } from '@/engine/types'
 import {
-  DOG_EXPERIENCE_GAIN_FOR_TRAIT_MULTIPLIER,
-  DOG_EXPERIENCE_GAIN_PER_TICK,
   DOG_EXPERIENCE_OUTPUT_BONUS_CAP,
   DOG_EXPERIENCE_OUTPUT_BONUS_COEFFICIENT,
   DOG_EXPERIENCE_OUTPUT_BONUS_CONSTANT,
@@ -198,27 +196,12 @@ export function calculateDogOutputMultiplier(dog: Dog, jobId: string): number {
   return bonus
 }
 
-export function calculateDogExperienceGain(dog: Dog, jobId: string): number {
-  const trait = TRAITS.find((item) => item.id === dog.traitId)
-  const isTraitMatchedJob =
-    trait?.effect.type === 'job_production' && trait.effect.targetId === jobId
-  const traitMultiplier = isTraitMatchedJob ? DOG_EXPERIENCE_GAIN_FOR_TRAIT_MULTIPLIER : 1
-  return DOG_EXPERIENCE_GAIN_PER_TICK * traitMultiplier
-}
-
-export function getTraitEffectsByJob(jobId: string): Effect[] {
-  return TRAITS
-    .map((trait) => trait.effect)
-    .filter((effect) => effect.type === 'job_production' && effect.targetId === jobId)
-}
-
 export function getLeaderDog(dogs: Dog[], leaderDogId: string | null): Dog | null {
   if (!leaderDogId) {
     return null
   }
   return dogs.find((dog) => dog.id === leaderDogId) || null
 }
-
 
 export function getLeaderTrait(dogs: Dog[], leaderDogId: string | null): Trait | null {
   const leaderDog = getLeaderDog(dogs, leaderDogId)

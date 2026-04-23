@@ -242,7 +242,6 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
       }
     }
   }
-
   
   aggregated.buildingCostMultipliers = finalizeEffects(buildingCostEffects)
   aggregated.buildingProductionMultipliers = finalizeEffects(buildingProductionEffects)
