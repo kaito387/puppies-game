@@ -4,6 +4,7 @@ import type { ChangeEvent } from 'react'
 import { SAVE_KEY } from '@/engine/save'
 import { toast } from 'sonner'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { Settings } from 'lucide-react'
 export function SettingsPanel() {
   const resetGame = useGameStore((store) => store.resetGame)
   const saveGame = useGameStore((store) => store.saveGame)
@@ -52,7 +53,7 @@ export function SettingsPanel() {
     <Sheet>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" aria-label="游戏设置">
-          ⚙️
+          <Settings className="h-5 w-5" />
         </Button>
       </SheetTrigger>
 

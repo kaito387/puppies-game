@@ -116,7 +116,6 @@ function App() {
               <TabsTrigger value="exploration">探索</TabsTrigger>
               <TabsTrigger value="trade">贸易</TabsTrigger>
             </TabsList>
-
             <TabsContent value="buildings">
               <BuildingPanel />
             </TabsContent>
