@@ -274,7 +274,8 @@ export function getVisibleJobsIds(state: GameState): string[] {
   return JOBS
     .filter((job) => isRequirementSatisfied(state, job.prerequisites || {}))
     .map((job) => job.id)
-}
+
+  }
 
 export function getUnlockedJobsIds(state: GameState): string[] {
   return getVisibleJobsIds(state)
