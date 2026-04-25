@@ -132,6 +132,30 @@ function finalizeEffects(accumulator: EffectAccumulator): Record<string, number>
   return finalized
 }
 
+function applyEffectToAccumulators(
+  effect: Effect,
+  buildingCostEffects: EffectAccumulator,
+  buildingProductionEffects: EffectAccumulator,
+  jobProductionEffects: EffectAccumulator,
+  occurrences: number = 1
+): void {
+  switch (effect.type) {
+    case 'building_cost':
+      addEffectContribution(buildingCostEffects, effect, occurrences)
+      break
+    case 'building_production':
+      addEffectContribution(buildingProductionEffects, effect, occurrences)
+      break
+    case 'job_production':
+      addEffectContribution(jobProductionEffects, effect, occurrences)
+      break
+    default:
+      if (import.meta.env.DEV) {
+        console.warn(`未知效果类型: ${(effect as Effect).type}`)
+      }
+  }
+}
+
 export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
   const aggregated: AggregatedTechEffects = {
     buildingCostMultipliers: {},
@@ -155,43 +179,24 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
   const leaderTrait = getLeaderTrait(state.dogs, state.leaderDogId)
 
   if (leaderTrait) {
-    const effect = leaderTrait.effect
-    switch (effect.type) {
-      case 'building_cost':
-        addEffectContribution(buildingCostEffects, effect)
-        break
-      case 'building_production':
-        addEffectContribution(buildingProductionEffects, effect)
-        break
-      case 'job_production':
-        addEffectContribution(jobProductionEffects, effect)
-        break
-      default:
-        if (import.meta.env.DEV) {
-          console.warn(`未知领导者效果类型: ${(effect as Effect).type}`)
-        }
-    }
+    applyEffectToAccumulators(
+      leaderTrait.effect,
+      buildingCostEffects,
+      buildingProductionEffects,
+      jobProductionEffects
+    )
   }
   
   for (const techId of state.researchedTechIds) {
     const technology = getTechnologyById(techId)
     if (technology.effects) {
       for (const effect of technology.effects) {
-        switch (effect.type) {
-          case 'building_cost':
-            addEffectContribution(buildingCostEffects, effect)
-            break
-          case 'building_production':
-            addEffectContribution(buildingProductionEffects, effect)
-            break
-          case 'job_production':
-            addEffectContribution(jobProductionEffects, effect)
-            break
-          default:
-            if (import.meta.env.DEV) {
-              console.warn(`未知科技效果类型: ${(effect as Effect).type}`)
-            }
-        }
+        applyEffectToAccumulators(
+          effect,
+          buildingCostEffects,
+          buildingProductionEffects,
+          jobProductionEffects
+        )
       }
     }
   }
@@ -200,21 +205,12 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     const unlock = WORKSHOP_UNLOCKS.find((item) => item.id === unlockId)
     if (unlock?.effects) {
       for (const effect of unlock.effects) {
-        switch (effect.type) {
-          case 'building_cost':
-            addEffectContribution(buildingCostEffects, effect)
-            break
-          case 'building_production':
-            addEffectContribution(buildingProductionEffects, effect)
-            break
-          case 'job_production':
-            addEffectContribution(jobProductionEffects, effect)
-            break
-          default:
-            if (import.meta.env.DEV) {
-              console.warn(`未知工坊效果类型: ${(effect as Effect).type}`)
-            }
-        }
+        applyEffectToAccumulators(
+          effect,
+          buildingCostEffects,
+          buildingProductionEffects,
+          jobProductionEffects
+        )
       }
     }
   }
@@ -224,21 +220,13 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     if (building?.Effects) {
       const count = state.buildings[buildingId] || 0
       for (const effect of building.Effects) {
-        switch (effect.type) {
-          case 'building_cost':
-            addEffectContribution(buildingCostEffects, effect, count)
-            break
-          case 'building_production':
-            addEffectContribution(buildingProductionEffects, effect, count)
-            break
-          case 'job_production':
-            addEffectContribution(jobProductionEffects, effect, count)
-            break
-          default:
-            if (import.meta.env.DEV) {
-              console.warn(`未知建筑效果类型: ${(effect as Effect).type}`)
-            }
-        }
+        applyEffectToAccumulators(
+          effect,
+          buildingCostEffects,
+          buildingProductionEffects,
+          jobProductionEffects,
+          count
+        )
       }
     }
   }
