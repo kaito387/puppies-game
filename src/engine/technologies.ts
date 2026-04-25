@@ -137,7 +137,7 @@ function applyEffectToAccumulators(
   buildingCostEffects: EffectAccumulator,
   buildingProductionEffects: EffectAccumulator,
   jobProductionEffects: EffectAccumulator,
-  occurrences: number = 1
+  occurrences: number = 1,
 ): void {
   switch (effect.type) {
     case 'building_cost':
