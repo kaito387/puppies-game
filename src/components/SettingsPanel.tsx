@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button'
 import { useGameStore } from '@/store/gameStore'
 import type { ChangeEvent } from 'react'
+import { Settings2 } from 'lucide-react'
 import { SAVE_KEY } from '@/engine/save'
 import { toast } from 'sonner'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { Settings } from 'lucide-react'
 export function SettingsPanel() {
   const resetGame = useGameStore((store) => store.resetGame)
   const saveGame = useGameStore((store) => store.saveGame)
@@ -53,31 +53,21 @@ export function SettingsPanel() {
     <Sheet>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" aria-label="游戏设置">
-          <Settings className="h-5 w-5" />
+          <Settings2 className="size-5" />
         </Button>
       </SheetTrigger>
-
-      <SheetContent side="right" className="max-w-xs w-full">
-        <SheetHeader>
-          <SheetTitle>设置</SheetTitle>
+      <SheetContent side="right" className="w-96 p-4 gap-4 flex flex-col">
+        <SheetHeader className="py-4 border-b">
+          <SheetTitle>⚙️ 游戏设置</SheetTitle>
         </SheetHeader>
-
-        <div className="flex flex-col gap-3 mt-6">
-          <Button variant="outline" className="w-[90%] mx-auto">
-            <label className="w-full cursor-pointer text-center">
-              导入存档
-              <input type="file" accept="application/json" hidden onChange={handleImport} />
-            </label>
-          </Button>
-
-          <Button variant="outline" onClick={handleExport} className="w-[90%] mx-auto">
-            导出存档
-          </Button>
-
-          <Button variant="destructive" onClick={resetGame} className="w-[90%] mx-auto">
-            重置游戏
-          </Button>
-        </div>
+        <Button variant="outline" asChild className="w-full">
+        <label className="block cursor-pointer text-center">
+          导入存档
+          <input type="file" accept="application/json" style={{ display: 'none' }} onChange={handleImport} />
+        </label>
+        </Button>
+        <Button variant="outline" onClick={handleExport} className="w-full">导出存档</Button>
+        <Button variant="destructive" onClick={resetGame} className="w-full">重置游戏</Button>
       </SheetContent>
     </Sheet>
   )
