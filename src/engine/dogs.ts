@@ -1,8 +1,9 @@
 import {
-  TRAITS,
   JOBS,
+  TRAITS,
   type Dog,
   type DogStatus,
+  type Trait,
 } from '@/engine/types'
 import {
   DOG_EXPERIENCE_OUTPUT_BONUS_CAP,
@@ -192,4 +193,25 @@ export function calculateDogOutputMultiplier(dog: Dog, jobId: string): number {
   const experience = dog.experienceByJob[jobId] || 0
   const bonus = Math.min(DOG_EXPERIENCE_OUTPUT_BONUS_CAP, Math.log(experience + 1) * DOG_EXPERIENCE_OUTPUT_BONUS_COEFFICIENT + DOG_EXPERIENCE_OUTPUT_BONUS_CONSTANT)
   return bonus
+}
+
+export function getLeaderDog(dogs: Dog[], leaderDogId: string | null): Dog | null {
+  if (!leaderDogId) {
+    return null
+  }
+  return dogs.find((dog) => dog.id === leaderDogId) || null
+}
+
+export function getLeaderTrait(dogs: Dog[], leaderDogId: string | null): Trait | null {
+  const leaderDog = getLeaderDog(dogs, leaderDogId)
+  if (!leaderDog) {
+    return null
+  }
+
+  const trait = TRAITS.find((item) => item.id === leaderDog.traitId)
+  if (!trait) {
+    return null
+  }
+
+  return trait
 }

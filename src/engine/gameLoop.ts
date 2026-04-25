@@ -205,6 +205,9 @@ export function tick(state: GameState): { gameState: GameState; events: GameEven
 
   const populationUpdate = applyPopulationGrowth(state, newResourceCounts, nextPopulationCap)
 
+  const nextLeaderDogId = (state.leaderDogId && populationUpdate.dogs.some((dog) => dog.id === state.leaderDogId))
+    ? state.leaderDogId
+    : null
   for (const [resourceId, amount] of Object.entries(newResourceCounts)) {
     newResourceCounts[resourceId] = min(amount, nextLimits[resourceId] || 0)
   }
@@ -227,6 +230,7 @@ export function tick(state: GameState): { gameState: GameState; events: GameEven
     populationGrowthProgress: populationUpdate.growthProgress,
     tickCount: state.tickCount + 1,
     lastTickTime: Date.now(),
+    leaderDogId: nextLeaderDogId,
   }
 
   return { gameState, events }
