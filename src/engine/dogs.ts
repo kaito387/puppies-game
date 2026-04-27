@@ -83,7 +83,7 @@ export function createDog(): Dog {
     talentJobId: getRandomTalentJobId(),
     status: 'idle',
     currentJobId: null,
-    color: getRandomDogColor(),
+    dogColor: getRandomDogColor(),
   }
 }
 
