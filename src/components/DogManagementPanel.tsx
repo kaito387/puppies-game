@@ -128,7 +128,7 @@ function DogCard(props: {
                             <Input
                                 value={draftName}
                                 onChange={(event) => {
-                                    setDraftName(event.value)
+                                    setDraftName(event.target.value)
                                     if (nameError) {
                                         setNameError(null)
                                     }
