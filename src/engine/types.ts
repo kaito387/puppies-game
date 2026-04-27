@@ -91,6 +91,7 @@ export interface Dog {
   talentJobId: string
   status: DogStatus
   currentJobId: string | null
+  color:string
 }
 
 export interface GameState {
