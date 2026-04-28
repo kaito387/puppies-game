@@ -35,14 +35,6 @@ const DOG_NAME_SUFFIX = [
 
 const DEFAULT_MAX_NAME_LENGTH = 16
 
-function getRandomDogColor(): string {
-    const colors = [
-        '#F59E0B', '#10B981', '#3B82F6', '#EC4899',
-        '#8B5CF6', '#EF4444', '#14B8A6', '#F97316'
-    ]
-    return colors[Math.floor(Math.random() * colors.length)]
-}
-
 function pickRandom<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)]
 }
@@ -82,8 +74,8 @@ export function createDog(): Dog {
     experienceByJob: createJobExperience(),
     talentJobId: getRandomTalentJobId(),
     status: 'idle',
-    currentJobId: null,
-    dogColor: getRandomDogColor(),
+      currentJobId: null,
+
   }
 }
 

@@ -39,7 +39,7 @@ function DogCard(props: {
     onRename: (dogId: string, nextName: string) => void
     onAssignJob: (dogId: string, jobId: string | null) => void
 }) {
-    console.log('狗狗：', props.dog.name, '颜色：', props.dog.dogColor);
+    console.log('狗狗：', props.dog.name);
 
     const { dog, availableJobs, onRename, onAssignJob } = props
     const [draftName, setDraftName] = useState(dog.name)
@@ -68,12 +68,12 @@ function DogCard(props: {
     }
 
     return (
-        <Card className="border-dashed" style={{ borderColor: `${dog.dogColor}60` }}>
+        <Card className="border-dashed" style={{ borderColor: '#e5e7eb60' }}>
             <CardContent className="space-y-3 pt-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-base font-semibold" style={{ color: dog.dogColor }}>{dog.name}</h3>
+                            <h3 className="text-base font-semibold" style={{ color: '#000' }}>{dog.name}</h3>
                             <Button variant="ghost" size="icon-xs" onClick={openRenameDialog} aria-label={`修改 ${dog.name} 的名字`}>
                                 <PencilIcon />
                             </Button>
