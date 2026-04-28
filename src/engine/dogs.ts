@@ -1,35 +1,80 @@
 import { JOBS, type Dog, type DogStatus } from '@/engine/types'
 import {
-  DOG_EXPERIENCE_GAIN_FOR_TALENT_MULTIPLIER,
-  DOG_EXPERIENCE_GAIN_PER_TICK,
   DOG_EXPERIENCE_OUTPUT_BONUS_CAP,
   DOG_EXPERIENCE_OUTPUT_BONUS_COEFFICIENT,
   DOG_EXPERIENCE_OUTPUT_BONUS_CONSTANT,
 } from '@/engine/constants'
 
 const DOG_NAME_PREFIX = [
-  '阿',
-  '小',
-  '豆',
-  '毛',
-  '栗',
-  '松',
-  '奶',
-  '团',
+  'Angel',
+  'Charlie',
+  'Mittens',
+  'Oreo',
+  'Lily',
+  'Ellie',
+  'Amber',
+  'Molly',
+  'Jasper',
+  'Oscar',
+  'Theo',
+  'Maddie',
+  'Cassie',
+  'Timber',
+  'Meeko',
+  'Micha',
+  'Tami',
+  'Plato',
+  'Bea',
+  'Cedar',
+  'Cleo',
+  'Dali',
+  'Fiona',
+  'Hazel',
+  'Iggi',
+  'Jasmine',
+  'Kali',
+  'Luna',
+  'Reilly',
+  'Reo',
+  'Rikka',
+  'Ruby',
+  'Tammy'
 ]
 
 const DOG_NAME_SUFFIX = [
-  '福',
-  '豆',
-  '球',
-  '宝',
-  '旺',
-  '卷',
-  '星',
-  '仔',
+  'Smoke', 
+  'Dust', 
+  'Chalk', 
+  'Fur', 
+  'Clay', 
+  'Paws', 
+  'Tails', 
+  'Sand', 
+  'Scratch', 
+  'Berry', 
+  'Shadow',
+  'Ash', 
+  'Bark', 
+  'Bowl', 
+  'Brass', 
+  'Dusk', 
+  'Gaze', 
+  'Gleam', 
+  'Grass', 
+  'Moss', 
+  'Plaid', 
+  'Puff', 
+  'Rain',
+  'Silk', 
+  'Silver', 
+  'Speck', 
+  'Stripes', 
+  'Tingle', 
+  'Wool', 
+  'Yarn'
 ]
 
-const DEFAULT_MAX_NAME_LENGTH = 16
+const DEFAULT_MAX_NAME_LENGTH = 20
 
 function pickRandom<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)]
@@ -41,8 +86,8 @@ function createRandomDogName(): string {
   return `${prefix}${suffix}`
 }
 
-function getRandomTalentJobId(): string {
-  return pickRandom(JOBS).id
+function getRandomTraitId(): string {
+  return pickRandom(TRAITS).id
 }
 
 function createJobExperience(): Record<string, number> {
@@ -51,6 +96,39 @@ function createJobExperience(): Record<string, number> {
     result[job.id] = 0
   })
   return result
+}
+
+const randomColors: Record<string, string> = {
+  gray: 'rgb(128, 128, 128)',
+  green: 'rgb(55, 126, 34)',
+  cyan: 'rgb(75, 166, 158)',
+  blue: 'rgb(0, 0, 245)',
+  yellow: 'rgb(240, 148, 54)',
+  red: 'rgb(234, 51, 34)',
+  black: 'rgb(0, 0, 0)',
+}
+
+function createRandomColor(): string {
+  const weight = Math.random()
+  if (weight < 0.5) {
+    return randomColors.gray
+  } else if (weight < 0.75) {
+    return randomColors.green
+  } else if (weight < 0.88) {
+    return randomColors.cyan
+  } else if (weight < 0.94) {
+    return randomColors.blue
+  } else if (weight < 0.97) {
+    return randomColors.yellow
+  } else if (weight < 0.99) {
+    return randomColors.red
+  } else {
+    return randomColors.black
+  }
+}
+
+function createRandomAge(): number {
+  return Math.floor(Math.random() * 18) + 12
 }
 
 export function sanitizeDogName(name: string): string {
@@ -66,9 +144,10 @@ export function createDog(): Dog {
   return {
     id: crypto.randomUUID(),
     name: createRandomDogName(),
-    age: 0,
+    color: createRandomColor(),
+    age: createRandomAge(),
     experienceByJob: createJobExperience(),
-    talentJobId: getRandomTalentJobId(),
+    traitId: getRandomTraitId(),
     status: 'idle',
     currentJobId: null,
   }
@@ -110,7 +189,23 @@ export function calculateDogOutputMultiplier(dog: Dog, jobId: string): number {
   return bonus
 }
 
-export function calculateDogExperienceGain(dog: Dog, jobId: string): number {
-  const talentMultiplier = dog.talentJobId === jobId ? DOG_EXPERIENCE_GAIN_FOR_TALENT_MULTIPLIER : 1
-  return DOG_EXPERIENCE_GAIN_PER_TICK * talentMultiplier
+export function getLeaderDog(dogs: Dog[], leaderDogId: string | null): Dog | null {
+  if (!leaderDogId) {
+    return null
+  }
+  return dogs.find((dog) => dog.id === leaderDogId) || null
+}
+
+export function getLeaderTrait(dogs: Dog[], leaderDogId: string | null): Trait | null {
+  const leaderDog = getLeaderDog(dogs, leaderDogId)
+  if (!leaderDog) {
+    return null
+  }
+
+  const trait = TRAITS.find((item) => item.id === leaderDog.traitId)
+  if (!trait) {
+    return null
+  }
+
+  return trait
 }

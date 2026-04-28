@@ -32,6 +32,7 @@ export function createInitialGameState(): GameState {
     workshopUnlockIds: [],
     dogs: [],
     populationCap: INITIAL_POPULATION_CAP,
+    leaderDogId: null,
     isDomesticateEnabled: false,
     populationGrowthProgress: 0,
     tickCount: 0,

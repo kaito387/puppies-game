@@ -83,12 +83,20 @@ export interface GameLog {
 
 export type DogStatus = 'idle' | 'working' | 'exploring'
 
+export interface Trait {
+  id: string
+  name: string
+  description: string
+  effect: Effect
+}
+
 export interface Dog {
   id: string
   name: string
+  color: string
   age: number
   experienceByJob: Record<string, number>
-  talentJobId: string
+  traitId: string
   status: DogStatus
   currentJobId: string | null
 }
@@ -102,6 +110,7 @@ export interface GameState {
   dogs: Dog[]
   populationGrowthProgress: number
   populationCap: number
+  leaderDogId: string | null
 
   isDomesticateEnabled: boolean
 
@@ -113,7 +122,11 @@ export const RESOURCES: Resource[] = [
   { id: 'food', name: '食物', icon: '🍖' },
   { id: 'wood', name: '木材', icon: '🪵' },
   { id: 'stone', name: '石材', icon: '🪨' },
+  { id: 'iron', name: '铁矿', icon: '⛓️' },
+  { id: 'coal', name: '煤炭', icon: '🪨' },
+  { id: 'gold', name: '黄金', icon: '🥇' },
   { id: 'science', name: '科学', icon: '🔬' },
+  { id: 'culture', name: '文化', icon: '🎨' }
 ]
 
 export const JOBS: Job[] = [
@@ -277,6 +290,15 @@ export const TECHNOLOGIES: Technology[] = [
       },
     ],
   },
+  {
+    id: 'administration',
+    name: '管理学',
+    description: '解锁领导系统。',
+    cost: { science: 1000 },
+    prerequisites: {
+      requiredBuildings: ['workshop'],
+    },
+  },
 ]
 
 export const WORKSHOP_UNLOCKS: WorkshopUnlock[] = [
@@ -320,5 +342,32 @@ export const WORKSHOP_UNLOCKS: WorkshopUnlock[] = [
       requiredWorkshopUnlockIds: ['stone_pickaxe'],
     },
     effects: [],
+  },
+]
+
+export const TRAITS: Trait[] = [
+  {
+    id: 'scientist',
+    name: '科学家',
+    description: '提升科学研究效率。',
+    effect: {
+      id: 'trait-scientist-job-production',
+      type: 'job_production',
+      targetId: 'scientist',
+      value: 1.1,
+      mode: 'multiplier',
+    },
+  },
+  {
+    id: 'agriculturalist',
+    name: '农学家',
+    description: '提高农业效率。',
+    effect: {
+      id: 'trait-agriculturalist-job-production',
+      type: 'job_production',
+      targetId: 'farmer',
+      value: 1.1,
+      mode: 'multiplier',
+    },
   },
 ]

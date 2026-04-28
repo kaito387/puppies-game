@@ -29,7 +29,7 @@ describe('Game Loop', () => {
   describe('Production', () => {
     it('should calculate production correctly with no buildings', () => {
       const production = calculateProduction(gameState)
-      expect(production).toEqual({ food: 0, wood: 0, stone: 0, science: 0 })
+      expect(production).toEqual({ coal: 0, culture: 0, food: 0, gold: 0, iron: 0, wood: 0, stone: 0, science: 0 })
     })
 
     it('should calculate production correctly with multiple buildings', () => {
