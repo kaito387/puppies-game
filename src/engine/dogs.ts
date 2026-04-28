@@ -1,8 +1,4 @@
-import {
-  JOBS,
-  type Dog,
-  type DogStatus,
-} from '@/engine/types'
+import { JOBS, type Dog, type DogStatus } from '@/engine/types'
 import {
   DOG_EXPERIENCE_GAIN_FOR_TALENT_MULTIPLIER,
   DOG_EXPERIENCE_GAIN_PER_TICK,
@@ -74,8 +70,7 @@ export function createDog(): Dog {
     experienceByJob: createJobExperience(),
     talentJobId: getRandomTalentJobId(),
     status: 'idle',
-      currentJobId: null,
-
+    currentJobId: null,
   }
 }
 
