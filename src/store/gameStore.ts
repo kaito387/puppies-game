@@ -14,6 +14,7 @@ import {
   renameDog,
   setDomesticateEnabled,
   setJobAssignment,
+  setLeaderDog, // CHANGE 1: added setLeaderDog import
 } from '@/engine/actions'
 import { buildBuilding, canBuildBuilding, getBuildingCost } from '@/engine/buildings'
 import { saveGame, loadGame, resetGame } from '@/engine/save'
@@ -65,6 +66,7 @@ interface GameStore {
   assignDogJob: (dogId: string, jobId: string | null) => void
   renameDog: (dogId: string, nextName: string) => void
   setDomesticateEnabled: (enabled: boolean) => void
+  setLeaderDog: (dogId: string | null) => void // CHANGE 2: added to interface
   researchTechnology: (techId: string) => void
   canResearchTechnology: (techId: string) => boolean
   getVisibleTechnologiesIds: () => string[]
@@ -180,6 +182,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setDomesticateEnabled: (enabled: boolean) => {
     set((gameStore) => ({
       gameState: setDomesticateEnabled(gameStore.gameState, enabled),
+    }))
+  },
+
+  // CHANGE 3: added setLeaderDog implementation
+  setLeaderDog: (dogId: string | null) => {
+    set((gameStore) => ({
+      gameState: setLeaderDog(gameStore.gameState, dogId),
     }))
   },
 
