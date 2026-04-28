@@ -1,4 +1,4 @@
-import { JOBS, type Dog, type DogStatus } from '@/engine/types'
+import { JOBS, type Dog, type DogStatus, TRAITS, type Trait } from '@/engine/types'
 import {
   DOG_EXPERIENCE_OUTPUT_BONUS_CAP,
   DOG_EXPERIENCE_OUTPUT_BONUS_COEFFICIENT,
