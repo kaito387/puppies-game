@@ -52,7 +52,6 @@ describe('Workshop', () => {
     gameState.dogs = createDogs(1)
     gameState.dogs[0].currentJobId = 'miner'
     gameState.dogs[0].status = 'working'
-    gameState.dogs[0].talentJobId = 'farmer'
 
     const baseline = calculateJobProduction(gameState)
 
