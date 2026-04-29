@@ -121,10 +121,8 @@ describe('Game Loop', () => {
       gameState.dogs[1].currentJobId = 'scientist'
       gameState.dogs[1].status = 'working'
       gameState.dogs[1].traitId = 'agriculturalist'
-      // administration NOT in researchedTechIds
 
       const production = calculateJobProduction(gameState)
-      // scientist base production: 0.2, no multiplier applied
       expect(production.science).toBeCloseTo(0.2)
     })
 
@@ -136,7 +134,6 @@ describe('Game Loop', () => {
       gameState.dogs[1].traitId = 'agriculturalist'
 
       const production = calculateJobProduction(gameState)
-      // scientist trait effect: job_production scientist * 1.1
       expect(production.science).toBeCloseTo(0.2 * 1.1)
     })
 
