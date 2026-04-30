@@ -2,14 +2,24 @@ import {
   BUILDINGS,
   JOBS,
   RESOURCES,
+  MONTH_TO_SEASON,
+  SEASON_EFFECTS,
   type GameState,
   type GameEvent,
+  type Season,
+  type Calendar,
 } from '@/engine/types'
 import {
   FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
   INITIAL_POPULATION_CAP,
   INITIAL_RESOURCE_LIMITS,
   POPULATION_GROWTH_RATE,
+  CALENDAR_START_YEAR, 
+  CALENDAR_START_MONTH,
+  CALENDAR_START_DAY,
+  TICKS_PER_DAY, 
+  DAYS_PER_MONTH, 
+  MONTHS_PER_YEAR,
 } from '@/engine/constants'
 import { min } from '@/engine/utils'
 import { aggregateTechEffects } from '@/engine/technologies'
@@ -23,6 +33,8 @@ import {
 export function calculateProduction(gameState: GameState): Record<string, number> {
   const production: Record<string, number> = {}
   const { buildingProductionMultipliers } = aggregateTechEffects(gameState)
+  const calendar = calculateCalendarProgress(gameState)
+  const seasonEffects = SEASON_EFFECTS[calendar.season] || []
 
   RESOURCES.forEach((resource) => {
     production[resource.id] = 0
@@ -30,7 +42,20 @@ export function calculateProduction(gameState: GameState): Record<string, number
 
   BUILDINGS.forEach((building) => {
     const count = gameState.buildings[building.id] || 0
-    const multiplier = buildingProductionMultipliers[building.id] || 1
+    let multiplier = buildingProductionMultipliers[building.id] || 1
+
+    if (building.id === 'farm') {
+      seasonEffects.forEach((effect) => {
+        if (
+          effect.type === 'building_production' &&
+          effect.mode === 'multiplier' &&
+          effect.targetId === 'farm'
+        ) {
+          multiplier *= (1 + effect.value)
+        }
+      })
+    }
+
     for (const [resourceId, amount] of Object.entries(building.productionPerTick || {})) {
       production[resourceId] += amount * count * multiplier
     }
@@ -41,7 +66,7 @@ export function calculateProduction(gameState: GameState): Record<string, number
 
 export function calculatePopulationCap(gameState: GameState): number {
   let populationCap = INITIAL_POPULATION_CAP
-
+  
   BUILDINGS.forEach((building) => {
     const count = gameState.buildings[building.id] || 0
     if (!building.populationCapBonus || count <= 0) {
@@ -99,6 +124,21 @@ export function calculateJobProduction(gameState: GameState): Record<string, num
   })
 
   return production
+}
+
+export function calculateCalendarProgress(gameState: GameState): Calendar {
+  const totalDays = Math.floor(gameState.tickCount / TICKS_PER_DAY)
+  const day = (totalDays + CALENDAR_START_DAY - 1) % DAYS_PER_MONTH + 1
+  const monthOffset = Math.floor((totalDays + CALENDAR_START_DAY - 1) / DAYS_PER_MONTH)
+  const month = (CALENDAR_START_MONTH + monthOffset - 1) % MONTHS_PER_YEAR + 1
+  const year = CALENDAR_START_YEAR + Math.floor((CALENDAR_START_MONTH + monthOffset - 1) / MONTHS_PER_YEAR)
+  const season: Season = MONTH_TO_SEASON[month]
+  return {
+    year: year,
+    month: month,
+    day: day,
+    season: season,
+  }
 }
 
 export function applyPopulationGrowth(
