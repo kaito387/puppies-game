@@ -69,7 +69,31 @@ export interface WorkshopUnlock {
   effects?: Effect[]
 }
 
-const SEASON_EFFECTS: Record<string, Effect[]> = {
+export type Season = 'spring' | 'summer' | 'autumn' | 'winter'
+
+export interface Calendar {
+  year: number
+  month: number
+  day: number
+  season: Season
+}
+
+export const MONTH_TO_SEASON: Record<number, Season> = {
+  1: 'winter',
+  2: 'winter',
+  3: 'spring',
+  4: 'spring',
+  5: 'spring',
+  6: 'summer',
+  7: 'summer',
+  8: 'summer',
+  9: 'autumn',
+  10: 'autumn',
+  11: 'autumn',
+  12: 'winter',
+}
+
+export const SEASON_EFFECTS: Record<Season, Effect[]> = {
   spring: [
     {
       id: 'spring-farm-bonus',
@@ -88,8 +112,7 @@ const SEASON_EFFECTS: Record<string, Effect[]> = {
       mode: 'multiplier',
     },
   ],
-  autumn: [
-  ],
+  autumn: [],
   winter: [
     {
       id: 'winter-farm-bonus',
