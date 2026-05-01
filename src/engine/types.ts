@@ -71,8 +71,7 @@ export interface WorkshopUnlock {
 
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter'
 
-export interface Calendar
-{
+export interface Calendar {
   year: number
   month: number
   day: number
