@@ -3,7 +3,6 @@ import { Toaster } from '@/components/ui/sonner'
 import { useGameStore } from '@/store/gameStore'
 import { ResourcePanel } from '@/components/ResourcePanel'
 import { BuildingPanel } from '@/components/BuildingPanel'
-import { JobPanel } from '@/components/JobPanel'
 import { DogManagementPanel } from '@/components/DogManagementPanel'
 import { TechnologyPanel } from '@/components/TechnologyPanel'
 import { WorkshopPanel } from '@/components/WorkshopPanel'
@@ -109,21 +108,16 @@ function App() {
           <Tabs defaultValue="buildings" className="gap-4">
             <TabsList variant="line" className="w-full justify-start overflow-x-auto">
               <TabsTrigger value="buildings">建筑</TabsTrigger>
-              <TabsTrigger value="jobs">工作</TabsTrigger>
-              <TabsTrigger value="dogs">狗狗</TabsTrigger>
+              <TabsTrigger value="management">管理</TabsTrigger>
               <TabsTrigger value="technologies">科技</TabsTrigger>
               <TabsTrigger value="workshop">工坊</TabsTrigger>
               <TabsTrigger value="exploration">探索</TabsTrigger>
               <TabsTrigger value="trade">贸易</TabsTrigger>
             </TabsList>
-
             <TabsContent value="buildings">
               <BuildingPanel />
             </TabsContent>
-            <TabsContent value="jobs">
-              <JobPanel />
-            </TabsContent>
-            <TabsContent value="dogs">
+            <TabsContent value="management">
               <DogManagementPanel />
             </TabsContent>
             <TabsContent value="technologies">
