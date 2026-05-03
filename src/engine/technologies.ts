@@ -175,8 +175,14 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     additiveTotals: {},
     multiplierTotals: {},
   }
-  
-  const leaderTrait = getLeaderTrait(state.dogs, state.leaderDogId)
+
+  // FIX: Leader trait effect is gated behind the 'administration' technology.
+  // Previously, getLeaderTrait() was called unconditionally, so the leader's
+  // trait multiplier was applied even before administration was researched.
+  // Now we only resolve the trait when administration is confirmed researched.
+  const leaderTrait = isTechResearched(state, 'administration')
+    ? getLeaderTrait(state.dogs, state.leaderDogId)
+    : null
 
   if (leaderTrait) {
     applyEffectToAccumulators(
