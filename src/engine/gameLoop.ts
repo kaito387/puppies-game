@@ -156,11 +156,6 @@ export function applyPopulationGrowth(
     nextProgress = nextDogs.length <= 0 ? 0 : nextProgress + lostPopulation
   }
 
-  nextDogs = nextDogs.map((dog) => ({
-    ...dog,
-    age: dog.age + 1,
-  }))
-
   return {
     dogs: nextDogs,
     growthProgress: nextProgress,

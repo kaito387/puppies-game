@@ -72,8 +72,8 @@ function DogCard(props: {
   }
 
   return (
-    <Card className="border border-dashed" style={{ borderColor: dog.color.replace('rgb(', 'rgba(').replace(')', ', 0.6)') }}>
-      <CardContent className="space-y-3 pt-5">
+    <Card className="border" style={{ borderColor: dog.color.replace('rgb(', 'rgba(').replace(')', ', 0.6)') }}>
+      <CardContent className="space-y-3 pt-5 py-2">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
@@ -84,7 +84,6 @@ function DogCard(props: {
                 variant="ghost"
                 size="icon-xs"
                 onClick={openRenameDialog}
-                aria-label={`修改 ${dog.name} 的名字`}
               >
                 <PencilIcon />
               </Button>
