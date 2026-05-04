@@ -113,7 +113,7 @@ export function applyPopulationGrowth(
 
   resourceCounts.food = Math.max(0, currentFood - foodNeed)
   let nextProgress = state.populationGrowthProgress || 0
-  let nextDogs = [...state.dogs]
+  const nextDogs = [...state.dogs]
   const lostDogs: GameState['dogs'] = []
 
   if (nextDogs.length > populationCap) {
