@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import {
   Dialog,
@@ -51,7 +50,7 @@ function DogCard(props: {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
 
   const currentJob = dog.currentJobId ? JOBS.find((job) => job.id === dog.currentJobId) : null
-  const talentJob = JOBS.find((job) => job.id === dog.talentJobId)
+  const traitName = dog.traitId
 
   const openRenameDialog = () => {
     setDraftName(dog.name)
@@ -71,8 +70,13 @@ function DogCard(props: {
     setIsRenameDialogOpen(false)
   }
 
+  const leaderDogId = useGameStore(s => s.gameState.leaderDogId)
+  const setLeaderDog = useGameStore(s => s.setLeaderDog)
+  const researchedTechIds = useGameStore(s => s.gameState.researchedTechIds)
+  const canManageLeader = researchedTechIds.includes('administration')
+
   return (
-    <Card className="border" style={{ borderColor: dog.color.replace('rgb(', 'rgba(').replace(')', ', 0.6)') }}>
+    <Card className="border shadow-xl" style={{ borderColor: dog.color.replace('rgb(', 'rgba(').replace(')', ', 0.6)') }}>
       <CardContent className="space-y-3 pt-5 py-2">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-2">
@@ -94,9 +98,32 @@ function DogCard(props: {
             </div>
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
               <Badge variant="outline">当前经验 {getExperienceText(dog)}</Badge>
-              <Badge variant="outline">天赋 {talentJob ? talentJob.name : '未知'}</Badge>
+              <Badge variant="outline">天赋 {traitName || '未知'}</Badge>
               <Badge variant="outline">当前工作 {currentJob ? currentJob.name : '无'}</Badge>
             </div>
+            {canManageLeader && (
+              <div className="mt-2">
+                {leaderDogId === dog.id ? (
+                  <Button 
+                    size="xs" 
+                    variant="outline"
+                    className="h-7 text-xs bg-black text-white border border-gray-300"
+                    onClick={() => setLeaderDog(null)}
+                  >
+                    ⭐ 取消领导者
+                  </Button>
+                   ) : (
+                  <Button 
+                    size="xs" 
+                    variant="outline"
+                    className="h-7 text-xs bg-white text-black border border-gray-300"
+                    onClick={() => setLeaderDog(dog.id)}
+                  >
+                    设为领导者
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -304,20 +331,17 @@ export function DogManagementPanel() {
                   </Button>
                 </div>
               </div>
-
-              <ScrollArea className="max-h-[58vh] pr-3">
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                  {visibleDogs.map((dog) => (
-                    <DogCard
-                      key={dog.id}
-                      dog={dog}
-                      availableJobs={availableJobs}
-                      onRename={renameDog}
-                      onAssignJob={assignDogJob}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {visibleDogs.map((dog) => (
+                  <DogCard
+                    key={dog.id}
+                    dog={dog}
+                    availableJobs={availableJobs}
+                    onRename={renameDog}
+                    onAssignJob={assignDogJob}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </CardContent>
