@@ -3,11 +3,16 @@ import {
   JOBS,
   TECHNOLOGIES,
   WORKSHOP_UNLOCKS,
+  SEASON_EFFECTS,
   type RequirementCarrier,
   type Effect,
   type GameState,
   type Technology,
 } from '@/engine/types'
+
+import {
+  calculateCalendarProgress,
+} from '@/engine/calendar'
 
 export interface AggregatedTechEffects {
   buildingCostMultipliers: Record<string, number>
@@ -131,7 +136,7 @@ function finalizeEffects(accumulator: EffectAccumulator): Record<string, number>
   return finalized
 }
 
-export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
+export function aggregateEffects(state: GameState): AggregatedTechEffects {
   const aggregated: AggregatedTechEffects = {
     buildingCostMultipliers: {},
     buildingProductionMultipliers: {},
@@ -221,6 +226,26 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     }
   }
 
+  const season = calculateCalendarProgress(state).season
+  const seasonEffects = SEASON_EFFECTS[season] || []
+  for (const effect of seasonEffects) {
+    switch (effect.type) {
+      case 'building_cost':
+        addEffectContribution(buildingCostEffects, effect)
+        break
+      case 'building_production':
+        addEffectContribution(buildingProductionEffects, effect)
+        break
+      case 'job_production':
+        addEffectContribution(jobProductionEffects, effect)
+        break
+      default:
+        if (import.meta.env.DEV) {
+          console.warn(`未知季节效果类型: ${(effect as Effect).type}`)
+        }
+    }
+  }
+  
   aggregated.buildingCostMultipliers = finalizeEffects(buildingCostEffects)
   aggregated.buildingProductionMultipliers = finalizeEffects(buildingProductionEffects)
   aggregated.jobProductionMultipliers = finalizeEffects(jobProductionEffects)

@@ -2,12 +2,17 @@ import { create } from 'zustand'
 import {
   type GameState,
   type GameLog,
+  type Calendar,
 } from '@/engine/types'
 import {
   createInitialGameState,
   createInitialResourceDeltaPerTick,
 } from '@/engine/initialState'
-import { calculateResourceLimits, tick as engineTick } from '@/engine/gameLoop'
+import { 
+  calculateResourceLimits, 
+  tick as engineTick,
+  calculateCalendarProgress,
+} from '@/engine/gameLoop'
 import {
   assignDogJob,
   clickResource,
@@ -71,6 +76,7 @@ interface GameStore {
   unlockWorkshopItem: (unlockId: string) => void
   canUnlockWorkshopItem: (unlockId: string) => boolean
   getVisibleWorkshopUnlockIds: () => string[]
+  getCalendar: () => Calendar
 
   addGameLog: (log: Omit<GameLog, 'id'>) => void
   markLogsAsRead: () => void
@@ -246,5 +252,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       logs: [],
       unreadLogCount: 0,
     }))
+  },
+
+  getCalendar: () => {
+    return calculateCalendarProgress(get().gameState)
   },
 }))
