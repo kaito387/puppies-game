@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import {
   Dialog,
@@ -77,7 +76,7 @@ function DogCard(props: {
   const canManageLeader = researchedTechIds.includes('administration')
 
   return (
-    <Card className="border" style={{ borderColor: dog.color.replace('rgb(', 'rgba(').replace(')', ', 0.6)') }}>
+    <Card className="border shadow-xl" style={{ borderColor: dog.color.replace('rgb(', 'rgba(').replace(')', ', 0.6)') }}>
       <CardContent className="space-y-3 pt-5 py-2">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-2">
@@ -332,20 +331,17 @@ export function DogManagementPanel() {
                   </Button>
                 </div>
               </div>
-
-              <ScrollArea className="max-h-[58vh] pr-3">
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                  {visibleDogs.map((dog) => (
-                    <DogCard
-                      key={dog.id}
-                      dog={dog}
-                      availableJobs={availableJobs}
-                      onRename={renameDog}
-                      onAssignJob={assignDogJob}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {visibleDogs.map((dog) => (
+                  <DogCard
+                    key={dog.id}
+                    dog={dog}
+                    availableJobs={availableJobs}
+                    onRename={renameDog}
+                    onAssignJob={assignDogJob}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </CardContent>
