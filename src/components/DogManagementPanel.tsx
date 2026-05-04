@@ -51,7 +51,7 @@ function DogCard(props: {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
 
   const currentJob = dog.currentJobId ? JOBS.find((job) => job.id === dog.currentJobId) : null
-  const talentJob = JOBS.find((job) => job.id === dog.talentJobId)
+  const traitName = dog.traitId
 
   const openRenameDialog = () => {
     setDraftName(dog.name)
@@ -70,6 +70,11 @@ function DogCard(props: {
     onRename(dog.id, normalizedName)
     setIsRenameDialogOpen(false)
   }
+
+  const leaderDogId = useGameStore(s => s.gameState.leaderDogId)
+  const setLeaderDog = useGameStore(s => s.setLeaderDog)
+  const researchedTechIds = useGameStore(s => s.gameState.researchedTechIds)
+  const canManageLeader = researchedTechIds.includes('administration')
 
   return (
     <Card className="border" style={{ borderColor: dog.color.replace('rgb(', 'rgba(').replace(')', ', 0.6)') }}>
@@ -94,9 +99,32 @@ function DogCard(props: {
             </div>
             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
               <Badge variant="outline">当前经验 {getExperienceText(dog)}</Badge>
-              <Badge variant="outline">天赋 {talentJob ? talentJob.name : '未知'}</Badge>
+              <Badge variant="outline">天赋 {traitName || '未知'}</Badge>
               <Badge variant="outline">当前工作 {currentJob ? currentJob.name : '无'}</Badge>
             </div>
+            {canManageLeader && (
+              <div className="mt-2">
+                {leaderDogId === dog.id ? (
+                  <Button 
+                    size="xs" 
+                    variant="outline"
+                    className="h-7 text-xs bg-black text-white border border-gray-300"
+                    onClick={() => setLeaderDog(null)}
+                  >
+                    ⭐ 取消领导者
+                  </Button>
+                   ) : (
+                  <Button 
+                    size="xs" 
+                    variant="outline"
+                    className="h-7 text-xs bg-white text-black border border-gray-300"
+                    onClick={() => setLeaderDog(dog.id)}
+                  >
+                    设为领导者
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-2">
