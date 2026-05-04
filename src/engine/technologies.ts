@@ -12,7 +12,7 @@ import {
 
 import {
   calculateCalendarProgress,
-} from '@/engine/gameLoop'
+} from '@/engine/calendar'
 
 export interface AggregatedTechEffects {
   buildingCostMultipliers: Record<string, number>
