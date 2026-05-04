@@ -1,11 +1,5 @@
+import { JOBS, type Dog, type DogStatus, TRAITS, type Trait } from '@/engine/types'
 import {
-  JOBS,
-  type Dog,
-  type DogStatus,
-} from '@/engine/types'
-import {
-  DOG_EXPERIENCE_GAIN_FOR_TALENT_MULTIPLIER,
-  DOG_EXPERIENCE_GAIN_PER_TICK,
   DOG_EXPERIENCE_OUTPUT_BONUS_CAP,
   DOG_EXPERIENCE_OUTPUT_BONUS_COEFFICIENT,
   DOG_EXPERIENCE_OUTPUT_BONUS_CONSTANT,
@@ -92,8 +86,8 @@ function createRandomDogName(): string {
   return `${prefix}${suffix}`
 }
 
-function getRandomTalentJobId(): string {
-  return pickRandom(JOBS).id
+function getRandomTraitId(): string {
+  return pickRandom(TRAITS).id
 }
 
 function createJobExperience(): Record<string, number> {
@@ -153,7 +147,7 @@ export function createDog(): Dog {
     color: createRandomColor(),
     age: createRandomAge(),
     experienceByJob: createJobExperience(),
-    talentJobId: getRandomTalentJobId(),
+    traitId: getRandomTraitId(),
     status: 'idle',
     currentJobId: null,
   }
@@ -195,7 +189,23 @@ export function calculateDogOutputMultiplier(dog: Dog, jobId: string): number {
   return bonus
 }
 
-export function calculateDogExperienceGain(dog: Dog, jobId: string): number {
-  const talentMultiplier = dog.talentJobId === jobId ? DOG_EXPERIENCE_GAIN_FOR_TALENT_MULTIPLIER : 1
-  return DOG_EXPERIENCE_GAIN_PER_TICK * talentMultiplier
+export function getLeaderDog(dogs: Dog[], leaderDogId: string | null): Dog | null {
+  if (!leaderDogId) {
+    return null
+  }
+  return dogs.find((dog) => dog.id === leaderDogId) || null
+}
+
+export function getLeaderTrait(dogs: Dog[], leaderDogId: string | null): Trait | null {
+  const leaderDog = getLeaderDog(dogs, leaderDogId)
+  if (!leaderDog) {
+    return null
+  }
+
+  const trait = TRAITS.find((item) => item.id === leaderDog.traitId)
+  if (!trait) {
+    return null
+  }
+
+  return trait
 }

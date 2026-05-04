@@ -6,6 +6,7 @@ import {
   renameDog,
   setDomesticateEnabled,
   setJobAssignment,
+  setLeaderDog,
 } from '@/engine/actions'
 import { type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
@@ -119,6 +120,62 @@ describe('Actions', () => {
 
       const disabledState = setDomesticateEnabled(enabledState, false)
       expect(disabledState.isDomesticateEnabled).toBe(false)
+    })
+  })
+
+  describe('setLeaderDog', () => {
+    beforeEach(() => {
+      withDogs(3)
+    })
+
+    it('should set a valid dog as leader', () => {
+      const dogId = gameState.dogs[0].id
+      const next = setLeaderDog(gameState, dogId)
+      expect(next.leaderDogId).toBe(dogId)
+    })
+
+    it('should replace the current leader when a new leader is set', () => {
+      const firstId = gameState.dogs[0].id
+      const secondId = gameState.dogs[1].id
+
+      const after1 = setLeaderDog(gameState, firstId)
+      const after2 = setLeaderDog(after1, secondId)
+
+      expect(after2.leaderDogId).toBe(secondId)
+    })
+
+    it('should clear the leader when null is passed', () => {
+      const dogId = gameState.dogs[0].id
+      const withLeader = setLeaderDog(gameState, dogId)
+      const cleared = setLeaderDog(withLeader, null)
+
+      expect(cleared.leaderDogId).toBeNull()
+    })
+
+    it('should throw when dogId does not exist in dogs array', () => {
+      expect(() => setLeaderDog(gameState, 'nonexistent-dog-id')).toThrow('不存在')
+    })
+
+    it('should not mutate the original state', () => {
+      const originalLeader = gameState.leaderDogId
+      setLeaderDog(gameState, gameState.dogs[0].id)
+      expect(gameState.leaderDogId).toBe(originalLeader)
+    })
+
+    it('should accept null even when no leader is currently set', () => {
+      expect(gameState.leaderDogId).toBeNull()
+      const next = setLeaderDog(gameState, null)
+      expect(next.leaderDogId).toBeNull()
+    })
+
+    it('should preserve all other state fields when setting a leader', () => {
+      const dogId = gameState.dogs[0].id
+      const next = setLeaderDog(gameState, dogId)
+
+      expect(next.dogs).toEqual(gameState.dogs)
+      expect(next.resourceCounts).toEqual(gameState.resourceCounts)
+      expect(next.researchedTechIds).toEqual(gameState.researchedTechIds)
+      expect(next.buildings).toEqual(gameState.buildings)
     })
   })
 })

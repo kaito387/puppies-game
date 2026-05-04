@@ -6,6 +6,7 @@ import {
   type GameEvent,
 } from '@/engine/types'
 import {
+  DOG_EXPERIENCE_GAIN_PER_TICK,
   FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
   INITIAL_POPULATION_CAP,
   INITIAL_RESOURCE_LIMITS,
@@ -14,7 +15,6 @@ import {
 import { min } from '@/engine/utils'
 import { aggregateTechEffects } from '@/engine/technologies'
 import {
-  calculateDogExperienceGain,
   calculateDogOutputMultiplier,
   createDog,
   normalizeDogStatus,
@@ -113,7 +113,7 @@ export function applyPopulationGrowth(
 
   resourceCounts.food = Math.max(0, currentFood - foodNeed)
   let nextProgress = state.populationGrowthProgress || 0
-  let nextDogs = [...state.dogs]
+  const nextDogs = [...state.dogs]
   const lostDogs: GameState['dogs'] = []
 
   if (nextDogs.length > populationCap) {
@@ -156,11 +156,6 @@ export function applyPopulationGrowth(
     nextProgress = nextDogs.length <= 0 ? 0 : nextProgress + lostPopulation
   }
 
-  nextDogs = nextDogs.map((dog) => ({
-    ...dog,
-    age: dog.age + 1,
-  }))
-
   return {
     dogs: nextDogs,
     growthProgress: nextProgress,
@@ -177,13 +172,11 @@ function applyDogExperience(dogs: GameState['dogs']): GameState['dogs'] {
       }
     }
 
-    const gainedExperience = calculateDogExperienceGain(dog, dog.currentJobId)
     return {
       ...dog,
-      status: normalizeDogStatus(dog.currentJobId),
       experienceByJob: {
         ...dog.experienceByJob,
-        [dog.currentJobId]: (dog.experienceByJob[dog.currentJobId] || 0) + gainedExperience,
+        [dog.currentJobId]: (dog.experienceByJob[dog.currentJobId] || 0) + DOG_EXPERIENCE_GAIN_PER_TICK,
       },
     }
   })
@@ -207,6 +200,9 @@ export function tick(state: GameState): { gameState: GameState; events: GameEven
 
   const populationUpdate = applyPopulationGrowth(state, newResourceCounts, nextPopulationCap)
 
+  const nextLeaderDogId = (state.leaderDogId && populationUpdate.dogs.some((dog) => dog.id === state.leaderDogId))
+    ? state.leaderDogId
+    : null
   for (const [resourceId, amount] of Object.entries(newResourceCounts)) {
     newResourceCounts[resourceId] = min(amount, nextLimits[resourceId] || 0)
   }
@@ -229,6 +225,7 @@ export function tick(state: GameState): { gameState: GameState; events: GameEven
     populationGrowthProgress: populationUpdate.growthProgress,
     tickCount: state.tickCount + 1,
     lastTickTime: Date.now(),
+    leaderDogId: nextLeaderDogId,
   }
 
   return { gameState, events }

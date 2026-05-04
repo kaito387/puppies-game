@@ -196,3 +196,17 @@ export function rebalanceJobAssignments(
 
   return nextAssignments
 }
+
+export function setLeaderDog(state: GameState, dogId: string | null): GameState {
+  if (dogId) {
+    const targetDog = state.dogs.find((dog) => dog.id === dogId)
+    if (!targetDog) {
+      throw new Error(`小狗 ${dogId} 不存在`)
+    }
+  }
+
+  return {
+    ...state,
+    leaderDogId: dogId,
+  }
+}
