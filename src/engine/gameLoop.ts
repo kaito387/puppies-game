@@ -3,7 +3,6 @@ import {
   JOBS,
   RESOURCES,
   MONTH_TO_SEASON,
-  SEASON_EFFECTS,
   type GameState,
   type GameEvent,
   type Season,
@@ -22,7 +21,7 @@ import {
   MONTHS_PER_YEAR,
 } from '@/engine/constants'
 import { min } from '@/engine/utils'
-import { aggregateTechEffects } from '@/engine/technologies'
+import { aggregateEffects } from '@/engine/technologies'
 import {
   calculateDogExperienceGain,
   calculateDogOutputMultiplier,
@@ -32,9 +31,7 @@ import {
 
 export function calculateProduction(gameState: GameState): Record<string, number> {
   const production: Record<string, number> = {}
-  const { buildingProductionMultipliers } = aggregateTechEffects(gameState)
-  const calendar = calculateCalendarProgress(gameState)
-  const seasonEffects = SEASON_EFFECTS[calendar.season] || []
+  const { buildingProductionMultipliers } = aggregateEffects(gameState)
 
   RESOURCES.forEach((resource) => {
     production[resource.id] = 0
@@ -42,19 +39,7 @@ export function calculateProduction(gameState: GameState): Record<string, number
 
   BUILDINGS.forEach((building) => {
     const count = gameState.buildings[building.id] || 0
-    let multiplier = buildingProductionMultipliers[building.id] || 1
-
-    if (building.id === 'farm') {
-      seasonEffects.forEach((effect) => {
-        if (
-          effect.type === 'building_production' &&
-          effect.mode === 'multiplier' &&
-          effect.targetId === 'farm'
-        ) {
-          multiplier *= (1 + effect.value)
-        }
-      })
-    }
+    const multiplier = buildingProductionMultipliers[building.id] || 1
 
     for (const [resourceId, amount] of Object.entries(building.productionPerTick || {})) {
       production[resourceId] += amount * count * multiplier
@@ -97,7 +82,7 @@ export function calculateResourceLimits(gameState: GameState): Record<string, nu
 
 export function calculateJobProduction(gameState: GameState): Record<string, number> {
   const production: Record<string, number> = {}
-  const { jobProductionMultipliers } = aggregateTechEffects(gameState)
+  const { jobProductionMultipliers } = aggregateEffects(gameState)
   const jobsById = new Map(JOBS.map((job) => [job.id, job]))
 
   RESOURCES.forEach((resource) => {
