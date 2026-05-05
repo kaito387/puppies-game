@@ -92,7 +92,7 @@ function createRandomDogName(): string {
   return `${prefix}${suffix}`
 }
 
-function getRandomTalentJobId(): string {
+function getRandomtraitId(): string {
   return pickRandom(JOBS).id
 }
 
@@ -153,7 +153,7 @@ export function createDog(): Dog {
     color: createRandomColor(),
     age: createRandomAge(),
     experienceByJob: createJobExperience(),
-    talentJobId: getRandomTalentJobId(),
+    traitId: getRandomtraitId(),
     status: 'idle',
     currentJobId: null,
   }
@@ -196,6 +196,6 @@ export function calculateDogOutputMultiplier(dog: Dog, jobId: string): number {
 }
 
 export function calculateDogExperienceGain(dog: Dog, jobId: string): number {
-  const talentMultiplier = dog.talentJobId === jobId ? DOG_EXPERIENCE_GAIN_FOR_TALENT_MULTIPLIER : 1
+  const talentMultiplier = dog.traitId === jobId ? DOG_EXPERIENCE_GAIN_FOR_TALENT_MULTIPLIER : 1
   return DOG_EXPERIENCE_GAIN_PER_TICK * talentMultiplier
 }

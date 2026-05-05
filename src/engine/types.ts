@@ -144,7 +144,7 @@ export interface Dog {
   color: string
   age: number
   experienceByJob: Record<string, number>
-  talentJobId: string
+  traitId: string | null  
   status: DogStatus
   currentJobId: string | null
 }
@@ -163,6 +163,7 @@ export interface GameState {
 
   tickCount: number
   lastTickTime: number
+  leaderDogId: string | null
 }
 
 export const RESOURCES: Resource[] = [
