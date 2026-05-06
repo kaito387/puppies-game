@@ -11,8 +11,8 @@ import {
 import { 
   calculateResourceLimits, 
   tick as engineTick,
-  calculateCalendarProgress,
 } from '@/engine/gameLoop'
+import { calculateCalendarProgress } from '@/engine/calendar'
 import {
   assignDogJob,
   clickResource,

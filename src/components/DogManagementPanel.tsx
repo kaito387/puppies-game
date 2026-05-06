@@ -45,7 +45,7 @@ function DogCard(props: {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
 
   const currentJob = dog.currentJobId ? JOBS.find((job) => job.id === dog.currentJobId) : null
-  const talentJob = JOBS.find((job) => job.id === dog.talentJobId)
+  const talentJob = JOBS.find((job) => job.id === dog.traitId)
 
   const openRenameDialog = () => {
     setDraftName(dog.name)
