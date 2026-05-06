@@ -101,7 +101,6 @@ describe('Game Loop', () => {
       setDogs(2)
       gameState.dogs[0].currentJobId = 'lumberjack'
       gameState.dogs[0].status = 'working'
-      gameState.dogs[0].traitId = 'farmer'
 
       const production = calculateJobProduction(gameState)
       expect(production.wood).toBeCloseTo(0.24)
@@ -116,6 +115,79 @@ describe('Game Loop', () => {
 
       const production = calculateJobProduction(gameState)
       expect(production.food).toBeCloseTo(1.6591, 3)
+    })
+  })
+
+  describe('Leader Trait Effect', () => {
+    function setupLeader(traitId: string) {
+      setDogs(2)
+      gameState.dogs[0].traitId = traitId
+      gameState.leaderDogId = gameState.dogs[0].id
+    }
+
+    it('should NOT apply leader trait effect when administration is not researched', () => {
+      setupLeader('scientist')
+      gameState.dogs[1].currentJobId = 'scientist'
+      gameState.dogs[1].status = 'working'
+      gameState.dogs[1].traitId = 'agriculturalist'
+
+      const production = calculateJobProduction(gameState)
+      expect(production.science).toBeCloseTo(0.2)
+    })
+
+    it('should apply leader trait effect once administration is researched', () => {
+      setupLeader('scientist')
+      gameState.researchedTechIds = ['administration']
+      gameState.dogs[1].currentJobId = 'scientist'
+      gameState.dogs[1].status = 'working'
+      gameState.dogs[1].traitId = 'agriculturalist'
+
+      const production = calculateJobProduction(gameState)
+      expect(production.science).toBeCloseTo(0.2 * 1.1)
+    })
+
+    it('should only apply the designated leader trait, not other dogs traits', () => {
+      setDogs(3)
+      gameState.dogs[0].traitId = 'agriculturalist'
+      gameState.leaderDogId = gameState.dogs[0].id
+      gameState.researchedTechIds = ['administration']
+
+      gameState.dogs[1].traitId = 'scientist'
+      gameState.dogs[1].currentJobId = 'scientist'
+      gameState.dogs[1].status = 'working'
+
+      gameState.dogs[2].traitId = 'agriculturalist'
+      gameState.dogs[2].currentJobId = 'farmer'
+      gameState.dogs[2].status = 'working'
+
+      const production = calculateJobProduction(gameState)
+
+      expect(production.food).toBeCloseTo(1.5 * 1.1)
+      expect(production.science).toBeCloseTo(0.2)
+    })
+
+    it('should clear leader effect after leader dog dies (leaderDogId auto-cleared)', () => {
+      setDogs(1)
+      gameState.dogs[0].traitId = 'scientist'
+      gameState.leaderDogId = gameState.dogs[0].id
+      gameState.researchedTechIds = ['administration']
+
+      gameState.dogs = []
+
+      const { gameState: next } = tick(gameState)
+      expect(next.leaderDogId).toBeNull()
+    })
+
+    it('should have no leader effect when leaderDogId is null even with administration researched', () => {
+      setDogs(1)
+      gameState.dogs[0].currentJobId = 'scientist'
+      gameState.dogs[0].status = 'working'
+      gameState.dogs[0].traitId = 'scientist'
+      gameState.leaderDogId = null
+      gameState.researchedTechIds = ['administration']
+
+      const production = calculateJobProduction(gameState)
+      expect(production.science).toBeCloseTo(0.2)
     })
   })
 

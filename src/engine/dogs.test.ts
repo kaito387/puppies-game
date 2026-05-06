@@ -13,7 +13,6 @@ import {
   isDogNameValid,
 } from '@/engine/dogs'
 import { 
-  DOG_EXPERIENCE_GAIN_FOR_TALENT_MULTIPLIER,
   DOG_EXPERIENCE_GAIN_PER_TICK,
   DOG_EXPERIENCE_OUTPUT_BONUS_CAP,
 } from '@/engine/constants'
@@ -97,15 +96,8 @@ describe('dogs', () => {
     it('should return base gain when trait does not match job', () => {
       const dog = createDog()
       dog.traitId = 'farmer'
-      const gain = calculateDogExperienceGain(dog, 'lumberjack')
+      const gain = calculateDogExperienceGain()
       expect(gain).toBe(DOG_EXPERIENCE_GAIN_PER_TICK)
-    })
-
-    it('should apply talent multiplier when trait matches job', () => {
-      const dog = createDog()
-      dog.traitId = 'farmer'
-      const gain = calculateDogExperienceGain(dog, 'farmer')
-      expect(gain).toBe(DOG_EXPERIENCE_GAIN_PER_TICK * DOG_EXPERIENCE_GAIN_FOR_TALENT_MULTIPLIER)
     })
   })
 
