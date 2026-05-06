@@ -139,11 +139,11 @@ describe('Workshop - Additional Coverage', () => {
     gameState = createInitialGameState()
   })
 
-  it('line 22 - getWorkshopUnlockById should throw for non-existent id', () => {
+  it('getWorkshopUnlockById should throw for non-existent id', () => {
     expect(() => getWorkshopUnlockById('invalid_id')).toThrow('工坊项目 invalid_id 不存在')
   })
 
-  it('line 36 - isWorkshopUnlockVisible should return true when already unlocked', () => {
+  it('isWorkshopUnlockVisible should return true when already unlocked', () => {
     gameState.workshopUnlockIds = ['wood_pickaxe']
     const woodPickaxe = {
       id: 'wood_pickaxe',
@@ -154,7 +154,7 @@ describe('Workshop - Additional Coverage', () => {
     expect(result).toBe(true)
   })
 
-  it('line 36 - isWorkshopUnlockVisible should return false when not unlocked and prerequisites not met', () => {
+  it('isWorkshopUnlockVisible should return false when not unlocked and prerequisites not met', () => {
     const woodPickaxe = {
       id: 'wood_pickaxe',
       prerequisites: { requiredBuildings: ['workshop'], requiredTechs: ['mining'] }
@@ -164,7 +164,7 @@ describe('Workshop - Additional Coverage', () => {
     expect(result).toBe(false)
   })
 
-  it('lines 56-63 - canUnlockWorkshopItem should check resources correctly', () => {
+  it('canUnlockWorkshopItem should check resources correctly', () => {
     gameState.buildings.workshop = 1
     gameState.researchedTechIds = ['mining']
     gameState.resourceCounts.wood = 50
@@ -174,7 +174,7 @@ describe('Workshop - Additional Coverage', () => {
     expect(result).toBe(false)
   })
 
-  it('lines 56-63 - canUnlockWorkshopItem should return true when all conditions met', () => {
+  it('canUnlockWorkshopItem should return true when all conditions met', () => {
     gameState.buildings.workshop = 1
     gameState.researchedTechIds = ['mining']
     gameState.resourceCounts.wood = 100
@@ -184,7 +184,7 @@ describe('Workshop - Additional Coverage', () => {
     expect(result).toBe(true)
   })
 
-  it('lines 56-63 - canUnlockWorkshopItem should return false when already unlocked', () => {
+  it('canUnlockWorkshopItem should return false when already unlocked', () => {
     gameState.buildings.workshop = 1
     gameState.researchedTechIds = ['mining']
     gameState.resourceCounts.wood = 100

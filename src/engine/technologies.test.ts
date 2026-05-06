@@ -435,7 +435,7 @@ describe('Technologies', () => {
       gameState.resourceCounts.stone = 10000
     })
 
-    it('line 112 - addEffectContribution with targetId null should return early', () => {
+    it('addEffectContribution with targetId null should return early', () => {
       const techWithNullTarget: Technology = {
         id: 'null_target_tech',
         name: 'Null Target',
@@ -467,7 +467,7 @@ describe('Technologies', () => {
       }
     })
 
-    it('lines 188-192 - building_cost effect with additive mode from technology', () => {
+    it('building_cost effect with additive mode from technology', () => {
       const additiveCostTech: Technology = {
         id: 'additive_cost_tech',
         name: 'Additive Cost',
@@ -497,7 +497,7 @@ describe('Technologies', () => {
       }
     })
 
-    it('lines 212-216 - building_production effect with additive mode from workshop unlock', () => {
+    it('building_production effect with additive mode from workshop unlock', () => {
       const additiveProductionUnlock = {
         id: 'additive_prod_unlock',
         name: 'Additive Production',
@@ -532,7 +532,7 @@ describe('Technologies', () => {
       }
     })
 
-    it('lines 221-222 - building_production effect with multiplier mode from building effects', () => {
+    it('building_production effect with multiplier mode from building effects', () => {
       const farmBuilding = BUILDINGS.find(b => b.id === 'farm')
       const originalEffects = farmBuilding?.Effects
 
@@ -560,7 +560,7 @@ describe('Technologies', () => {
       }
     })
 
-    it('lines 234-235 - unknown effect type from technology should console.warn', () => {
+    it('unknown effect type from technology should console.warn', () => {
       const unknownTypeTech: Technology = {
         id: 'unknown_type_tech',
         name: 'Unknown Type',
@@ -594,7 +594,7 @@ describe('Technologies', () => {
       }
     })
 
-    it('lines 240-244 - building_cost effect with unknown target from workshop unlock', () => {
+    it('building_cost effect with unknown target from workshop unlock', () => {
       const unknownTargetUnlock = {
         id: 'unknown_target_unlock',
         name: 'Unknown Target',
@@ -621,7 +621,7 @@ describe('Technologies', () => {
       }
     })
 
-    it('lines 240-244 - job_production effect with unknown target from season effects', () => {
+    it('job_production effect with unknown target from season effects', () => {
       const originalSeasonEffects = { ...SEASON_EFFECTS }
       
       SEASON_EFFECTS.spring = [
@@ -643,7 +643,7 @@ describe('Technologies', () => {
       }
     })
 
-    it('lines 240-244 - building_production effect with unknown target from technology', () => {
+    it('building_production effect with unknown target from technology', () => {
       const unknownBuildingTech: Technology = {
         id: 'unknown_building_tech',
         name: 'Unknown Building',
@@ -674,7 +674,7 @@ describe('Technologies', () => {
       }
     })
 
-    it('line 112 - addEffectContribution with additive mode', () => {
+    it('addEffectContribution with additive mode', () => {
       const additiveTech: Technology = {
         id: 'additive_test_tech',
         name: 'Additive Test',
@@ -704,7 +704,7 @@ describe('Technologies', () => {
       }
     })
 
-    it('line 112 - addEffectContribution with multiplier mode', () => {
+    it('addEffectContribution with multiplier mode', () => {
       const multiplierTech: Technology = {
         id: 'multiplier_test_tech',
         name: 'Multiplier Test',
