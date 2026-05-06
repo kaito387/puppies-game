@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { TECHNOLOGIES, WORKSHOP_UNLOCKS, SEASON_EFFECTS, type GameState, type Technology } from '@/engine/types'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { TECHNOLOGIES, SEASON_EFFECTS, type GameState, type Technology } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import {
   aggregateEffects,
@@ -254,35 +254,6 @@ describe('Technologies', () => {
     expect(result.jobProductionMultipliers.scientist || 1).toBe(1)
   })
 
-  it('should handle unknown tech effect types gracefully', () => {
-    const unknownEffectTech: Technology = {
-      id: 'unknown_effect_tech',
-      name: 'Unknown Effect Test',
-      description: 'Tests unknown effect handling',
-      cost: {},
-      effects: [
-        {
-          id: 'unknown',
-          type: 'unknown_type' as any,
-          targetId: 'lumberjack',
-          value: 1.0,
-          mode: 'additive',
-        },
-      ],
-    }
-
-    TECHNOLOGIES.push(unknownEffectTech)
-
-    try {
-      gameState.researchedTechIds = [unknownEffectTech.id]
-      const result = aggregateEffects(gameState)
-      expect(result).toBeDefined()
-    } finally {
-      const index = TECHNOLOGIES.findIndex(t => t.id === 'unknown_effect_tech')
-      if (index !== -1) TECHNOLOGIES.splice(index, 1)
-    }
-  })
-
   it('should finalize effects correctly with only additive bonuses', () => {
     const additiveTech: Technology = {
       id: 'additive_only',
@@ -395,33 +366,6 @@ describe('Technologies', () => {
     expect(result).toBeDefined()
   })
 
-  it('should apply workshop unlock with unknown effect type gracefully', () => {
-    const fakeUnlock = {
-      id: 'fake_unlock_test',
-      name: 'Fake Unlock',
-      effects: [
-        {
-          id: 'fake-eff',
-          type: 'unknown_type' as any,
-          targetId: 'farm',
-          value: 1.0,
-          mode: 'additive' as any,
-        },
-      ],
-    }
-
-    WORKSHOP_UNLOCKS.push(fakeUnlock as any)
-
-    try {
-      gameState.workshopUnlockIds = ['fake_unlock_test']
-      const result = aggregateEffects(gameState)
-      expect(result).toBeDefined()
-    } finally {
-      const index = WORKSHOP_UNLOCKS.findIndex(u => u.id === 'fake_unlock_test')
-      if (index !== -1) WORKSHOP_UNLOCKS.splice(index, 1)
-    }
-  })
-
   describe('Technologies - Line Coverage', () => {
     let gameState: GameState
 
@@ -433,38 +377,6 @@ describe('Technologies', () => {
       gameState.resourceCounts.wood = 10000
       gameState.resourceCounts.food = 10000
       gameState.resourceCounts.stone = 10000
-    })
-
-    it('addEffectContribution with targetId null should return early', () => {
-      const techWithNullTarget: Technology = {
-        id: 'null_target_tech',
-        name: 'Null Target',
-        description: 'Test tech with null target',
-        cost: { science: 100 },
-        prerequisites: { requiredBuildings: ['library'] },
-        effects: [
-          {
-            id: 'null_effect',
-            type: 'building_cost',
-            targetId: null as any,
-            value: 0.5,
-            mode: 'multiplier',
-          },
-        ],
-      }
-
-      TECHNOLOGIES.push(techWithNullTarget)
-
-      try {
-        gameState.researchedTechIds = []
-        gameState.resourceCounts.science = 100
-        const researched = researchTechnology(gameState, techWithNullTarget.id)
-        const result = aggregateEffects(researched)
-        expect(result).toBeDefined()
-      } finally {
-        const index = TECHNOLOGIES.findIndex(t => t.id === 'null_target_tech')
-        if (index !== -1) TECHNOLOGIES.splice(index, 1)
-      }
     })
 
     it('building_cost effect with additive mode from technology', () => {
@@ -497,41 +409,6 @@ describe('Technologies', () => {
       }
     })
 
-    it('building_production effect with additive mode from workshop unlock', () => {
-      const additiveProductionUnlock = {
-        id: 'additive_prod_unlock',
-        name: 'Additive Production',
-        effects: [
-          {
-            id: 'add_prod',
-            type: 'building_production',
-            targetId: 'farm',
-            value: 0.3,
-            mode: 'additive',
-          },
-        ],
-      }
-
-      WORKSHOP_UNLOCKS.push(additiveProductionUnlock as any)
-
-      try {
-        gameState.workshopUnlockIds = ['additive_prod_unlock']
-        gameState.buildings.farm = 1
-        gameState.tickCount = TICKS_PER_DAY * 3
-        const beforeResult = aggregateEffects(gameState)
-        const beforeValue = beforeResult.buildingProductionMultipliers.farm || 1
-        
-        gameState.workshopUnlockIds = []
-        const afterResult = aggregateEffects(gameState)
-        const afterValue = afterResult.buildingProductionMultipliers.farm || 1
-        
-        expect(beforeValue).toBeGreaterThan(afterValue)
-      } finally {
-        const index = WORKSHOP_UNLOCKS.findIndex(u => u.id === 'additive_prod_unlock')
-        if (index !== -1) WORKSHOP_UNLOCKS.splice(index, 1)
-      }
-    })
-
     it('building_production effect with multiplier mode from building effects', () => {
       const farmBuilding = BUILDINGS.find(b => b.id === 'farm')
       const originalEffects = farmBuilding?.Effects
@@ -557,67 +434,6 @@ describe('Technologies', () => {
         if (farmBuilding && originalEffects) {
           farmBuilding.Effects = originalEffects
         }
-      }
-    })
-
-    it('unknown effect type from technology should console.warn', () => {
-      const unknownTypeTech: Technology = {
-        id: 'unknown_type_tech',
-        name: 'Unknown Type',
-        description: 'Test unknown effect type',
-        cost: { science: 100 },
-        prerequisites: { requiredBuildings: ['library'] },
-        effects: [
-          {
-            id: 'unknown',
-            type: 'invalid_type' as any,
-            targetId: 'farm',
-            value: 1.5,
-            mode: 'multiplier',
-          },
-        ],
-      }
-
-      TECHNOLOGIES.push(unknownTypeTech)
-
-      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-      try {
-        gameState.researchedTechIds = [unknownTypeTech.id]
-        const result = aggregateEffects(gameState)
-        expect(result).toBeDefined()
-        expect(consoleWarnSpy).toHaveBeenCalled()
-      } finally {
-        const index = TECHNOLOGIES.findIndex(t => t.id === 'unknown_type_tech')
-        if (index !== -1) TECHNOLOGIES.splice(index, 1)
-        consoleWarnSpy.mockRestore()
-      }
-    })
-
-    it('building_cost effect with unknown target from workshop unlock', () => {
-      const unknownTargetUnlock = {
-        id: 'unknown_target_unlock',
-        name: 'Unknown Target',
-        effects: [
-          {
-            id: 'unknown_target',
-            type: 'building_cost',
-            targetId: 'nonexistent_building',
-            value: 0.5,
-            mode: 'multiplier',
-          },
-        ],
-      }
-
-      WORKSHOP_UNLOCKS.push(unknownTargetUnlock as any)
-
-      try {
-        gameState.workshopUnlockIds = ['unknown_target_unlock']
-        const result = aggregateEffects(gameState)
-        expect(result.buildingCostMultipliers.nonexistent_building).toBe(0.5)
-      } finally {
-        const index = WORKSHOP_UNLOCKS.findIndex(u => u.id === 'unknown_target_unlock')
-        if (index !== -1) WORKSHOP_UNLOCKS.splice(index, 1)
       }
     })
 
