@@ -70,7 +70,7 @@ describe('Workshop', () => {
     expect(() => getWorkshopUnlockById('non_existent_id')).toThrow('不存在')
   })
 
-  it('should return false for canUnlockWorkshopItem when unlock does not exist', () => {
+  it('should throw error for canUnlockWorkshopItem when unlock does not exist', () => {
     expect(() => canUnlockWorkshopItem(gameState, 'non_existent_id')).toThrow('不存在')
   })
 

@@ -144,7 +144,7 @@ export interface Dog {
   color: string
   age: number
   experienceByJob: Record<string, number>
-  traitId: string | null  
+  traitId: string | null
   status: DogStatus
   currentJobId: string | null
 }
