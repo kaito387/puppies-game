@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { type GameState, type WorkshopUnlock} from '@/engine/types'
+import { type GameState, type WorkshopUnlock } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import {
   canUnlockWorkshopItem,
