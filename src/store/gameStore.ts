@@ -74,7 +74,7 @@ interface GameStore {
   unlockWorkshopItem: (unlockId: string) => void
   canUnlockWorkshopItem: (unlockId: string) => boolean
   getVisibleWorkshopUnlockIds: () => string[]
-  dispatchExplore: () => void;
+  dispatchExplore: () => void
 
   addGameLog: (log: Omit<GameLog, 'id'>) => void
   markLogsAsRead: () => void
@@ -263,7 +263,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     let message = ''
     if (result === 'success') {
       message = `探索成功，获得毛皮 +${furReward}`
-    } else {
+    } 
+    else if (result === 'insufficient_dogpower') {
+      message = '探索失败，汪力不足'
+    }
+    else {
       message = '探索失败，未获得奖励'
     }
     set((gameStore) => ({

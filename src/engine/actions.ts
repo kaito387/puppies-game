@@ -211,9 +211,9 @@ export function setLeaderDog(state: GameState, dogId: string | null): GameState 
   }
 }
 
-export function performExplore(state: GameState): { nextState: GameState; result: 'success' | 'fail'; furReward?: number } {
+export function performExplore(state: GameState): { nextState: GameState; result: 'success' | 'fail' | 'insufficient_dogpower'; furReward?: number } {
   if ((state.resourceCounts.dogpower || 0) < 100) {
-    return { nextState: state, result: 'fail' }
+    return { nextState: state, result: 'insufficient_dogpower' }
   }
   let nextState: GameState = {
     ...state,
@@ -229,7 +229,7 @@ export function performExplore(state: GameState): { nextState: GameState; result
       ...nextState,
       resourceCounts: {
         ...nextState.resourceCounts,
-        fur: (nextState.resourceCounts.fur || 0) + furReward,
+        fur: min((nextState.resourceCounts.fur || 0) + furReward, nextState.resourceCounts.fur || 0),
       },
     }
     return { nextState, result: 'success', furReward }
