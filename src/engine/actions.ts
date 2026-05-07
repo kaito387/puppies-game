@@ -229,7 +229,7 @@ export function performExplore(state: GameState): { nextState: GameState; result
       ...nextState,
       resourceCounts: {
         ...nextState.resourceCounts,
-        fur: min((nextState.resourceCounts.fur || 0) + furReward, nextState.resourceCounts.fur || 0),
+        fur: (nextState.resourceCounts.fur || 0) + furReward
       },
     }
     return { nextState, result: 'success', furReward }
