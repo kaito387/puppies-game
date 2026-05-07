@@ -210,3 +210,30 @@ export function setLeaderDog(state: GameState, dogId: string | null): GameState 
     leaderDogId: dogId,
   }
 }
+
+export function performExplore(state: GameState): { nextState: GameState; result: 'success' | 'fail'; furReward?: number } {
+  if ((state.resourceCounts.dogpower || 0) < 100) {
+    return { nextState: state, result: 'fail' }
+  }
+  let nextState: GameState = {
+    ...state,
+    resourceCounts: {
+      ...state.resourceCounts,
+      dogpower: (state.resourceCounts.dogpower || 0) - 100,
+    },
+  }
+  const rand = Math.random()
+  if (rand < 0.6) {
+    const furReward = Math.floor(Math.random() * 21) + 20 
+    nextState = {
+      ...nextState,
+      resourceCounts: {
+        ...nextState.resourceCounts,
+        fur: (nextState.resourceCounts.fur || 0) + furReward,
+      },
+    }
+    return { nextState, result: 'success', furReward }
+  } else {
+    return { nextState, result: 'fail' }
+  }
+}

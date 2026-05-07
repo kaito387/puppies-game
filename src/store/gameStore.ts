@@ -15,6 +15,7 @@ import {
   setDomesticateEnabled,
   setJobAssignment,
   setLeaderDog, 
+  performExplore,
 } from '@/engine/actions'
 import { buildBuilding, canBuildBuilding, getBuildingCost } from '@/engine/buildings'
 import { saveGame, loadGame, resetGame } from '@/engine/save'
@@ -73,6 +74,7 @@ interface GameStore {
   unlockWorkshopItem: (unlockId: string) => void
   canUnlockWorkshopItem: (unlockId: string) => boolean
   getVisibleWorkshopUnlockIds: () => string[]
+  dispatchExplore: () => void;
 
   addGameLog: (log: Omit<GameLog, 'id'>) => void
   markLogsAsRead: () => void
@@ -253,6 +255,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
       resourceDeltaPerTick: createInitialResourceDeltaPerTick(),
       logs: [],
       unreadLogCount: 0,
+    }))
+  },
+
+  dispatchExplore: () => {
+    const { nextState, result, furReward } = performExplore(get().gameState)
+    let message = ''
+    if (result === 'success') {
+      message = `探索成功，获得毛皮 +${furReward}`
+    } else {
+      message = '探索失败，未获得奖励'
+    }
+    set((gameStore) => ({
+      gameState: nextState,
+      logs: addLog(gameStore.logs, {
+        timestamp: Date.now(),
+        type: 'explore',
+        message,
+      }),
+      unreadLogCount: min(100, gameStore.unreadLogCount + 1),
     }))
   },
 }))

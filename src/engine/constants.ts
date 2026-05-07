@@ -5,6 +5,7 @@ export const INITIAL_RESOURCE_LIMITS = {
 	food: 10000,
 	wood: 1500,
 	stone: 1500,
+	dogpower: 50,
 }
 
 export const INITIAL_POPULATION_CAP = 1

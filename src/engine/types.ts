@@ -71,7 +71,7 @@ export interface WorkshopUnlock {
 
 export type GameEvent = { type: 'death'; dogId: string; dogName: string }
 
-export type GameLogType = 'death'
+export type GameLogType = 'death' | 'explore'
 
 export interface GameLog {
   id: string
@@ -126,7 +126,9 @@ export const RESOURCES: Resource[] = [
   { id: 'coal', name: '煤炭', icon: '🪨' },
   { id: 'gold', name: '黄金', icon: '🥇' },
   { id: 'science', name: '科学', icon: '🔬' },
-  { id: 'culture', name: '文化', icon: '🎨' }
+  { id: 'culture', name: '文化', icon: '🎨' },
+  { id: 'dogpower', name: '汪力', icon: '🐾' },
+  { id: 'fur', name: '毛皮', icon: '🧥' },
 ]
 
 export const JOBS: Job[] = [
@@ -167,6 +169,13 @@ export const JOBS: Job[] = [
       requiredBuildings: ['library'],
     },
   },
+  {
+    id: 'hunter',
+    name: '猎人',
+    icon: '🏹',
+    description: '每 Tick 进行狩猎。',
+    productionPerTick: { dogpower: 0.2 },
+  },
 ]
 
 export const BUILDINGS: Building[] = [
@@ -178,6 +187,7 @@ export const BUILDINGS: Building[] = [
     cost: { wood: 20 },
     costGrowthMultiplier: 2.5,
     populationCapBonus: 2,
+    resourceLimitBonuses: { dogpower: 100 },
   },
   {
     id: 'farm',
@@ -195,7 +205,7 @@ export const BUILDINGS: Building[] = [
     description: '提升食物与木材的存储上限。',
     cost: { wood: 50 },
     costGrowthMultiplier: 2,
-    resourceLimitBonuses: { food: 5000, wood: 1000, stone: 1000 },
+    resourceLimitBonuses: { food: 5000, wood: 1000, stone: 1000, fur: 500 },
   },
   {
     id: 'library',
@@ -371,3 +381,4 @@ export const TRAITS: Trait[] = [
     },
   },
 ]
+
