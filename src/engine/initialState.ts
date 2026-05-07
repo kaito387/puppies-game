@@ -37,6 +37,5 @@ export function createInitialGameState(): GameState {
     populationGrowthProgress: 0,
     tickCount: 0,
     lastTickTime: Date.now(),
-    leaderDogId: null,
   }
 }
