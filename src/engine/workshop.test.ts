@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { type GameState } from '@/engine/types'
+import { type GameState, type WorkshopUnlock} from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import {
   canUnlockWorkshopItem,
@@ -119,7 +119,7 @@ describe('Workshop', () => {
     const woodPickaxe = {
       id: 'wood_pickaxe',
       prerequisites: { requiredBuildings: ['workshop'], requiredTechs: ['mining'] }
-    } as any
+    } as WorkshopUnlock
     
     expect(isWorkshopUnlockVisible(gameState, woodPickaxe)).toBe(false)
     
@@ -148,7 +148,7 @@ describe('Workshop - Additional Coverage', () => {
     const woodPickaxe = {
       id: 'wood_pickaxe',
       prerequisites: { requiredBuildings: ['workshop'], requiredTechs: ['mining'] }
-    } as any
+    } as WorkshopUnlock
     
     const result = isWorkshopUnlockVisible(gameState, woodPickaxe)
     expect(result).toBe(true)
@@ -158,7 +158,7 @@ describe('Workshop - Additional Coverage', () => {
     const woodPickaxe = {
       id: 'wood_pickaxe',
       prerequisites: { requiredBuildings: ['workshop'], requiredTechs: ['mining'] }
-    } as any
+    } as WorkshopUnlock
     
     const result = isWorkshopUnlockVisible(gameState, woodPickaxe)
     expect(result).toBe(false)
