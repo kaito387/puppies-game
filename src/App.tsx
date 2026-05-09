@@ -22,6 +22,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Calendar } from '@/components/ui/calendar'
 
 function PlaceholderActionPanel(props: {
   title: string
@@ -52,8 +53,6 @@ function App() {
   const tick = useGameStore((store) => store.tick)
   const gameState = useGameStore((store) => store.gameState)
   const saveGame = useGameStore((store) => store.saveGame)
-  const getCalendar = useGameStore((store) => store.getCalendar)
-  const calendar = getCalendar()
   const gameTickRef = useRef(0)
   const hasExplorationGear = gameState.workshopUnlockIds.includes('exploration_gear')
 
@@ -99,17 +98,7 @@ function App() {
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Ticks: {gameState.tickCount}</span>
-              {calendar && (
-                <>
-                <span>{calendar.year} 年 {calendar.month} 月 {calendar.day} 日</span>
-                <span>
-                {calendar.season === 'spring' ? '春季' :
-                  calendar.season === 'summer' ? '夏季' :
-                  calendar.season === 'autumn' ? '秋季' : '冬季'}
-                </span>
-                </>
-              )}
+              <Calendar />
               <span>TPS: ~5</span>
               <LogPanel />
               <SettingsPanel />
