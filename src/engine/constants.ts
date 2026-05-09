@@ -16,3 +16,10 @@ export const DOG_EXPERIENCE_OUTPUT_BONUS_CONSTANT = 1
 // coeff * log(exp) + constant, capped at 3x bonus
 export const DOG_EXPERIENCE_OUTPUT_BONUS_CAP = 3
 export const DOG_EXPERIENCE_GAIN_PER_TICK = 1
+
+export const CALENDAR_START_YEAR = 387
+export const CALENDAR_START_MONTH = 3
+export const CALENDAR_START_DAY = 1
+export const TICKS_PER_DAY = 15
+export const DAYS_PER_MONTH = 30
+export const MONTHS_PER_YEAR = 12

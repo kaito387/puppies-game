@@ -1,11 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { buildBuilding, canBuildBuilding, getBuildingCost } from '@/engine/buildings'
+import { buildBuilding, canBuildBuilding, getBuildingCost, getBuildingById } from '@/engine/buildings'
 import { BUILDINGS, type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
-
-// NOTE 这里的测试都不是硬编码，依赖计算逻辑本身
-// 主要是为了适应开发阶段频繁调整建筑数值的情况，避免每次调整都要修改测试数据
-// 后期可以考虑增加一些硬编码数值的测试用例，来验证核心数值的正确性和稳定性
 
 describe('Buildings', () => {
   let gameState: GameState
@@ -26,6 +22,17 @@ describe('Buildings', () => {
 
   beforeEach(() => {
     gameState = createInitialGameState()
+  })
+
+  describe('getBuildingById', () => {
+    it('should throw when building id does not exist', () => {
+      expect(() => getBuildingById('nonexistent')).toThrow('建筑 nonexistent 不存在')
+    })
+
+    it('should return the correct building when id exists', () => {
+      const building = getBuildingById('barn')
+      expect(building.id).toBe('barn')
+    })
   })
 
   describe('Cost Scaling', () => {
@@ -77,6 +84,24 @@ describe('Buildings', () => {
 
     it('should throw an error if building does not exist', () => {
       expect(() => buildBuilding(gameState, 'nonexistent')).toThrow('建筑 nonexistent 不存在')
+    })
+  })
+
+  describe('Prerequisites', () => {
+    it('should return false for canBuildBuilding when tech prerequisites are not met', () => {
+      gameState.resourceCounts.wood = 1000
+      expect(canBuildBuilding(gameState, 'workshop')).toBe(false)
+    })
+
+    it('should return true for canBuildBuilding once tech prerequisites are met', () => {
+      gameState.resourceCounts.wood = 1000
+      gameState.researchedTechIds = ['workshop_engineering']
+      expect(canBuildBuilding(gameState, 'workshop')).toBe(true)
+    })
+
+    it('should throw when building prerequisites are not met in buildBuilding', () => {
+      gameState.resourceCounts.wood = 1000
+      expect(() => buildBuilding(gameState, 'workshop')).toThrow('尚未解锁')
     })
   })
 })

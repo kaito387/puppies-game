@@ -6,12 +6,19 @@ import {
   calculatePopulationCap,
   calculateResourceLimits,
 } from '@/engine/gameLoop'
+import { calculateCalendarProgress } from '@/engine/calendar'
 import { type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import {
   FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
   INITIAL_RESOURCE_LIMITS,
   POPULATION_GROWTH_RATE,
+  TICKS_PER_DAY,
+  DAYS_PER_MONTH,
+  MONTHS_PER_YEAR,
+  CALENDAR_START_YEAR,
+  CALENDAR_START_MONTH,
+  CALENDAR_START_DAY,
 } from '@/engine/constants'
 import { createDogs } from '@/engine/dogs'
 
@@ -35,6 +42,7 @@ describe('Game Loop', () => {
     it('should calculate production correctly with multiple buildings', () => {
       gameState.buildings.barn = 2
       gameState.buildings.farm = 3
+      gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 6
       const production = calculateProduction(gameState)
       expect(production.food).toBeCloseTo(0.6)
       expect(production.wood).toBe(0)
@@ -73,6 +81,7 @@ describe('Game Loop', () => {
     it('should apply researched tech multiplier to building production', () => {
       gameState.researchedTechIds = ['woodworking', 'crop_rotation']
       gameState.buildings.farm = 2
+      gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 6
 
       const production = calculateProduction(gameState)
       expect(production.food).toBeCloseTo(0.48)
@@ -185,9 +194,10 @@ describe('Game Loop', () => {
   describe('Tick', () => {
     it('should produce resources on tick', () => {
       gameState.buildings.farm = 1
+      gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 6
       const { gameState: newState } = tick(gameState)
       expect(newState.resourceCounts.food).toBeCloseTo(0.2)
-      expect(newState.tickCount).toBe(1)
+      expect(newState.tickCount).toBe(TICKS_PER_DAY * DAYS_PER_MONTH * 6 + 1)
     })
 
     it('should not exceed resource limits on tick', () => {
@@ -341,6 +351,86 @@ describe('Game Loop', () => {
       const before = gameState.dogs[0].experienceByJob.scientist
       const { gameState: next } = tick(gameState)
       expect(next.dogs[0].experienceByJob.scientist).toBeGreaterThan(before)
+    })
+  })
+
+  describe('Calendar', () => {
+    it('should start at 387年3月1日 when tickCount is 0', () => {
+      gameState.tickCount = 0
+      const cal = calculateCalendarProgress(gameState)
+      expect(cal.year).toBe(CALENDAR_START_YEAR)
+      expect(cal.month).toBe(CALENDAR_START_MONTH)
+      expect(cal.day).toBe(CALENDAR_START_DAY)
+      expect(cal.season).toBe('spring')
+    })
+
+    it('should advance 1 day after TICKS_PER_DAY ticks', () => {
+      gameState.tickCount = TICKS_PER_DAY
+      const cal = calculateCalendarProgress(gameState)
+      expect(cal.day).toBe(2)
+      expect(cal.month).toBe(3)
+      expect(cal.year).toBe(387)
+    })
+
+    it('should roll over to next month after 30 days', () => {
+      gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH
+      const cal = calculateCalendarProgress(gameState)
+      expect(cal.day).toBe(1)
+      expect(cal.month).toBe(4)
+      expect(cal.year).toBe(387)
+    })
+
+    it('should roll over to next year after 12 months', () => {
+      gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * MONTHS_PER_YEAR
+      const cal = calculateCalendarProgress(gameState)
+      expect(cal.day).toBe(1)
+      expect(cal.month).toBe(3)
+      expect(cal.year).toBe(388)
+    })
+
+    it('should switch season at correct month boundaries', () => {
+      gameState.tickCount = 0
+      expect(calculateCalendarProgress(gameState).season).toBe('spring')
+
+      gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 3
+      expect(calculateCalendarProgress(gameState).season).toBe('summer')
+
+      gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 6
+      expect(calculateCalendarProgress(gameState).season).toBe('autumn')
+
+      gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 9
+      expect(calculateCalendarProgress(gameState).season).toBe('winter')
+    })
+
+    it('should return winter for month 12 and 1', () => {
+      gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 9
+      expect(calculateCalendarProgress(gameState).month).toBe(12)
+      expect(calculateCalendarProgress(gameState).season).toBe('winter')
+
+      gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 10
+      expect(calculateCalendarProgress(gameState).month).toBe(1)
+      expect(calculateCalendarProgress(gameState).season).toBe('winter')
+    })
+  })
+
+  describe('Season effects on production', () => {
+    it('should produce more food in summer than in winter', () => {
+      gameState.buildings.farm = 2
+
+      gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 3
+      const summerProduction = calculateProduction(gameState)
+
+      gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 9
+      const winterProduction = calculateProduction(gameState)
+
+      expect(summerProduction.food).toBeGreaterThan(winterProduction.food)
+    })
+
+    it('should produce base food rate in spring with farm', () => {
+      gameState.buildings.farm = 1
+      gameState.tickCount = 0
+      const springProduction = calculateProduction(gameState)
+      expect(springProduction.food).toBeCloseTo(0.23)
     })
   })
 })
