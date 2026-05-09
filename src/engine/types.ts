@@ -202,7 +202,7 @@ export const BUILDINGS: Building[] = [
     id: 'warehouse',
     name: '仓库',
     icon: '📦',
-    description: '提升食物与木材的存储上限。',
+    description: '提升食物、木材、石头与毛皮的存储上限。',
     cost: { wood: 50 },
     costGrowthMultiplier: 2,
     resourceLimitBonuses: { food: 5000, wood: 1000, stone: 1000, fur: 500 },

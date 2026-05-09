@@ -74,7 +74,7 @@ interface GameStore {
   unlockWorkshopItem: (unlockId: string) => void
   canUnlockWorkshopItem: (unlockId: string) => boolean
   getVisibleWorkshopUnlockIds: () => string[]
-  dispatchExplore: () => void
+  explore: () => void
 
   addGameLog: (log: Omit<GameLog, 'id'>) => void
   markLogsAsRead: () => void
