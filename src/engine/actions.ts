@@ -236,7 +236,7 @@ export function performExplore(state: GameState): { nextState: GameState; furRew
   if ((state.resourceCounts.dogpower || 0) < DOGPOWER_PER_EXPLORATION) {
     return { nextState: state, }
   }
-  let nextResourceCounts: Record<string, number> = {
+  const nextResourceCounts: Record<string, number> = {
     ...state.resourceCounts,
     dogpower: (state.resourceCounts.dogpower || 0) - DOGPOWER_PER_EXPLORATION,
   }
