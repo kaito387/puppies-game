@@ -232,15 +232,41 @@ export function getRewardFromExploration(
   return 0
 }
 
-export function performExplore(state: GameState): { nextState: GameState; furReward?: number } {
+export function performExplore(
+  state: GameState,
+  resourceLimits: Record<string, number>,
+): {
+  nextState: GameState
+  furReward?: number
+  blockedReason?: 'insufficientDogpower' | 'furStorageFull'
+} {
   if ((state.resourceCounts.dogpower || 0) < DOGPOWER_PER_EXPLORATION) {
-    return { nextState: state, }
+    return { nextState: state, blockedReason: 'insufficientDogpower' }
   }
+
+  const currentFur = state.resourceCounts.fur || 0
+  const furLimit = Math.max(0, resourceLimits.fur || 0)
+
+  if (currentFur >= furLimit) {
+    return { nextState: state, blockedReason: 'furStorageFull', furReward: 0 }
+  }
+
   const nextResourceCounts: Record<string, number> = {
     ...state.resourceCounts,
     dogpower: (state.resourceCounts.dogpower || 0) - DOGPOWER_PER_EXPLORATION,
   }
-  const furReward = getRewardFromExploration(PROBABILITY_GET_FUR_FROM_EXPLORATION, FUR_REWARD_MIN, FUR_REWARD_MAX)
-  nextResourceCounts.fur = (nextResourceCounts.fur || 0) + furReward
-  return { nextState: { ...state, resourceCounts: nextResourceCounts }, furReward }
+  const furReward = getRewardFromExploration(
+    PROBABILITY_GET_FUR_FROM_EXPLORATION,
+    FUR_REWARD_MIN,
+    FUR_REWARD_MAX,
+  )
+  const nextFur = min(currentFur + furReward, furLimit)
+  const actualFurReward = nextFur - currentFur
+
+  nextResourceCounts.fur = nextFur
+
+  return {
+    nextState: { ...state, resourceCounts: nextResourceCounts },
+    furReward: actualFurReward,
+  }
 }
