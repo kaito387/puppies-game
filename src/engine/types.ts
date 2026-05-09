@@ -173,7 +173,7 @@ export const JOBS: Job[] = [
     id: 'hunter',
     name: '猎人',
     icon: '🏹',
-    description: '每 Tick 进行狩猎。',
+    description: '每 Tick 积累汪力。',
     productionPerTick: { dogpower: 0.2 },
   },
 ]

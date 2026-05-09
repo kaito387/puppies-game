@@ -259,17 +259,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   dispatchExplore: () => {
-    const { nextState, result, furReward } = performExplore(get().gameState)
+    const { nextState, furReward } = performExplore(get().gameState)
     let message = ''
-    if (result === 'success') {
-      message = `探索成功，获得毛皮 +${furReward}`
-    } 
-    else if (result === 'insufficient_dogpower') {
+    
+    if (furReward === undefined) {
       message = '探索失败，汪力不足'
+    } 
+    else if (furReward > 0) {
+      message = `探索成功，获得毛皮 +${furReward}`
     }
     else {
-      message = '探索失败，未获得奖励'
+      message = '探索失败，狗狗什么也没得到'
     }
+
     set((gameStore) => ({
       gameState: nextState,
       logs: addLog(gameStore.logs, {

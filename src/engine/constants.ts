@@ -17,3 +17,9 @@ export const DOG_EXPERIENCE_OUTPUT_BONUS_CONSTANT = 1
 // coeff * log(exp) + constant, capped at 3x bonus
 export const DOG_EXPERIENCE_OUTPUT_BONUS_CAP = 3
 export const DOG_EXPERIENCE_GAIN_PER_TICK = 1
+
+export const DOGPOWER_PER_EXPLORATION = 100
+
+export const PROBABILITY_GET_FUR_FROM_EXPLORATION = 0.6
+export const FUR_REWARD_MIN = 20
+export const FUR_REWARD_MAX = 40

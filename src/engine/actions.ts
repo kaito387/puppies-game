@@ -2,6 +2,12 @@ import { type GameState, JOBS } from '@/engine/types'
 import { min } from './utils'
 import { isRequirementSatisfied } from '@/engine/technologies'
 import { isDogNameValid, normalizeDogStatus, sanitizeDogName } from '@/engine/dogs'
+import { 
+  DOGPOWER_PER_EXPLORATION, 
+  PROBABILITY_GET_FUR_FROM_EXPLORATION,
+  FUR_REWARD_MIN, 
+  FUR_REWARD_MAX,
+} from '@/engine/constants'
 
 // NOTE: clickResource will need resourceLimits every time might lead to some redundant calculations.
 // If performance becomes an issue, we can consider caching the limits in the state or calculating them
@@ -211,29 +217,30 @@ export function setLeaderDog(state: GameState, dogId: string | null): GameState 
   }
 }
 
-export function performExplore(state: GameState): { nextState: GameState; result: 'success' | 'fail' | 'insufficient_dogpower'; furReward?: number } {
-  if ((state.resourceCounts.dogpower || 0) < 100) {
-    return { nextState: state, result: 'insufficient_dogpower' }
+export function getRewardFromExploration(
+  p: number,
+  L: number,
+  R: number,
+  testRand?: number,
+  testValue?: number, // test only
+): number {
+  const rand = testRand ?? Math.random()
+  if (rand < p) {
+    const valueRand = testValue ?? Math.random()
+    return Math.floor(valueRand * (R - L + 1)) + L
   }
-  let nextState: GameState = {
-    ...state,
-    resourceCounts: {
-      ...state.resourceCounts,
-      dogpower: (state.resourceCounts.dogpower || 0) - 100,
-    },
+  return 0
+}
+
+export function performExplore(state: GameState): { nextState: GameState; furReward?: number } {
+  if ((state.resourceCounts.dogpower || 0) < DOGPOWER_PER_EXPLORATION) {
+    return { nextState: state, }
   }
-  const rand = Math.random()
-  if (rand < 0.6) {
-    const furReward = Math.floor(Math.random() * 21) + 20 
-    nextState = {
-      ...nextState,
-      resourceCounts: {
-        ...nextState.resourceCounts,
-        fur: (nextState.resourceCounts.fur || 0) + furReward
-      },
-    }
-    return { nextState, result: 'success', furReward }
-  } else {
-    return { nextState, result: 'fail' }
+  let nextResourceCounts: Record<string, number> = {
+    ...state.resourceCounts,
+    dogpower: (state.resourceCounts.dogpower || 0) - DOGPOWER_PER_EXPLORATION,
   }
+  const furReward = getRewardFromExploration(PROBABILITY_GET_FUR_FROM_EXPLORATION, FUR_REWARD_MIN, FUR_REWARD_MAX)
+  nextResourceCounts.fur = (nextResourceCounts.fur || 0) + furReward
+  return { nextState: { ...state, resourceCounts: nextResourceCounts }, furReward }
 }
