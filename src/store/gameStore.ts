@@ -16,7 +16,7 @@ import {
   setJobAssignment,
   setLeaderDog, 
 } from '@/engine/actions'
-import { buildBuilding, canBuildBuilding, getBuildingCost } from '@/engine/buildings'
+import { buildBuilding, canBuildBuilding, getBuildingCost, setBuildingActiveCount } from '@/engine/buildings'
 import { saveGame, loadGame, resetGame } from '@/engine/save'
 import {
   canResearchTechnology,
@@ -73,6 +73,7 @@ interface GameStore {
   unlockWorkshopItem: (unlockId: string) => void
   canUnlockWorkshopItem: (unlockId: string) => boolean
   getVisibleWorkshopUnlockIds: () => string[]
+  setBuildingActiveCount: (buildingId: string, count: number) => void
 
   addGameLog: (log: Omit<GameLog, 'id'>) => void
   markLogsAsRead: () => void
@@ -217,6 +218,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   getVisibleWorkshopUnlockIds: () => {
     return getVisibleWorkshopUnlockIds(get().gameState)
+  },
+
+  setBuildingActiveCount: (buildingId: string, count: number) => {
+    set((gameStore) => ({
+      gameState: setBuildingActiveCount(gameStore.gameState, buildingId, count),
+    }))
   },
 
   addGameLog: (log: Omit<GameLog, 'id'>) => {

@@ -76,3 +76,26 @@ export function buildBuilding(state: GameState, buildingId: string): GameState {
     buildings: newBuildings,
   }
 }
+
+export function setBuildingActiveCount(
+  state: GameState,
+  buildingId: string,
+  count: number
+): GameState {
+  const building = getBuildingById(buildingId)
+
+  if (!building.isToggleable) return state
+
+  const newActiveCounts: Record<string, number> = { ...(state.buildingActiveCounts || {}) }
+  const ownedCount = state.buildings[buildingId] || 0
+  const nextActiveCounts = newActiveCounts[buildingId] + count
+
+  const clipped = Math.max(0, Math.min(ownedCount, nextActiveCounts))
+
+  newActiveCounts[buildingId] = clipped
+
+  return {
+    ...state,
+    buildingActiveCounts: newActiveCounts,
+  }
+}

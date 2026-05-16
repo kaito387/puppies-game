@@ -25,9 +25,15 @@ export function createInitialGameState(): GameState {
     buildings[building.id] = 0
   })
 
+  const buildingActiveCounts: Record<string, number> = {}
+  BUILDINGS.forEach((building) => {
+    buildingActiveCounts[building.id] = 0
+  })
+
   return {
     resourceCounts: resources,
     buildings,
+    buildingActiveCounts,
     researchedTechIds: [],
     workshopUnlockIds: [],
     dogs: [],

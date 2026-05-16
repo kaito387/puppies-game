@@ -29,6 +29,8 @@ export function calculateProduction(gameState: GameState): Record<string, number
   })
 
   BUILDINGS.forEach((building) => {
+    if (building.isToggleable) return
+
     const count = gameState.buildings[building.id] || 0
     const multiplier = buildingProductionMultipliers[building.id] || 1
     for (const [resourceId, amount] of Object.entries(building.productionPerTick || {})) {
@@ -99,6 +101,45 @@ export function calculateJobProduction(gameState: GameState): Record<string, num
   })
 
   return production
+}
+
+export function ToggleableBuildingConversions(
+  state: GameState,
+  resourceCountsAfterProduction: Record<string, number>
+): Record<string, number> {
+  const next: Record<string, number> = { ...resourceCountsAfterProduction }
+
+  for (const building of BUILDINGS) {
+    if (!building.isToggleable) continue
+    const active = state.buildingActiveCounts[building.id] || 0
+    if (active <= 0) continue
+
+    const consumption = building.consumptionPerTick || {}
+    const totalConsumption: Record<string, number> = {}
+    for (const [resourceId, amount] of Object.entries(consumption)) {
+      totalConsumption[resourceId] = amount * active
+    }
+
+    let canPay = true
+    for (const [resourceId, need] of Object.entries(totalConsumption)) {
+      if ((next[resourceId] || 0) < need) {
+        canPay = false
+        break
+      }
+    }
+
+    if (!canPay) continue
+
+    for (const [resourceId, need] of Object.entries(totalConsumption)) {
+      next[resourceId] = (next[resourceId] || 0) - need
+    }
+
+    for (const [resourceId, amount] of Object.entries(building.productionPerTick || {})) {
+      next[resourceId] = (next[resourceId] || 0) + amount * active
+    }
+  }
+
+  return next
 }
 
 export function applyPopulationGrowth(
@@ -193,10 +234,12 @@ export function tick(state: GameState): { gameState: GameState; events: GameEven
     production[resourceId] = (production[resourceId] || 0) + amount
   }
 
-  const newResourceCounts: Record<string, number> = { ...state.resourceCounts }
+  let newResourceCounts: Record<string, number> = { ...state.resourceCounts }
   for (const [resourceId, amount] of Object.entries(production)) {
     newResourceCounts[resourceId] = (newResourceCounts[resourceId] || 0) + amount
   }
+
+  newResourceCounts = ToggleableBuildingConversions(state, newResourceCounts)
 
   const populationUpdate = applyPopulationGrowth(state, newResourceCounts, nextPopulationCap)
 
