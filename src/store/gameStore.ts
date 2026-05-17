@@ -259,8 +259,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   dispatchExplore: () => {
-    const resourceLimits = calculateResourceLimits(get().gameState)
-    const { nextState, furReward } = performExplore(get().gameState, resourceLimits)
+    const { nextState, furReward } = performExplore(get().gameState)
     let message = ''
     
     if (furReward === undefined) {

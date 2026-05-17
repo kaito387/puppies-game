@@ -8,6 +8,7 @@ import {
   FUR_REWARD_MIN, 
   FUR_REWARD_MAX,
 } from '@/engine/constants'
+import { calculateResourceLimits } from './gameLoop';
 
 // NOTE: clickResource will need resourceLimits every time might lead to some redundant calculations.
 // If performance becomes an issue, we can consider caching the limits in the state or calculating them
@@ -233,8 +234,7 @@ export function getRewardFromExploration(
 }
 
 export function performExplore(
-  state: GameState,
-  resourceLimits: Record<string, number>,
+  state: GameState
 ): {
   nextState: GameState
   furReward?: number
@@ -244,6 +244,7 @@ export function performExplore(
     return { nextState: state, blockedReason: 'insufficientDogpower' }
   }
 
+  const resourceLimits = calculateResourceLimits(state)
   const currentFur = state.resourceCounts.fur || 0
   const furLimit = Math.max(0, resourceLimits.fur || 0)
 

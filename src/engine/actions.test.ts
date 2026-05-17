@@ -189,17 +189,14 @@ describe('Actions', () => {
   describe('Exploration', () => {
     it('should block exploration when dogpower is insufficient', () => {
       gameState.resourceCounts.dogpower = 50
-      const limits = calculateResourceLimits(gameState)
-      const { blockedReason } = performExplore(gameState, limits)
+      const { blockedReason } = performExplore(gameState)
       expect(blockedReason).toBe('insufficientDogpower')
     })
 
     it('should deduct dogpower on exploration attempt', () => {
+      gameState.buildings.barn = 10
       gameState.resourceCounts.dogpower = 200
-      gameState.resourceCounts.fur = 0
-      const limits = calculateResourceLimits(gameState)
-      limits.fur = 1000
-      const { nextState } = performExplore(gameState, limits)
+      const { nextState } = performExplore(gameState)
       expect(nextState.resourceCounts.dogpower).toBe(200 - DOGPOWER_PER_EXPLORATION)
     })
 
