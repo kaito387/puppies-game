@@ -7,7 +7,7 @@ import {
   calculateResourceLimits,
 } from '@/engine/gameLoop'
 import { calculateCalendarProgress } from '@/engine/calendar'
-import { type GameState } from '@/engine/types'
+import { RESOURCES, type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import {
   FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
