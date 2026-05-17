@@ -79,6 +79,7 @@ interface GameStore {
   unlockWorkshopItem: (unlockId: string) => void
   canUnlockWorkshopItem: (unlockId: string) => boolean
   getVisibleWorkshopUnlockIds: () => string[]
+  getCalendar: () => Calendar
   dispatchExplore: () => void
   getCalendar: () => Calendar
 
@@ -264,6 +265,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }))
   },
 
+  getCalendar: () => {
+    return calculateCalendarProgress(get().gameState)
+  },
+  
   dispatchExplore: () => {
     const { nextState, furReward } = performExplore(get().gameState)
     let message = ''

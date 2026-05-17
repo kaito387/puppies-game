@@ -6,6 +6,7 @@ import {
   calculatePopulationCap,
   calculateResourceLimits,
 } from '@/engine/gameLoop'
+import { calculateCalendarProgress } from '@/engine/calendar'
 import { RESOURCES, type GameState } from '@/engine/types'
 import { calculateCalendarProgress } from '@/engine/calendar'
 import { createInitialGameState } from '@/engine/initialState'
