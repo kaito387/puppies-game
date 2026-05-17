@@ -2,6 +2,13 @@ import { type GameState, JOBS } from '@/engine/types'
 import { min } from './utils'
 import { isRequirementSatisfied } from '@/engine/technologies'
 import { isDogNameValid, normalizeDogStatus, sanitizeDogName } from '@/engine/dogs'
+import { 
+  DOGPOWER_PER_EXPLORATION, 
+  PROBABILITY_GET_FUR_FROM_EXPLORATION,
+  FUR_REWARD_MIN, 
+  FUR_REWARD_MAX,
+} from '@/engine/constants'
+import { calculateResourceLimits } from './gameLoop';
 
 // NOTE: clickResource will need resourceLimits every time might lead to some redundant calculations.
 // If performance becomes an issue, we can consider caching the limits in the state or calculating them
@@ -208,5 +215,59 @@ export function setLeaderDog(state: GameState, dogId: string | null): GameState 
   return {
     ...state,
     leaderDogId: dogId,
+  }
+}
+
+export function getRewardFromExploration(
+  p: number,
+  L: number,
+  R: number,
+  testRand?: number,
+  testValue?: number, // test only
+): number {
+  const rand = testRand ?? Math.random()
+  if (rand < p) {
+    const valueRand = testValue ?? Math.random()
+    return Math.floor(valueRand * (R - L + 1)) + L
+  }
+  return 0
+}
+
+export function performExplore(
+  state: GameState
+): {
+  nextState: GameState
+  furReward?: number
+  blockedReason?: 'insufficientDogpower' | 'furStorageFull'
+} {
+  if ((state.resourceCounts.dogpower || 0) < DOGPOWER_PER_EXPLORATION) {
+    return { nextState: state, blockedReason: 'insufficientDogpower' }
+  }
+
+  const resourceLimits = calculateResourceLimits(state)
+  const currentFur = state.resourceCounts.fur || 0
+  const furLimit = Math.max(0, resourceLimits.fur || 0)
+
+  if (currentFur >= furLimit) {
+    return { nextState: state, blockedReason: 'furStorageFull', furReward: 0 }
+  }
+
+  const nextResourceCounts: Record<string, number> = {
+    ...state.resourceCounts,
+    dogpower: (state.resourceCounts.dogpower || 0) - DOGPOWER_PER_EXPLORATION,
+  }
+  const furReward = getRewardFromExploration(
+    PROBABILITY_GET_FUR_FROM_EXPLORATION,
+    FUR_REWARD_MIN,
+    FUR_REWARD_MAX,
+  )
+  const nextFur = min(currentFur + furReward, furLimit)
+  const actualFurReward = nextFur - currentFur
+
+  nextResourceCounts.fur = nextFur
+
+  return {
+    nextState: { ...state, resourceCounts: nextResourceCounts },
+    furReward: actualFurReward,
   }
 }

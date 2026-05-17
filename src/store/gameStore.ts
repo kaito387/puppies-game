@@ -20,6 +20,7 @@ import {
   setDomesticateEnabled,
   setJobAssignment,
   setLeaderDog, 
+  performExplore,
 } from '@/engine/actions'
 import { buildBuilding, canBuildBuilding, getBuildingCost } from '@/engine/buildings'
 import { saveGame, loadGame, resetGame } from '@/engine/save'
@@ -79,6 +80,7 @@ interface GameStore {
   canUnlockWorkshopItem: (unlockId: string) => boolean
   getVisibleWorkshopUnlockIds: () => string[]
   getCalendar: () => Calendar
+  dispatchExplore: () => void
 
   addGameLog: (log: Omit<GameLog, 'id'>) => void
   markLogsAsRead: () => void
@@ -264,5 +266,30 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   getCalendar: () => {
     return calculateCalendarProgress(get().gameState)
+  },
+  
+  dispatchExplore: () => {
+    const { nextState, furReward } = performExplore(get().gameState)
+    let message = ''
+    
+    if (furReward === undefined) {
+      message = '探索失败，汪力不足'
+    } 
+    else if (furReward > 0) {
+      message = `探索成功，获得毛皮 +${furReward}`
+    }
+    else {
+      message = '探索失败，狗狗什么也没得到'
+    }
+
+    set((gameStore) => ({
+      gameState: nextState,
+      logs: addLog(gameStore.logs, {
+        timestamp: Date.now(),
+        type: 'explore',
+        message,
+      }),
+      unreadLogCount: min(100, gameStore.unreadLogCount + 1),
+    }))
   },
 }))

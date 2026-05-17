@@ -5,6 +5,8 @@ export const INITIAL_RESOURCE_LIMITS = {
 	food: 10000,
 	wood: 1500,
 	stone: 1500,
+	dogpower: 50,
+	fur: 1500,
 }
 
 export const INITIAL_POPULATION_CAP = 1
@@ -23,3 +25,8 @@ export const CALENDAR_START_DAY = 1
 export const TICKS_PER_DAY = 15
 export const DAYS_PER_MONTH = 30
 export const MONTHS_PER_YEAR = 12
+export const DOGPOWER_PER_EXPLORATION = 100
+
+export const PROBABILITY_GET_FUR_FROM_EXPLORATION = 0.6
+export const FUR_REWARD_MIN = 20
+export const FUR_REWARD_MAX = 40
