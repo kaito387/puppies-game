@@ -81,7 +81,6 @@ interface GameStore {
   getVisibleWorkshopUnlockIds: () => string[]
   getCalendar: () => Calendar
   dispatchExplore: () => void
-  getCalendar: () => Calendar
 
   addGameLog: (log: Omit<GameLog, 'id'>) => void
   markLogsAsRead: () => void
@@ -294,7 +293,4 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }))
   },
   
-  getCalendar: () => {
-    return calculateCalendarProgress(get().gameState)
-  },
 }))

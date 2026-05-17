@@ -8,7 +8,6 @@ import {
 } from '@/engine/gameLoop'
 import { calculateCalendarProgress } from '@/engine/calendar'
 import { RESOURCES, type GameState } from '@/engine/types'
-import { calculateCalendarProgress } from '@/engine/calendar'
 import { createInitialGameState } from '@/engine/initialState'
 import {
   FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
