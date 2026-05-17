@@ -22,6 +22,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Calendar } from '@/components/ui/calendar'
 
 function PlaceholderActionPanel(props: {
   title: string
@@ -97,7 +98,7 @@ function App() {
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Ticks: {gameState.tickCount}</span>
+              <Calendar />
               <span>TPS: ~5</span>
               <LogPanel />
               <SettingsPanel />

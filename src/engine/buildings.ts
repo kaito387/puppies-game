@@ -1,5 +1,5 @@
 import { BUILDINGS, type Building, type GameState } from '@/engine/types'
-import { aggregateTechEffects, isRequirementSatisfied } from '@/engine/technologies'
+import { aggregateEffects, isRequirementSatisfied } from '@/engine/technologies'
 
 function roundBuildingCost(amount: number): number {
   return Math.ceil(amount)
@@ -18,7 +18,7 @@ export function getBuildingCost(state: GameState, buildingId: string): Record<st
   const building = getBuildingById(buildingId)
   const ownedCount = state.buildings[building.id] || 0
   const growthFactor = building.costGrowthMultiplier ** ownedCount
-  const { buildingCostMultipliers } = aggregateTechEffects(state)
+  const { buildingCostMultipliers } = aggregateEffects(state)
   const techCostMultiplier = buildingCostMultipliers[building.id] || 1
 
   const cost: Record<string, number> = {}

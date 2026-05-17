@@ -13,7 +13,7 @@ import {
   POPULATION_GROWTH_RATE,
 } from '@/engine/constants'
 import { min } from '@/engine/utils'
-import { aggregateTechEffects } from '@/engine/technologies'
+import { aggregateEffects } from '@/engine/technologies'
 import {
   calculateDogOutputMultiplier,
   createDog,
@@ -22,7 +22,7 @@ import {
 
 export function calculateProduction(gameState: GameState): Record<string, number> {
   const production: Record<string, number> = {}
-  const { buildingProductionMultipliers } = aggregateTechEffects(gameState)
+  const { buildingProductionMultipliers } = aggregateEffects(gameState)
 
   RESOURCES.forEach((resource) => {
     production[resource.id] = 0
@@ -31,6 +31,7 @@ export function calculateProduction(gameState: GameState): Record<string, number
   BUILDINGS.forEach((building) => {
     const count = gameState.buildings[building.id] || 0
     const multiplier = buildingProductionMultipliers[building.id] || 1
+
     for (const [resourceId, amount] of Object.entries(building.productionPerTick || {})) {
       production[resourceId] += amount * count * multiplier
     }
@@ -41,7 +42,7 @@ export function calculateProduction(gameState: GameState): Record<string, number
 
 export function calculatePopulationCap(gameState: GameState): number {
   let populationCap = INITIAL_POPULATION_CAP
-
+  
   BUILDINGS.forEach((building) => {
     const count = gameState.buildings[building.id] || 0
     if (!building.populationCapBonus || count <= 0) {
@@ -72,7 +73,7 @@ export function calculateResourceLimits(gameState: GameState): Record<string, nu
 
 export function calculateJobProduction(gameState: GameState): Record<string, number> {
   const production: Record<string, number> = {}
-  const { jobProductionMultipliers } = aggregateTechEffects(gameState)
+  const { jobProductionMultipliers } = aggregateEffects(gameState)
   const jobsById = new Map(JOBS.map((job) => [job.id, job]))
 
   RESOURCES.forEach((resource) => {
