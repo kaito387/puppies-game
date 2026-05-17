@@ -198,6 +198,7 @@ function DogCard(props: {
 
 export function DogManagementPanel() {
   const gameState = useGameStore((store) => store.gameState)
+  const dispatchExplore = useGameStore((store) => store.dispatchExplore)
   const getVisibleJobIds = useGameStore((store) => store.getVisibleJobIds)
   const renameDog = useGameStore((store) => store.renameDog)
   const assignDogJob = useGameStore((store) => store.assignDogJob)
@@ -426,6 +427,24 @@ export function DogManagementPanel() {
               )
             })}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>🧭 野外探索</CardTitle>
+          <CardDescription>派遣猎人探索野外，消耗汪力获取毛皮</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center gap-4">
+          <div className="text-sm">
+            汪力：{gameState.resourceCounts.dogpower?.toFixed(1) || 0} / 100
+          </div>
+          <Button
+            onClick={dispatchExplore}
+            disabled={(gameState.resourceCounts.dogpower || 0) < 100}
+          >
+            发起探索（消耗 100 汪力）
+          </Button>
         </CardContent>
       </Card>
     </div>
