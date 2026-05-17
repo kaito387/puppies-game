@@ -7,11 +7,18 @@ import {
   setDomesticateEnabled,
   setJobAssignment,
   setLeaderDog,
+  performExplore,
+  getRewardFromExploration,
 } from '@/engine/actions'
 import { type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import { createDogs } from '@/engine/dogs'
 import { calculateResourceLimits } from '@/engine/gameLoop'
+import {
+  DOGPOWER_PER_EXPLORATION,
+  FUR_REWARD_MIN,
+  FUR_REWARD_MAX,
+} from '@/engine/constants'
 
 describe('Actions', () => {
   let gameState: GameState
@@ -176,6 +183,34 @@ describe('Actions', () => {
       expect(next.resourceCounts).toEqual(gameState.resourceCounts)
       expect(next.researchedTechIds).toEqual(gameState.researchedTechIds)
       expect(next.buildings).toEqual(gameState.buildings)
+    })
+  })
+
+  describe('Exploration', () => {
+    it('should block exploration when dogpower is insufficient', () => {
+      gameState.resourceCounts.dogpower = 50
+      const limits = calculateResourceLimits(gameState)
+      const { blockedReason } = performExplore(gameState, limits)
+      expect(blockedReason).toBe('insufficientDogpower')
+    })
+
+    it('should deduct dogpower on exploration attempt', () => {
+      gameState.resourceCounts.dogpower = 200
+      gameState.resourceCounts.fur = 0
+      const limits = calculateResourceLimits(gameState)
+      limits.fur = 1000
+      const { nextState } = performExplore(gameState, limits)
+      expect(nextState.resourceCounts.dogpower).toBe(200 - DOGPOWER_PER_EXPLORATION)
+    })
+
+    it('should reward fur on successful exploration roll', () => {
+      const reward = getRewardFromExploration(0.6, FUR_REWARD_MIN, FUR_REWARD_MAX, 0, 0)
+      expect(reward).toBe(FUR_REWARD_MIN)
+    })
+
+    it('should give zero fur on failed exploration roll', () => {
+      const reward = getRewardFromExploration(0.6, FUR_REWARD_MIN, FUR_REWARD_MAX, 1.0)
+      expect(reward).toBe(0)
     })
   })
 })

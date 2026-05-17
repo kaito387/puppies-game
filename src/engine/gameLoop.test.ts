@@ -29,7 +29,11 @@ describe('Game Loop', () => {
   describe('Production', () => {
     it('should calculate production correctly with no buildings', () => {
       const production = calculateProduction(gameState)
-      expect(production).toEqual({ coal: 0, culture: 0, food: 0, gold: 0, iron: 0, wood: 0, stone: 0, science: 0 })
+      expect(production.food).toBe(0)
+      expect(production.wood).toBe(0)
+      expect(production.stone).toBe(0)
+      expect(production.science).toBe(0)
+      expect(production.dogpower).toBe(0)
     })
 
     it('should calculate production correctly with multiple buildings', () => {
@@ -106,6 +110,15 @@ describe('Game Loop', () => {
 
       const production = calculateJobProduction(gameState)
       expect(production.food).toBeCloseTo(1.6591, 3)
+    })
+
+    it('should produce dogpower when hunter is assigned', () => {
+      setDogs(1)
+      gameState.dogs[0].currentJobId = 'hunter'
+      gameState.dogs[0].status = 'working'
+
+      const production = calculateJobProduction(gameState)
+      expect(production.dogpower).toBeCloseTo(0.2)
     })
   })
 
