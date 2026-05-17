@@ -29,7 +29,9 @@ export function calculateProduction(gameState: GameState): Record<string, number
   })
 
   BUILDINGS.forEach((building) => {
-    if (building.isToggleable) return
+    // only calculate passive production from buildings here, toggleable ones 
+    // are handled separately in ToggleableBuildingConversions
+    if (building.isToggleable) return 
 
     const count = gameState.buildings[building.id] || 0
     const multiplier = buildingProductionMultipliers[building.id] || 1
@@ -103,7 +105,7 @@ export function calculateJobProduction(gameState: GameState): Record<string, num
   return production
 }
 
-export function ToggleableBuildingConversions(
+export function toggleableBuildingConversions(
   state: GameState,
   resourceCountsAfterProduction: Record<string, number>
 ): Record<string, number> {
@@ -239,7 +241,7 @@ export function tick(state: GameState): { gameState: GameState; events: GameEven
     newResourceCounts[resourceId] = (newResourceCounts[resourceId] || 0) + amount
   }
 
-  newResourceCounts = ToggleableBuildingConversions(state, newResourceCounts)
+  newResourceCounts = toggleableBuildingConversions(state, newResourceCounts)
 
   const populationUpdate = applyPopulationGrowth(state, newResourceCounts, nextPopulationCap)
 

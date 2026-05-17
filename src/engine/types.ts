@@ -14,8 +14,8 @@ export interface Building {
 
   productionPerTick?: Record<string, number>
   isToggleable?: boolean
-
   consumptionPerTick?: Record<string, number>
+
   requiredTechs?: string[]
   requiredBuildings?: string[]
   resourceLimitBonuses?: Record<string, number>
