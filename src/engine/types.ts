@@ -13,6 +13,9 @@ export interface Building {
   costGrowthMultiplier: number
 
   productionPerTick?: Record<string, number>
+  isToggleable?: boolean
+  consumptionPerTick?: Record<string, number>
+
   requiredTechs?: string[]
   requiredBuildings?: string[]
   resourceLimitBonuses?: Record<string, number>
@@ -159,6 +162,7 @@ export interface Dog {
 export interface GameState {
   resourceCounts: Record<string, number>
   buildings: Record<string, number>
+  buildingActiveCounts: Record<string, number>
   researchedTechIds: string[]
   workshopUnlockIds: string[]
 
@@ -288,6 +292,18 @@ export const BUILDINGS: Building[] = [
     cost: { wood: 60 },
     costGrowthMultiplier: 1.8,
     requiredTechs: ['workshop_engineering'],
+  },
+  {
+    id: 'smelter',
+    name: '熔炉',
+    icon: '🔥',
+    description: '消耗木材与石料，生产铁矿。',
+    cost: { wood: 80, stone: 40 },
+    costGrowthMultiplier: 1.3,
+    isToggleable: true,
+    consumptionPerTick: { wood: 1, stone: 1 },
+    productionPerTick: { iron: 1 },
+    requiredTechs: ['mining'],
   },
 ]
 
