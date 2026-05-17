@@ -87,7 +87,8 @@ describe('Technologies', () => {
   })
 
   it('should only show jobs whose prerequisites are satisfied', () => {
-    expect(getVisibleJobsIds(gameState)).toEqual(['lumberjack'])
+    const defaultVisible = getVisibleJobsIds(gameState)
+    expect(defaultVisible).toEqual(['lumberjack', 'hunter'])
 
     gameState.buildings.farm = 1
     expect(getVisibleJobsIds(gameState)).toContain('farmer')
