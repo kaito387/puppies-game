@@ -53,6 +53,7 @@ export function loadGame(): GameState {
     return {
       resourceCounts: mergeRecord(saveData.resourceCounts, INITIAL_GAME_STATE.resourceCounts),
       buildings: mergeRecord(saveData.buildings, INITIAL_GAME_STATE.buildings),
+      buildingActiveCounts: saveData.buildingActiveCounts ?? INITIAL_GAME_STATE.buildingActiveCounts,
       researchedTechIds,
       workshopUnlockIds,
       dogs: saveData.dogs ?? INITIAL_GAME_STATE.dogs,
