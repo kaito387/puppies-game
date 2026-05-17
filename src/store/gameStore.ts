@@ -74,7 +74,8 @@ interface GameStore {
   unlockWorkshopItem: (unlockId: string) => void
   canUnlockWorkshopItem: (unlockId: string) => boolean
   getVisibleWorkshopUnlockIds: () => string[]
-  explore: () => void
+
+  dispatchExplore: () => void
 
   addGameLog: (log: Omit<GameLog, 'id'>) => void
   markLogsAsRead: () => void
@@ -259,7 +260,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   dispatchExplore: () => {
-    const { nextState, furReward } = performExplore(get().gameState)
+    const currentState = get().gameState
+    const resourceLimits = calculateResourceLimits(currentState)
+    const { nextState, furReward } = performExplore(currentState, resourceLimits)
     let message = ''
     
     if (furReward === undefined) {

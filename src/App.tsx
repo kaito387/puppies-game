@@ -111,39 +111,19 @@ function App() {
               <TabsTrigger value="management">管理</TabsTrigger>
               <TabsTrigger value="technologies">科技</TabsTrigger>
               <TabsTrigger value="workshop">工坊</TabsTrigger>
-              <TabsTrigger value="exploration">探索</TabsTrigger>
               <TabsTrigger value="trade">贸易</TabsTrigger>
             </TabsList>
             <TabsContent value="buildings">
               <BuildingPanel />
             </TabsContent>
             <TabsContent value="management">
-              <DogManagementPanel />
+              <DogManagementPanel hasExplorationGear={hasExplorationGear} />
             </TabsContent>
             <TabsContent value="technologies">
               <TechnologyPanel />
             </TabsContent>
             <TabsContent value="workshop">
               <WorkshopPanel />
-            </TabsContent>
-            <TabsContent value="exploration">
-              {hasExplorationGear ? (
-                <PlaceholderActionPanel
-                  title="🧭 探索"
-                  description="派出队伍探索附近区域，寻找新资源。"
-                  buttonLabel="派出探索队"
-                  requirement="需要 3 空闲人口"
-                  locked={false}
-                />
-              ) : (
-                <PlaceholderActionPanel
-                  title="🧭 探索"
-                  description="先在工坊中解锁探索装备，才能开展探索行动。"
-                  buttonLabel="派出探索队"
-                  requirement="需要工坊项目：探索装备"
-                  locked
-                />
-              )}
             </TabsContent>
             <TabsContent value="trade">
               <PlaceholderActionPanel
