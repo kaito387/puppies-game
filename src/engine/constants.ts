@@ -5,8 +5,12 @@ export const INITIAL_RESOURCE_LIMITS = {
 	food: 10000,
 	wood: 1500,
 	stone: 1500,
+<<<<<<< HEAD
 	dogpower: 50,
 	fur: 1500,
+=======
+	culture: 2000,
+>>>>>>> e589300 (finished culture & policies system)
 }
 
 export const INITIAL_POPULATION_CAP = 1

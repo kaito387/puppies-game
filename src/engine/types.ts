@@ -51,6 +51,19 @@ export interface Effect {
   value: number
 }
 
+export interface Policy {
+  id: string
+  name: string
+  description: string
+  effects?: Effect[]
+}
+
+export interface PolicyGroup {
+  policyIds: string[]
+  cost: Record<string, number>
+  prerequisites?: RequirementCarrier
+}
+
 export interface Technology {
   id: string
   name: string
@@ -161,6 +174,7 @@ export interface GameState {
   buildings: Record<string, number>
   researchedTechIds: string[]
   workshopUnlockIds: string[]
+  enactedPolicyIds?: string[]
 
   dogs: Dog[]
   populationGrowthProgress: number
@@ -231,6 +245,16 @@ export const JOBS: Job[] = [
     description: '每 Tick 积累汪力。',
     productionPerTick: { dogpower: 0.2 },
   },
+  {
+    id: 'artist',
+    name: '艺术家',
+    icon: '🎨',
+    description: '每 Tick 进行艺术创作，生产文化。',
+    productionPerTick: { culture: 0.2 },
+    prerequisites: {
+      requiredBuildings: ['library'],
+    },
+  },
 ]
 
 export const BUILDINGS: Building[] = [
@@ -288,6 +312,120 @@ export const BUILDINGS: Building[] = [
     cost: { wood: 60 },
     costGrowthMultiplier: 1.8,
     requiredTechs: ['workshop_engineering'],
+  },
+]
+
+export const POLICIES: Policy[] = [
+  {
+    id: 'policy-democracy',
+    name: '民主',
+    description: '鼓励公民参与与文化表达，提升文化产出。',
+    effects: [
+      {
+        id: 'policy-democracy-artist-bonus',
+        type: 'job_production',
+        targetId: 'artist',
+        value: 1.2,
+        mode: 'multiplier',
+      },
+    ],
+  },
+  {
+    id: 'policy-authoritarian',
+    name: '专制',
+    description: '集中资源以提高基础生产，但抑制文化创作。',
+    effects: [
+      {
+        id: 'policy-authoritarian-farmer-bonus',
+        type: 'job_production',
+        targetId: 'farmer',
+        value: 1.2,
+        mode: 'multiplier',
+      },
+      {
+        id: 'policy-authoritarian-artist-penalty',
+        type: 'job_production',
+        targetId: 'artist',
+        value: 0.8,
+        mode: 'multiplier',
+      },
+    ],
+  },
+
+  {
+    id: 'policy-radical',
+    name: '激进',
+    description: '推动快速变革，优先科研与创新。',
+    effects: [
+      {
+        id: 'policy-radical-scientist-bonus',
+        type: 'job_production',
+        targetId: 'scientist',
+        value: 1.25,
+        mode: 'multiplier',
+      },
+    ],
+  },
+  {
+    id: 'policy-conservative',
+    name: '保守',
+    description: '维护现有结构，降低建造成本以稳健发展。',
+    effects: [
+      {
+        id: 'policy-conservative-farmer-bonus',
+        type: 'job_production',
+        targetId: 'farmer',
+        value: 1.25,
+        mode: 'multiplier',
+      },
+    ],
+  },
+
+  {
+    id: 'policy-environment',
+    name: '环保优先',
+    description: '优先环境保护，提升资源储备与可持续性。',
+    effects: [
+      {
+        id: 'policy-environment-resource-limit-food',
+        type: 'resource_limit',
+        targetId: 'food',
+        value: 1.25,
+        mode: 'multiplier',
+      },
+    ],
+  },
+  {
+    id: 'policy-development',
+    name: '发展优先',
+    description: '优先发展经济与产能，提升生产效率。',
+    effects: [
+      {
+        id: 'policy-development-farm-output',
+        type: 'building_production',
+        targetId: 'farm',
+        value: 1.2,
+        mode: 'multiplier',
+      },
+    ],
+  },
+]
+
+export const POLICY_GROUPS: PolicyGroup[] = [
+  {
+    policyIds: ['policy-democracy', 'policy-authoritarian'],
+    cost: { culture: 300 },
+    prerequisites: { requiredBuildings: ['library'] },
+  },
+  {
+    policyIds: ['policy-radical', 'policy-conservative'],
+    cost: { culture: 500 },
+    prerequisites: { requiredBuildings: ['workshop'] },
+  },
+  {
+    policyIds: ['policy-environment', 'policy-development'],
+    cost: { culture: 1500 },
+    prerequisites: { requiredBuildings: ['library'] },
   },
 ]
 

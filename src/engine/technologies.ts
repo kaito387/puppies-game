@@ -1,6 +1,7 @@
 import {
   BUILDINGS,
   JOBS,
+  POLICIES,
   TECHNOLOGIES,
   WORKSHOP_UNLOCKS,
   SEASON_EFFECTS,
@@ -263,6 +264,49 @@ export function aggregateEffects(state: GameState): AggregatedEffects {
     }
   }
   
+  aggregated.buildingCostMultipliers = finalizeEffects(buildingCostEffects)
+  aggregated.buildingProductionMultipliers = finalizeEffects(buildingProductionEffects)
+  aggregated.jobProductionMultipliers = finalizeEffects(jobProductionEffects)
+
+  return aggregated
+}
+
+export function aggregatePolicyEffects(state: GameState): AggregatedEffects {
+  const aggregated: AggregatedEffects = {
+    buildingCostMultipliers: {},
+    buildingProductionMultipliers: {},
+    jobProductionMultipliers: {},
+  }
+
+  const buildingCostEffects: EffectAccumulator = {
+    additiveTotals: {},
+    multiplierTotals: {},
+  }
+  const buildingProductionEffects: EffectAccumulator = {
+    additiveTotals: {},
+    multiplierTotals: {},
+  }
+  const jobProductionEffects: EffectAccumulator = {
+    additiveTotals: {},
+    multiplierTotals: {},
+  }
+
+  for (const policyId of state.enactedPolicyIds || []) {
+    const policy = POLICIES.find((item) => item.id === policyId)
+    if (!policy?.effects) {
+      continue
+    }
+
+    for (const effect of policy.effects) {
+      applyEffectToAccumulators(
+        effect,
+        buildingCostEffects,
+        buildingProductionEffects,
+        jobProductionEffects,
+      )
+    }
+  }
+
   aggregated.buildingCostMultipliers = finalizeEffects(buildingCostEffects)
   aggregated.buildingProductionMultipliers = finalizeEffects(buildingProductionEffects)
   aggregated.jobProductionMultipliers = finalizeEffects(jobProductionEffects)

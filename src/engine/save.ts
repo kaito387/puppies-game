@@ -1,4 +1,4 @@
-import { TECHNOLOGIES, type GameState } from '@/engine/types'
+import { POLICIES, TECHNOLOGIES, type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import { WORKSHOP_UNLOCKS } from '@/engine/types'
 
@@ -9,6 +9,8 @@ export function saveGame(gameState: GameState): void {
   const researchedTechIds = gameState.researchedTechIds.filter((techId) => knownTechIds.has(techId))
   const knownWorkshopUnlockIds = new Set(WORKSHOP_UNLOCKS.map((unlock) => unlock.id))
   const workshopUnlockIds = gameState.workshopUnlockIds.filter((unlockId) => knownWorkshopUnlockIds.has(unlockId))
+  const knownPolicyIds = new Set(POLICIES.map((policy) => policy.id))
+  const enactedPolicyIds = (gameState.enactedPolicyIds || []).filter((policyId) => knownPolicyIds.has(policyId))
 
   const saveData = {
     version: '0.0.0',
@@ -16,6 +18,7 @@ export function saveGame(gameState: GameState): void {
     ...gameState,
     researchedTechIds,
     workshopUnlockIds,
+    enactedPolicyIds,
   }
   localStorage.setItem(SAVE_KEY, JSON.stringify(saveData))
 }
@@ -49,12 +52,19 @@ export function loadGame(): GameState {
           (unlockId: unknown) => typeof unlockId === 'string' && knownWorkshopUnlockIds.has(unlockId),
         )
       : INITIAL_GAME_STATE.workshopUnlockIds
+    const knownPolicyIds = new Set(POLICIES.map((policy) => policy.id))
+    const enactedPolicyIds = Array.isArray(saveData.enactedPolicyIds)
+      ? saveData.enactedPolicyIds.filter(
+          (policyId: unknown) => typeof policyId === 'string' && knownPolicyIds.has(policyId),
+        )
+      : INITIAL_GAME_STATE.enactedPolicyIds
 
     return {
       resourceCounts: mergeRecord(saveData.resourceCounts, INITIAL_GAME_STATE.resourceCounts),
       buildings: mergeRecord(saveData.buildings, INITIAL_GAME_STATE.buildings),
       researchedTechIds,
       workshopUnlockIds,
+      enactedPolicyIds,
       dogs: saveData.dogs ?? INITIAL_GAME_STATE.dogs,
       populationCap: saveData.populationCap ?? INITIAL_GAME_STATE.populationCap,
       leaderDogId: saveData.leaderDogId ?? INITIAL_GAME_STATE.leaderDogId,

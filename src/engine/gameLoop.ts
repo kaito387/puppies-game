@@ -1,7 +1,9 @@
 import {
   BUILDINGS,
   JOBS,
+  POLICIES,
   RESOURCES,
+  type Effect,
   type GameState,
   type GameEvent,
 } from '@/engine/types'
@@ -68,6 +70,27 @@ export function calculateResourceLimits(gameState: GameState): Record<string, nu
     }
   })
 
+  for (const policyId of gameState.enactedPolicyIds || []) {
+    const policy = POLICIES.find((item) => item.id === policyId)
+    if (!policy?.effects) {
+      continue
+    }
+
+    for (const effect of policy.effects) {
+      if (effect.type !== 'resource_limit' || !effect.targetId) {
+        continue
+      }
+
+      if (effect.mode === 'multiplier') {
+        limits[effect.targetId] = (limits[effect.targetId] || 0) * effect.value
+      } else if (effect.mode === 'additive') {
+        limits[effect.targetId] = (limits[effect.targetId] || 0) + effect.value
+      } else if (import.meta.env.DEV) {
+        console.warn(`未知资源上限效果模式: ${(effect as Effect).mode}`)
+      }
+    }
+  }
+
   return limits
 }
 
@@ -91,7 +114,7 @@ export function calculateJobProduction(gameState: GameState): Record<string, num
       return
     }
 
-    const jobMultiplier = jobProductionMultipliers[job.id] || 1
+    const jobMultiplier = (jobProductionMultipliers[job.id] || 1)
     const dogMultiplier = calculateDogOutputMultiplier(dog, job.id)
 
     for (const [resourceId, amount] of Object.entries(job.productionPerTick)) {
