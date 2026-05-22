@@ -174,7 +174,7 @@ export interface GameState {
   buildings: Record<string, number>
   researchedTechIds: string[]
   workshopUnlockIds: string[]
-  enactedPolicyIds?: string[]
+  enactedPolicyIds: string[]
 
   dogs: Dog[]
   populationGrowthProgress: number
@@ -369,7 +369,7 @@ export const POLICIES: Policy[] = [
   {
     id: 'policy-conservative',
     name: '保守',
-    description: '维护现有结构，降低建造成本以稳健发展。',
+    description: '维护传统与稳定，优先农业与资源积累。',
     effects: [
       {
         id: 'policy-conservative-farmer-bonus',
