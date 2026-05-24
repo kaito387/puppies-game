@@ -14,6 +14,13 @@ export function BuildingPanel() {
   const getBuildingCost = useGameStore((store) => store.getBuildingCost)
   const canBuildBuilding = useGameStore((store) => store.canBuildBuilding)
 
+  const setBuildingActiveCount = useGameStore((store) => store.setBuildingActiveCount)
+
+  const handleDelta = (buildingId: string, delta: number) => {
+    const current = gameState.buildingActiveCounts[buildingId] ?? 0
+    setBuildingActiveCount(buildingId, current + delta)
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -34,6 +41,9 @@ export function BuildingPanel() {
             const buildingCost = getBuildingCost(building.id)
             const canBuild = canBuildBuilding(building.id)
 
+            const activeCount = gameState.buildingActiveCounts[building.id] || 0
+            const isToggleable = building.isToggleable
+
             const costText = Object.entries(buildingCost)
               .map(([resourceId, cost]) => `${cost} ${resourceId}`)
               .join(' + ')
@@ -51,8 +61,19 @@ export function BuildingPanel() {
                   <Button size="sm" onClick={() => buildBuilding(building.id)} disabled={!canBuild}>
                     建造
                   </Button>
-                  <Badge variant="outline">已有 {count}</Badge>
+                  <Badge variant="outline">
+                    已有 {count}
+                    {isToggleable && ` / 启用 ${activeCount}`}
+                  </Badge>
                 </div>
+                  {isToggleable && (
+                  <div className="mt-3 flex gap-1.5">
+                    <Button size="sm" variant="outline" disabled={activeCount <= 0} onClick={() => handleDelta(building.id, -10)}>-10</Button>
+                    <Button size="sm" variant="outline" disabled={activeCount <= 0} onClick={() => handleDelta(building.id, -1)}>-1</Button>
+                    <Button size="sm" variant="outline" disabled={activeCount >= count} onClick={() => handleDelta(building.id, 1)}>+1</Button>
+                    <Button size="sm" variant="outline" disabled={activeCount >= count} onClick={() => handleDelta(building.id, 10)}>+10</Button>
+                  </div>
+                )}
               </div>
             )
           })}
