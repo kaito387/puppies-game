@@ -17,10 +17,8 @@ export function BuildingPanel() {
   const setBuildingActiveCount = useGameStore((store) => store.setBuildingActiveCount)
 
   const handleDelta = (buildingId: string, delta: number) => {
-    const owned = gameState.buildings[buildingId] ?? 0
     const current = gameState.buildingActiveCounts[buildingId] ?? 0
-    const next = Math.max(0, Math.min(owned, current + delta))
-    setBuildingActiveCount(buildingId, next)
+    setBuildingActiveCount(buildingId, current + delta)
   }
 
   return (
