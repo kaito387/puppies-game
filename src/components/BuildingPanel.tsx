@@ -68,7 +68,7 @@ export function BuildingPanel() {
                     {isToggleable && ` / 启用 ${activeCount}`}
                   </Badge>
                 </div>
-                {isToggleable && (
+                  {isToggleable && (
                   <div className="mt-3 flex gap-1.5">
                     <Button size="sm" variant="outline" disabled={activeCount <= 0} onClick={() => handleDelta(building.id, -10)}>-10</Button>
                     <Button size="sm" variant="outline" disabled={activeCount <= 0} onClick={() => handleDelta(building.id, -1)}>-1</Button>
