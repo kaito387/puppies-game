@@ -76,3 +76,28 @@ export function buildBuilding(state: GameState, buildingId: string): GameState {
     buildings: newBuildings,
   }
 }
+
+export function setBuildingActiveCount(
+  state: GameState,
+  buildingId: string,
+  count: number
+): GameState {
+  // count: 将建筑设置为活跃的数量，必须小于等于拥有的数量
+  const building = getBuildingById(buildingId)
+
+  if (!building.isToggleable) return state  // WARNING: 只能设置可切换建筑的活跃数量
+
+  const ownedCount = state.buildings[buildingId] || 0
+
+  const clipped = Math.max(0, Math.min(ownedCount, count))
+
+  const nextBuildingActiveCounts = {
+    ...state.buildingActiveCounts,
+    [buildingId]: clipped,
+  }
+
+  return {
+    ...state,
+    buildingActiveCounts: nextBuildingActiveCounts,
+  }
+}

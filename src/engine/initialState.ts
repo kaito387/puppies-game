@@ -25,9 +25,18 @@ export function createInitialGameState(): GameState {
     buildings[building.id] = 0
   })
 
+  const buildingActiveCounts: Record<string, number> = {}
+  BUILDINGS.forEach((building) => {
+    // only initialize active count for toggleable buildings, others will be treated as always active
+    if (building.isToggleable) {
+      buildingActiveCounts[building.id] = 0
+    }
+  })
+
   return {
     resourceCounts: resources,
     buildings,
+    buildingActiveCounts,
     researchedTechIds: [],
     enactedPolicyIds: [],
     workshopUnlockIds: [],

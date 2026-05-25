@@ -24,7 +24,7 @@ import {
   setLeaderDog, 
   performExplore,
 } from '@/engine/actions'
-import { buildBuilding, canBuildBuilding, getBuildingCost } from '@/engine/buildings'
+import { buildBuilding, canBuildBuilding, getBuildingCost, setBuildingActiveCount } from '@/engine/buildings'
 import { saveGame, loadGame, resetGame } from '@/engine/save'
 import {
   canResearchTechnology,
@@ -92,6 +92,7 @@ interface GameStore {
   canEnactPolicy: (policyId: string) => boolean
   getVisiblePolicyGroupIds: () => number[]
   getPoliciesByGroup: () => Policy[][]
+  setBuildingActiveCount: (buildingId: string, count: number) => void
 
   addGameLog: (log: Omit<GameLog, 'id'>) => void
   markLogsAsRead: () => void
@@ -254,6 +255,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   getPoliciesByGroup: () => {
     return getPoliciesByGroup()
+  },
+
+  setBuildingActiveCount: (buildingId: string, count: number) => {
+    set((gameStore) => ({
+      gameState: setBuildingActiveCount(gameStore.gameState, buildingId, count),
+    }))
   },
 
   addGameLog: (log: Omit<GameLog, 'id'>) => {

@@ -5,7 +5,10 @@ export const INITIAL_RESOURCE_LIMITS = {
 	food: 10000,
 	wood: 1500,
 	stone: 1500,
-	dogpower: 50,
+	iron: 1000,
+	coal: 1000,
+	gold: 500,
+	dogpower: 100,
 	fur: 1500,
 	culture: 2000,
 }
