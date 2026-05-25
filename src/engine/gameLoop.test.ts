@@ -7,7 +7,7 @@ import {
   calculateResourceLimits,
 } from '@/engine/gameLoop'
 import { calculateCalendarProgress } from '@/engine/calendar'
-import { RESOURCES, type GameState } from '@/engine/types'
+import { RESOURCES, POLICIES, type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import {
   FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
@@ -21,6 +21,7 @@ import {
   CALENDAR_START_DAY,
 } from '@/engine/constants'
 import { createDogs } from '@/engine/dogs'
+import { aggregateEffects } from '@/engine/technologies'
 
 describe('Game Loop', () => {
   let gameState: GameState
@@ -65,6 +66,15 @@ describe('Game Loop', () => {
       expect(production.wood).toBeCloseTo(0.2)
     })
 
+    it('should skip dogs with unknown jobId silently', () => {
+      setDogs(1)
+      gameState.dogs[0].currentJobId = 'nonexistent-job' as string
+      gameState.dogs[0].status = 'working'
+
+      const production = calculateJobProduction(gameState)
+      expect(production.food).toBe(0)
+    })
+
     it('should calculate population cap from housing buildings', () => {
       gameState.buildings.barn = 3
       expect(calculatePopulationCap(gameState)).toBe(7)
@@ -75,6 +85,26 @@ describe('Game Loop', () => {
       const limits = calculateResourceLimits(gameState)
       expect(limits.food).toBe(INITIAL_RESOURCE_LIMITS.food + 2 * 5000)
       expect(limits.wood).toBe(INITIAL_RESOURCE_LIMITS.wood + 2 * 1000)
+    })
+
+    it('should apply multiplier resource_limit effect from enacted policy', () => {
+      gameState.enactedPolicyIds = ['policy-environment']
+      const limits = calculateResourceLimits(gameState)
+      expect(limits.food).toBeCloseTo(INITIAL_RESOURCE_LIMITS.food * 1.25)
+    })
+
+    it('should apply additive resource_limit effect from enacted policy', () => {
+      const additivePolicyIdx = POLICIES.findIndex((p) => p.id === 'policy-environment')
+      const original = POLICIES[additivePolicyIdx].effects![0]
+      POLICIES[additivePolicyIdx].effects![0] = { ...original, mode: 'additive', value: 500 }
+
+      try {
+        gameState.enactedPolicyIds = ['policy-environment']
+        const limits = calculateResourceLimits(gameState)
+        expect(limits.food).toBeCloseTo(INITIAL_RESOURCE_LIMITS.food + 500)
+      } finally {
+        POLICIES[additivePolicyIdx].effects![0] = original
+      }
     })
 
     it('should apply researched tech multiplier to building production', () => {
@@ -124,6 +154,77 @@ describe('Game Loop', () => {
       const production = calculateJobProduction(gameState)
       expect(production.dogpower).toBeCloseTo(0.2)
     })
+
+    it('should produce culture when artist is assigned', () => {
+      setDogs(1)
+      gameState.buildings.library = 1
+      gameState.dogs[0].currentJobId = 'artist'
+      gameState.dogs[0].status = 'working'
+
+      const production = calculateJobProduction(gameState)
+      expect(production.culture).toBeCloseTo(0.2)
+    })
+
+    it('should accumulate culture each tick with artist assigned', () => {
+      setDogs(1)
+      gameState.buildings.library = 1
+      gameState.dogs[0].currentJobId = 'artist'
+      gameState.dogs[0].status = 'working'
+      gameState.resourceCounts.food = 100
+
+      const { gameState: next } = tick(gameState)
+      expect(next.resourceCounts.culture).toBeGreaterThan(0)
+    })
+  })
+
+  describe('Policy Effects', () => {
+    it('should apply democracy policy multiplier to artist job production', () => {
+      setDogs(1)
+      gameState.buildings.library = 1
+      gameState.dogs[0].currentJobId = 'artist'
+      gameState.dogs[0].status = 'working'
+      gameState.enactedPolicyIds = ['policy-democracy']
+
+      const production = calculateJobProduction(gameState)
+      expect(production.culture).toBeCloseTo(0.2 * 1.2)
+    })
+
+    it('should apply authoritarian policy multiplier to farmer and penalty to artist', () => {
+      setDogs(2)
+      gameState.buildings.library = 1
+      gameState.buildings.farm = 1
+      gameState.dogs[0].currentJobId = 'farmer'
+      gameState.dogs[0].status = 'working'
+      gameState.dogs[1].currentJobId = 'artist'
+      gameState.dogs[1].status = 'working'
+      gameState.enactedPolicyIds = ['policy-authoritarian']
+
+      const production = calculateJobProduction(gameState)
+      expect(production.food).toBeCloseTo(1.5 * 1.2)
+      expect(production.culture).toBeCloseTo(0.2 * 0.8)
+    })
+
+    it('should include enacted policy effects in aggregateEffects', () => {
+      gameState.enactedPolicyIds = ['policy-democracy']
+      gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 6
+
+      const effects = aggregateEffects(gameState)
+      expect(effects.jobProductionMultipliers.artist).toBeCloseTo(1.2)
+    })
+
+    it('should apply effects from two policies in different groups simultaneously', () => {
+      setDogs(2)
+      gameState.buildings.library = 1
+      gameState.dogs[0].currentJobId = 'artist'
+      gameState.dogs[0].status = 'working'
+      gameState.dogs[1].currentJobId = 'scientist'
+      gameState.dogs[1].status = 'working'
+      gameState.enactedPolicyIds = ['policy-democracy', 'policy-radical']
+
+      const production = calculateJobProduction(gameState)
+      expect(production.culture).toBeCloseTo(0.2 * 1.2)
+      expect(production.science).toBeCloseTo(0.2 * 1.1 * 1.25)
+    })
   })
 
   describe('Leader Trait Effect', () => {
@@ -169,7 +270,6 @@ describe('Game Loop', () => {
       gameState.dogs[2].status = 'working'
 
       const production = calculateJobProduction(gameState)
-
       expect(production.food).toBeCloseTo(1.5 * 1.1)
       expect(production.science).toBeCloseTo(0.2)
     })
