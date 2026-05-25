@@ -441,4 +441,67 @@ describe('Game Loop', () => {
       expect(springProduction.food).toBeCloseTo(0.23)
     })
   })
+
+  describe('Toggleable Buildings (Smelter)', () => {
+    it('should consume wood and stone and produce iron when smelter is active and resources are sufficient', () => {
+      gameState.buildings.smelter = 1
+      gameState.buildingActiveCounts.smelter = 1
+      gameState.resourceCounts.wood = 10
+      gameState.resourceCounts.stone = 10
+      gameState.resourceCounts.iron = 0
+
+      const { gameState: next } = tick(gameState)
+      expect(next.resourceCounts.wood).toBeCloseTo(9)
+      expect(next.resourceCounts.stone).toBeCloseTo(9)
+      expect(next.resourceCounts.iron).toBeCloseTo(1)
+    })
+
+    it('should not consume or produce when resources are insufficient', () => {
+      gameState.buildings.smelter = 1
+      gameState.buildingActiveCounts.smelter = 1
+      gameState.resourceCounts.wood = 0
+      gameState.resourceCounts.stone = 0
+      gameState.resourceCounts.iron = 0
+
+      const { gameState: next } = tick(gameState)
+      expect(next.resourceCounts.wood).toBe(0)
+      expect(next.resourceCounts.stone).toBe(0)
+      expect(next.resourceCounts.iron).toBe(0)
+    })
+
+    it('should not produce when activeCount is 0', () => {
+      gameState.buildings.smelter = 1
+      gameState.buildingActiveCounts.smelter = 0
+      gameState.resourceCounts.wood = 10
+      gameState.resourceCounts.stone = 10
+
+      const { gameState: next } = tick(gameState)
+      expect(next.resourceCounts.iron).toBe(0)
+    })
+
+    it('should scale linearly with activeCount', () => {
+      gameState.buildings.smelter = 3
+      gameState.buildingActiveCounts.smelter = 3
+      gameState.resourceCounts.wood = 10
+      gameState.resourceCounts.stone = 10
+      gameState.resourceCounts.iron = 0
+
+      const { gameState: next } = tick(gameState)
+      expect(next.resourceCounts.wood).toBeCloseTo(7)
+      expect(next.resourceCounts.stone).toBeCloseTo(7)
+      expect(next.resourceCounts.iron).toBeCloseTo(3)
+    })
+
+    it('should stop entire batch when only one resource is insufficient', () => {
+      gameState.buildings.smelter = 1
+      gameState.buildingActiveCounts.smelter = 1
+      gameState.resourceCounts.wood = 10
+      gameState.resourceCounts.stone = 0
+      gameState.resourceCounts.iron = 0
+
+      const { gameState: next } = tick(gameState)
+      expect(next.resourceCounts.wood).toBeCloseTo(10)
+      expect(next.resourceCounts.iron).toBe(0)
+    })
+  })
 })

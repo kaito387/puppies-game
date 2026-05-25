@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { buildBuilding, canBuildBuilding, getBuildingCost, getBuildingById } from '@/engine/buildings'
+import { buildBuilding, canBuildBuilding, getBuildingCost, getBuildingById, setBuildingActiveCount } from '@/engine/buildings'
 import { BUILDINGS, type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 
@@ -102,6 +102,47 @@ describe('Buildings', () => {
     it('should throw when building prerequisites are not met in buildBuilding', () => {
       gameState.resourceCounts.wood = 1000
       expect(() => buildBuilding(gameState, 'workshop')).toThrow('尚未解锁')
+    })
+  })
+
+  describe('setBuildingActiveCount', () => {
+    it('should set activeCount within bounds', () => {
+      gameState.buildings.smelter = 3
+      gameState.buildingActiveCounts.smelter = 0
+
+      const next = setBuildingActiveCount(gameState, 'smelter', 2)
+      expect(next.buildingActiveCounts.smelter).toBe(2)
+    })
+
+    it('should clamp activeCount to ownedCount when count exceeds owned', () => {
+      gameState.buildings.smelter = 2
+      gameState.buildingActiveCounts.smelter = 0
+
+      const next = setBuildingActiveCount(gameState, 'smelter', 10)
+      expect(next.buildingActiveCounts.smelter).toBe(2)
+    })
+
+    it('should clamp activeCount to 0 when count is negative', () => {
+      gameState.buildings.smelter = 3
+      gameState.buildingActiveCounts.smelter = 2
+
+      const next = setBuildingActiveCount(gameState, 'smelter', -5)
+      expect(next.buildingActiveCounts.smelter).toBe(0)
+    })
+
+    it('should not affect non-toggleable buildings', () => {
+      gameState.buildings.barn = 3
+
+      const next = setBuildingActiveCount(gameState, 'barn', 3)
+      expect(next).toBe(gameState)
+    })
+
+    it('should not mutate original state', () => {
+      gameState.buildings.smelter = 2
+      gameState.buildingActiveCounts.smelter = 0
+
+      setBuildingActiveCount(gameState, 'smelter', 2)
+      expect(gameState.buildingActiveCounts.smelter).toBe(0)
     })
   })
 })
