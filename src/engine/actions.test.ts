@@ -9,6 +9,7 @@ import {
   setLeaderDog,
   performExplore,
   getRewardFromExploration,
+  enactPolicy,
 } from '@/engine/actions'
 import { type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
@@ -19,6 +20,7 @@ import {
   FUR_REWARD_MIN,
   FUR_REWARD_MAX,
 } from '@/engine/constants'
+import { canEnactPolicy } from '@/engine/policies'
 
 describe('Actions', () => {
   let gameState: GameState
@@ -58,6 +60,31 @@ describe('Actions', () => {
       expect(newState.dogs.filter((dog) => dog.currentJobId === 'farmer')).toHaveLength(2)
     })
 
+    it('should return state unchanged when delta is zero', () => {
+      withDogs(2)
+      gameState.buildings.farm = 1
+      const after = setJobAssignment(gameState, 'farmer', 1)
+      const again = setJobAssignment(after, 'farmer', 1)
+      expect(again).toBe(after)
+    })
+
+    it('should decrease job assignment when count is reduced', () => {
+      withDogs(3)
+      gameState.buildings.farm = 1
+      const assigned = setJobAssignment(gameState, 'farmer', 3)
+      const reduced = setJobAssignment(assigned, 'farmer', 1)
+      expect(reduced.dogs.filter((dog) => dog.currentJobId === 'farmer')).toHaveLength(1)
+      expect(reduced.dogs.filter((dog) => dog.currentJobId === null)).toHaveLength(2)
+    })
+
+    it('should unassign all dogs from a job when count is set to zero', () => {
+      withDogs(2)
+      gameState.buildings.farm = 1
+      const assigned = setJobAssignment(gameState, 'farmer', 2)
+      const cleared = setJobAssignment(assigned, 'farmer', 0)
+      expect(cleared.dogs.filter((dog) => dog.currentJobId === 'farmer')).toHaveLength(0)
+    })
+
     it('should reject assignment when total workers exceed population', () => {
       withDogs(2)
       gameState.buildings.farm = 1
@@ -79,6 +106,12 @@ describe('Actions', () => {
       expect(() => setJobAssignment(gameState, 'farmer', 1)).toThrow('职业 farmer 尚未解锁')
     })
 
+    it('should throw when assigning unknown jobId via assignDogJob', () => {
+      withDogs(1)
+      const targetDogId = gameState.dogs[0].id
+      expect(() => assignDogJob(gameState, targetDogId, 'nonexistent-job')).toThrow('职业 nonexistent-job 不存在')
+    })
+
     it('should reject assigning locked job to individual dog', () => {
       withDogs(1)
       const targetDogId = gameState.dogs[0].id
@@ -97,13 +130,26 @@ describe('Actions', () => {
       expect(unassigned.dogs.filter((dog) => dog.currentJobId === 'farmer')).toHaveLength(0)
     })
 
-    it('should rename dog with validation', () => {
+    it('should throw when assigning a dog that does not exist', () => {
+      expect(() => assignDogJob(gameState, 'nonexistent-dog', 'lumberjack')).toThrow('不存在')
+    })
+
+    it('should rename dog successfully and update name', () => {
       withDogs(1)
       const targetDogId = gameState.dogs[0].id
       const renamed = renameDog(gameState, targetDogId, '  阿福  ')
       expect(renamed.dogs[0].name).toBe('阿福')
+      expect(renamed.dogs[0].id).toBe(targetDogId)
+    })
 
+    it('should throw when renaming with invalid name', () => {
+      withDogs(1)
+      const targetDogId = gameState.dogs[0].id
       expect(() => renameDog(gameState, targetDogId, ' '.repeat(20))).toThrow('小狗名字长度必须在 1-16 个字符')
+    })
+
+    it('should throw when renaming a dog that does not exist', () => {
+      expect(() => renameDog(gameState, 'nonexistent-dog', '阿福')).toThrow('不存在')
     })
 
     it('should keep assignments unchanged when total assigned is within population', () => {
@@ -193,6 +239,16 @@ describe('Actions', () => {
       expect(blockedReason).toBe('insufficientDogpower')
     })
 
+    it('should block exploration when fur storage is full', () => {
+      gameState.resourceCounts.dogpower = 200
+      gameState.resourceCounts.fur = 0
+      const limits = calculateResourceLimits(gameState)
+      gameState.resourceCounts.fur = limits.fur
+      const { blockedReason, furReward } = performExplore(gameState)
+      expect(blockedReason).toBe('furStorageFull')
+      expect(furReward).toBe(0)
+    })
+
     it('should deduct dogpower on exploration attempt', () => {
       gameState.buildings.barn = 10
       gameState.resourceCounts.dogpower = 200
@@ -208,6 +264,56 @@ describe('Actions', () => {
     it('should give zero fur on failed exploration roll', () => {
       const reward = getRewardFromExploration(0.6, FUR_REWARD_MIN, FUR_REWARD_MAX, 1.0)
       expect(reward).toBe(0)
+    })
+  })
+
+  describe('enactPolicy', () => {
+    it('should deduct culture cost from resources', () => {
+      gameState.buildings.library = 1
+      gameState.resourceCounts.culture = 300
+      const next = enactPolicy(gameState, 'policy-democracy')
+      expect(next.resourceCounts.culture).toBe(0)
+    })
+
+    it('should append policy to enactedPolicyIds', () => {
+      gameState.buildings.library = 1
+      gameState.resourceCounts.culture = 300
+      const next = enactPolicy(gameState, 'policy-democracy')
+      expect(next.enactedPolicyIds).toContain('policy-democracy')
+    })
+
+    it('should not mutate the original state', () => {
+      gameState.buildings.library = 1
+      gameState.resourceCounts.culture = 300
+      enactPolicy(gameState, 'policy-democracy')
+      expect(gameState.enactedPolicyIds).not.toContain('policy-democracy')
+      expect(gameState.resourceCounts.culture).toBe(300)
+    })
+
+    it('should throw when prerequisites are not met', () => {
+      gameState.buildings.library = 0
+      gameState.resourceCounts.culture = 300
+      expect(() => enactPolicy(gameState, 'policy-democracy')).toThrow('不满足实施条件')
+    })
+
+    it('should throw when culture is insufficient', () => {
+      gameState.buildings.library = 1
+      gameState.resourceCounts.culture = 0
+      expect(() => enactPolicy(gameState, 'policy-democracy')).toThrow('不满足实施条件')
+    })
+
+    it('canEnactPolicy returns false for sibling after one policy in group is enacted', () => {
+      gameState.buildings.library = 1
+      gameState.resourceCounts.culture = 600
+      const after = enactPolicy(gameState, 'policy-democracy')
+      expect(canEnactPolicy(after, 'policy-authoritarian')).toBe(false)
+    })
+
+    it('canEnactPolicy returns false when same policy enacted twice', () => {
+      gameState.buildings.library = 1
+      gameState.resourceCounts.culture = 600
+      const after = enactPolicy(gameState, 'policy-democracy')
+      expect(canEnactPolicy(after, 'policy-democracy')).toBe(false)
     })
   })
 })
