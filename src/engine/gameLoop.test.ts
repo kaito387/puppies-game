@@ -93,18 +93,31 @@ describe('Game Loop', () => {
       expect(limits.food).toBeCloseTo(INITIAL_RESOURCE_LIMITS.food * 1.25)
     })
 
-    it('should apply additive resource_limit effect from enacted policy', () => {
-      const additivePolicyIdx = POLICIES.findIndex((p) => p.id === 'policy-environment')
-      const original = POLICIES[additivePolicyIdx].effects![0]
-      POLICIES[additivePolicyIdx].effects![0] = { ...original, mode: 'additive', value: 500 }
+    it('should apply additive resource_limit effect from enacted policy', async () => {
+      const { vi } = await import('vitest')
+
+      vi.resetModules()
+      vi.doMock('@/engine/types', async () => {
+        const actual = await vi.importActual<typeof import('@/engine/types')>('@/engine/types')
+        return {
+          ...actual,
+          POLICIES: actual.POLICIES.map((p) =>
+            p.id === 'policy-environment'
+              ? { ...p, effects: [{ ...p.effects![0], mode: 'additive', value: 500 }] }
+              : p,
+          ),
+        }
+      })
 
       try {
-        gameState.enactedPolicyIds = ['policy-environment']
-        const limits = calculateResourceLimits(gameState)
+        const { calculateResourceLimits } = await import('@/engine/gameLoop')
+        const limits = calculateResourceLimits({ ...gameState, enactedPolicyIds: ['policy-environment'] })
         expect(limits.food).toBeCloseTo(INITIAL_RESOURCE_LIMITS.food + 500)
       } finally {
-        POLICIES[additivePolicyIdx].effects![0] = original
+        vi.doUnmock('@/engine/types')
+        vi.resetModules()
       }
+    })
     })
 
     it('should apply researched tech multiplier to building production', () => {
