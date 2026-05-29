@@ -49,13 +49,16 @@ export function loadGame(): GameState {
           (unlockId: unknown) => typeof unlockId === 'string' && knownWorkshopUnlockIds.has(unlockId),
         )
       : INITIAL_GAME_STATE.workshopUnlockIds
-
+    const discoveredAnimalIds = Array.isArray(saveData.discoveredAnimalIds)
+      ? saveData.discoveredAnimalIds.filter((animalId: unknown) => typeof animalId === 'string')
+      : INITIAL_GAME_STATE.discoveredAnimalIds
     return {
       resourceCounts: mergeRecord(saveData.resourceCounts, INITIAL_GAME_STATE.resourceCounts),
       buildings: mergeRecord(saveData.buildings, INITIAL_GAME_STATE.buildings),
       buildingActiveCounts: saveData.buildingActiveCounts ?? INITIAL_GAME_STATE.buildingActiveCounts,
       researchedTechIds,
       workshopUnlockIds,
+      discoveredAnimalIds,
       dogs: saveData.dogs ?? INITIAL_GAME_STATE.dogs,
       populationCap: saveData.populationCap ?? INITIAL_GAME_STATE.populationCap,
       leaderDogId: saveData.leaderDogId ?? INITIAL_GAME_STATE.leaderDogId,

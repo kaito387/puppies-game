@@ -25,6 +25,13 @@ import {
 import { buildBuilding, canBuildBuilding, getBuildingCost, setBuildingActiveCount } from '@/engine/buildings'
 import { saveGame, loadGame, resetGame } from '@/engine/save'
 import {
+  canExecuteTrade,
+  executeTrade,
+  exploreForAnimal,
+  isAnimalDiscovered,
+  getEmbassyLevel,
+} from '@/engine/trade'
+import {
   canResearchTechnology,
   getVisibleTechnologiesIds,
   researchTechnology,
@@ -82,6 +89,12 @@ interface GameStore {
   getCalendar: () => Calendar
   dispatchExplore: () => void
   setBuildingActiveCount: (buildingId: string, count: number) => void
+
+  executeTrade: (tradeId: string) => void
+  canExecuteTrade: (tradeId: string) => boolean
+  exploreForAnimal: () => void
+  isAnimalDiscovered: (animalId: string) => boolean
+  getEmbassyLevel: (tradeId: string) => number
 
   addGameLog: (log: Omit<GameLog, 'id'>) => void
   markLogsAsRead: () => void
@@ -299,5 +312,40 @@ export const useGameStore = create<GameStore>((set, get) => ({
       unreadLogCount: min(100, gameStore.unreadLogCount + 1),
     }))
   },
-  
+
+  executeTrade: (tradeId: string) => {
+    set((gameStore) => ({
+      gameState: executeTrade(gameStore.gameState, tradeId),
+    }))
+  },
+
+  canExecuteTrade: (tradeId: string) => {
+    return canExecuteTrade(get().gameState, tradeId)
+  },
+
+  exploreForAnimal: () => {
+    const { nextState, discovered } = exploreForAnimal(get().gameState)
+    const message = discovered
+      ? `发现了新动物：${discovered}`
+      : '探索未发现新动物'
+
+    set((gameStore) => ({
+      gameState: nextState,
+      logs: addLog(gameStore.logs, {
+        timestamp: Date.now(),
+        type: 'explore',
+        message,
+      }),
+      unreadLogCount: min(100, gameStore.unreadLogCount + 1),
+    }))
+  },
+
+  isAnimalDiscovered: (animalId: string) => {
+    return isAnimalDiscovered(get().gameState, animalId)
+  },
+
+  getEmbassyLevel: (tradeId: string) => {
+    return getEmbassyLevel(get().gameState, tradeId)
+  },
+
 }))

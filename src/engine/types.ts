@@ -39,11 +39,13 @@ export type EffectType =
   | 'building_production'
   | 'job_production'
   | 'resource_limit'
+  | 'trade_bonus'
 
 export interface RequirementCarrier {
   requiredTechs?: string[]
   requiredBuildings?: string[]
   requiredWorkshopUnlockIds?: string[]
+  minPopulation?: number
 }
 
 export interface Effect {
@@ -98,32 +100,23 @@ export const MONTH_TO_SEASON: Record<number, Season> = {
 
 export const SEASON_EFFECTS: Record<Season, Effect[]> = {
   spring: [
-    {
-      id: 'spring-farm-bonus',
-      type: 'building_production',
-      targetId: 'farm',
-      value: 1.15,
-      mode: 'multiplier',
-    },
+    { id: 'spring-farm-bonus', type: 'building_production', targetId: 'farm', value: 1.15, mode: 'multiplier', },
+    { id: 'spring-cats-bonus', type: 'trade_bonus', targetId: 'cats', value: 1.1, mode: 'multiplier', },
+    { id: 'spring-lizards-bonus', type: 'trade_bonus', targetId: 'lizards', value: 1.15, mode: 'multiplier', },
   ],
   summer: [
-    {
-      id: 'summer-farm-bonus',
-      type: 'building_production',
-      targetId: 'farm',
-      value: 1.5,
-      mode: 'multiplier',
-    },
+    { id: 'summer-farm-bonus', type: 'building_production', targetId: 'farm', value: 1.5, mode: 'multiplier', },
+    { id: 'summer-cats-bonus', type: 'trade_bonus', targetId: 'cats', value: 1, mode: 'multiplier', },
+    { id: 'summer-lizards-bonus', type: 'trade_bonus', targetId: 'lizards', value: 1.2, mode: 'multiplier', },
   ],
-  autumn: [],
+  autumn: [
+    { id: 'autumn-cats-bonus', type: 'trade_bonus', targetId: 'cats', value: 1.15, mode: 'multiplier', },
+    { id: 'autumn-lizards-bonus', type: 'trade_bonus', targetId: 'lizards', value: 1.1, mode: 'multiplier', },
+  ],
   winter: [
-    {
-      id: 'winter-farm-bonus',
-      type: 'building_production',
-      targetId: 'farm',
-      value: 0.25,
-      mode: 'multiplier',
-    },
+    { id: 'winter-farm-bonus', type: 'building_production', targetId: 'farm', value: 0.25, mode: 'multiplier', },
+    { id: 'winter-cats-bonus', type: 'trade_bonus', targetId: 'cats', value: 0.7, mode: 'multiplier', },
+    { id: 'winter-lizards-bonus', type: 'trade_bonus', targetId: 'lizards', value: 0.8, mode: 'multiplier', },
   ],
 }
 
@@ -159,12 +152,23 @@ export interface Dog {
   currentJobId: string | null
 }
 
+export interface Trade {
+  id: string
+  name: string
+  sells: Record<string, number>
+  buys: Record<string, number>
+  linearQuantityBonus: number
+  levelUnlocks?: Record<number, Record<string, number>>
+  prerequisites?: RequirementCarrier
+}
+
 export interface GameState {
   resourceCounts: Record<string, number>
   buildings: Record<string, number>
   buildingActiveCounts: Record<string, number>
   researchedTechIds: string[]
   workshopUnlockIds: string[]
+  discoveredAnimalIds: string[]
 
   dogs: Dog[]
   populationGrowthProgress: number
@@ -305,6 +309,22 @@ export const BUILDINGS: Building[] = [
     productionPerTick: { iron: 1 },
     requiredTechs: ['mining'],
   },
+  {
+    id: 'embassy_cats',
+    name: '猫大使馆',
+    icon: '🐱',
+    description: '每级提升猫类交易量，5/10/15 级解锁新出售资源。',
+    cost: { wood: 80, stone: 40 },
+    costGrowthMultiplier: 1.3,
+  },
+  {
+    id: 'embassy_lizards',
+    name: '蜥蜴大使馆',
+    icon: '🦎',
+    description: '每级提升蜥蜴类交易量，5/10/15 级解锁新出售资源。',
+    cost: { wood: 120, stone: 80 },
+    costGrowthMultiplier: 1.5,
+  },
 ]
 
 export const TECHNOLOGIES: Technology[] = [
@@ -392,6 +412,36 @@ export const TECHNOLOGIES: Technology[] = [
   },
 ]
 
+export const TRADES: Trade[] = [
+  {
+    id: 'cats',
+    name: '猫交易',
+    buys: { wood: 50, },
+    linearQuantityBonus: 0.05,
+    sells: { food: 200, },
+    levelUnlocks: {
+      5: { stone: 50 },
+      10: { coal: 30 },
+    },
+    prerequisites: {
+      minPopulation: 5,
+    }
+  },
+  {
+    id: 'lizards',
+    name: '蜥蜴交易',
+    buys: { iron: 50, },
+    linearQuantityBonus: 0.05,
+    sells: { wood: 100,},
+    levelUnlocks: {
+      5: { coal: 30 },
+      10: { food: 1000 },
+    },
+    prerequisites: {
+      minPopulation: 10,
+    }
+  }
+]
 export const WORKSHOP_UNLOCKS: WorkshopUnlock[] = [
   {
     id: 'wood_pickaxe',

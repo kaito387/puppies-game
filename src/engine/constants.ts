@@ -33,3 +33,6 @@ export const DOGPOWER_PER_EXPLORATION = 100
 export const PROBABILITY_GET_FUR_FROM_EXPLORATION = 0.6
 export const FUR_REWARD_MIN = 20
 export const FUR_REWARD_MAX = 40
+
+export const EXPLORE_COST = 1000
+export const EXPLORE_REFUND = 900

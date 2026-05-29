@@ -39,6 +39,7 @@ export function createInitialGameState(): GameState {
     buildingActiveCounts,
     researchedTechIds: [],
     workshopUnlockIds: [],
+    discoveredAnimalIds: [],
     dogs: [],
     populationCap: INITIAL_POPULATION_CAP,
     leaderDogId: null,
