@@ -68,6 +68,10 @@ export function isRequirementSatisfied(state: GameState, requirement: Requiremen
     return false
   }
 
+  if (requirement.minPopulation && state.dogs.length < requirement.minPopulation) {
+    return false
+  }
+
   return true
 }
 

@@ -1,6 +1,5 @@
-import { TECHNOLOGIES, type GameState } from '@/engine/types'
+import { TECHNOLOGIES, WORKSHOP_UNLOCKS, TRADES, type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
-import { WORKSHOP_UNLOCKS } from '@/engine/types'
 
 export const SAVE_KEY = 'puppies-game-save'
 
@@ -9,6 +8,8 @@ export function saveGame(gameState: GameState): void {
   const researchedTechIds = gameState.researchedTechIds.filter((techId) => knownTechIds.has(techId))
   const knownWorkshopUnlockIds = new Set(WORKSHOP_UNLOCKS.map((unlock) => unlock.id))
   const workshopUnlockIds = gameState.workshopUnlockIds.filter((unlockId) => knownWorkshopUnlockIds.has(unlockId))
+  const knownTradeIds = new Set(TRADES.map((trade) => trade.id))
+  const discoveredAnimalIds = gameState.discoveredAnimalIds.filter((animalId) => knownTradeIds.has(animalId))
 
   const saveData = {
     version: '0.0.0',
@@ -16,6 +17,7 @@ export function saveGame(gameState: GameState): void {
     ...gameState,
     researchedTechIds,
     workshopUnlockIds,
+    discoveredAnimalIds,
   }
   localStorage.setItem(SAVE_KEY, JSON.stringify(saveData))
 }
@@ -49,8 +51,11 @@ export function loadGame(): GameState {
           (unlockId: unknown) => typeof unlockId === 'string' && knownWorkshopUnlockIds.has(unlockId),
         )
       : INITIAL_GAME_STATE.workshopUnlockIds
+    const knownTradeIds = new Set(TRADES.map((trade) => trade.id))
     const discoveredAnimalIds = Array.isArray(saveData.discoveredAnimalIds)
-      ? saveData.discoveredAnimalIds.filter((animalId: unknown) => typeof animalId === 'string')
+      ? saveData.discoveredAnimalIds.filter(
+          (animalId: unknown) => typeof animalId === 'string' && knownTradeIds.has(animalId),
+        )
       : INITIAL_GAME_STATE.discoveredAnimalIds
     return {
       resourceCounts: mergeRecord(saveData.resourceCounts, INITIAL_GAME_STATE.resourceCounts),

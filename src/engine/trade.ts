@@ -22,7 +22,7 @@ export function getEmbassyLevel(state: GameState, tradeId: string): number {
 
 export function canExecuteTrade(state: GameState, tradeId: string): boolean {
   const trade = getTradeById(tradeId)
-  for (const [resourceId, amount] of Object.entries(trade.sells)) {
+  for (const [resourceId, amount] of Object.entries(trade.buys)) {
     if ((state.resourceCounts[resourceId] || 0) < amount) {
       return false
     }
