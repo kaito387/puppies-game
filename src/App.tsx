@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Calendar } from '@/components/ui/calendar'
+import { PolicyPanel } from '@/components/PolicyPanel'
 
 function PlaceholderActionPanel(props: {
   title: string
@@ -114,6 +115,7 @@ function App() {
               <TabsTrigger value="workshop">工坊</TabsTrigger>
               <TabsTrigger value="exploration">探索</TabsTrigger>
               <TabsTrigger value="trade">贸易</TabsTrigger>
+              <TabsTrigger value="policies">政策</TabsTrigger>
             </TabsList>
             <TabsContent value="buildings">
               <BuildingPanel />
@@ -153,6 +155,9 @@ function App() {
                 buttonLabel="发起贸易"
                 requirement="需要 20 骨头库存"
               />
+            </TabsContent>
+            <TabsContent value="policies">
+              <PolicyPanel />
             </TabsContent>
           </Tabs>
 
