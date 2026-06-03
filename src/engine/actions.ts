@@ -9,6 +9,7 @@ import {
   FUR_REWARD_MAX,
 } from '@/engine/constants'
 import { calculateResourceLimits } from './gameLoop';
+import { canEnactPolicyGroup, getPolicyGroupByPolicyId } from '@/engine/policies'
 
 // NOTE: clickResource will need resourceLimits every time might lead to some redundant calculations.
 // If performance becomes an issue, we can consider caching the limits in the state or calculating them
@@ -269,5 +270,24 @@ export function performExplore(
   return {
     nextState: { ...state, resourceCounts: nextResourceCounts },
     furReward: actualFurReward,
+  }
+}
+
+export function enactPolicy(state: GameState, policyId: string): GameState {
+  const policyGroup = getPolicyGroupByPolicyId(policyId)
+
+  if(!canEnactPolicyGroup(state, policyGroup)) {
+    throw new Error(`政策 ${policyId} 不满足实施条件`)
+  }
+  
+  const nextResourceCounts: Record<string, number> = { ...state.resourceCounts }
+  for (const [resourceId, cost] of Object.entries(policyGroup.cost)) {
+    nextResourceCounts[resourceId] = (nextResourceCounts[resourceId] || 0) - cost
+  }
+
+  return {
+    ...state,
+    resourceCounts: nextResourceCounts,
+    enactedPolicyIds: [...(state.enactedPolicyIds || []), policyId],
   }
 }

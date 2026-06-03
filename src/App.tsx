@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Calendar } from '@/components/ui/calendar'
+import { PolicyPanel } from '@/components/PolicyPanel'
 
 function PlaceholderActionPanel(props: {
   title: string
@@ -51,10 +52,8 @@ function PlaceholderActionPanel(props: {
 
 function App() {
   const tick = useGameStore((store) => store.tick)
-  const gameState = useGameStore((store) => store.gameState)
   const saveGame = useGameStore((store) => store.saveGame)
   const gameTickRef = useRef(0)
-  const hasExplorationGear = gameState.workshopUnlockIds.includes('exploration_gear')
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -112,8 +111,8 @@ function App() {
               <TabsTrigger value="management">管理</TabsTrigger>
               <TabsTrigger value="technologies">科技</TabsTrigger>
               <TabsTrigger value="workshop">工坊</TabsTrigger>
-              <TabsTrigger value="exploration">探索</TabsTrigger>
               <TabsTrigger value="trade">贸易</TabsTrigger>
+              <TabsTrigger value="policies">政策</TabsTrigger>
             </TabsList>
             <TabsContent value="buildings">
               <BuildingPanel />
@@ -127,25 +126,6 @@ function App() {
             <TabsContent value="workshop">
               <WorkshopPanel />
             </TabsContent>
-            <TabsContent value="exploration">
-              {hasExplorationGear ? (
-                <PlaceholderActionPanel
-                  title="🧭 探索"
-                  description="派出队伍探索附近区域，寻找新资源。"
-                  buttonLabel="派出探索队"
-                  requirement="需要 3 空闲人口"
-                  locked={false}
-                />
-              ) : (
-                <PlaceholderActionPanel
-                  title="🧭 探索"
-                  description="先在工坊中解锁探索装备，才能开展探索行动。"
-                  buttonLabel="派出探索队"
-                  requirement="需要工坊项目：探索装备"
-                  locked
-                />
-              )}
-            </TabsContent>
             <TabsContent value="trade">
               <PlaceholderActionPanel
                 title="💱 贸易"
@@ -153,6 +133,9 @@ function App() {
                 buttonLabel="发起贸易"
                 requirement="需要 20 骨头库存"
               />
+            </TabsContent>
+            <TabsContent value="policies">
+              <PolicyPanel />
             </TabsContent>
           </Tabs>
 

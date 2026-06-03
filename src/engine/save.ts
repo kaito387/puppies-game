@@ -1,4 +1,4 @@
-import { TECHNOLOGIES, WORKSHOP_UNLOCKS, TRADES, type GameState } from '@/engine/types'
+import { TECHNOLOGIES, WORKSHOP_UNLOCKS, TRADES, type GameState, POLICIES } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 
 export const SAVE_KEY = 'puppies-game-save'
@@ -10,6 +10,8 @@ export function saveGame(gameState: GameState): void {
   const workshopUnlockIds = gameState.workshopUnlockIds.filter((unlockId) => knownWorkshopUnlockIds.has(unlockId))
   const knownTradeIds = new Set(TRADES.map((trade) => trade.id))
   const discoveredAnimalIds = gameState.discoveredAnimalIds.filter((animalId) => knownTradeIds.has(animalId))
+  const knownPolicyIds = new Set(POLICIES.map((policy) => policy.id))
+  const enactedPolicyIds = (gameState.enactedPolicyIds || []).filter((policyId) => knownPolicyIds.has(policyId))
 
   const saveData = {
     version: '0.0.0',
@@ -18,6 +20,7 @@ export function saveGame(gameState: GameState): void {
     researchedTechIds,
     workshopUnlockIds,
     discoveredAnimalIds,
+    enactedPolicyIds,
   }
   localStorage.setItem(SAVE_KEY, JSON.stringify(saveData))
 }
@@ -57,6 +60,13 @@ export function loadGame(): GameState {
           (animalId: unknown) => typeof animalId === 'string' && knownTradeIds.has(animalId),
         )
       : INITIAL_GAME_STATE.discoveredAnimalIds
+    const knownPolicyIds = new Set(POLICIES.map((policy) => policy.id))
+    const enactedPolicyIds = Array.isArray(saveData.enactedPolicyIds)
+      ? saveData.enactedPolicyIds.filter(
+          (policyId: unknown) => typeof policyId === 'string' && knownPolicyIds.has(policyId),
+        )
+      : INITIAL_GAME_STATE.enactedPolicyIds
+
     return {
       resourceCounts: mergeRecord(saveData.resourceCounts, INITIAL_GAME_STATE.resourceCounts),
       buildings: mergeRecord(saveData.buildings, INITIAL_GAME_STATE.buildings),
@@ -64,6 +74,7 @@ export function loadGame(): GameState {
       researchedTechIds,
       workshopUnlockIds,
       discoveredAnimalIds,
+      enactedPolicyIds,
       dogs: saveData.dogs ?? INITIAL_GAME_STATE.dogs,
       populationCap: saveData.populationCap ?? INITIAL_GAME_STATE.populationCap,
       leaderDogId: saveData.leaderDogId ?? INITIAL_GAME_STATE.leaderDogId,

@@ -10,6 +10,7 @@ export const INITIAL_RESOURCE_LIMITS = {
 	gold: 500,
 	dogpower: 100,
 	fur: 1500,
+	culture: 2000,
 }
 
 export const INITIAL_POPULATION_CAP = 1
