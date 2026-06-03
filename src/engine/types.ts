@@ -129,7 +129,7 @@ export const SEASON_EFFECTS: Record<Season, Effect[]> = {
 
 export type GameEvent = { type: 'death'; dogId: string; dogName: string }
 
-export type GameLogType = 'death' | 'explore'
+export type GameLogType = 'death' | 'explore' | 'trade'
 
 export interface GameLog {
   id: string
@@ -159,6 +159,127 @@ export interface Dog {
   currentJobId: string | null
 }
 
+export interface EmbassyLevelUnlock {
+  level: number
+  // 到达该等级后新增的出售资源（叠加到基础出售列表）
+  sellResources: Record<string, number>
+}
+
+export interface Animal {
+  id: string
+  name: string
+  icon: string
+  description: string
+  /** 动物出售给玩家的资源（基础数量） */
+  sellResources: Record<string, number>
+  /** 玩家支付给动物的资源（基础数量） */
+  buyCosts: Record<string, number>
+  /** 探索发现的前置条件 */
+  prerequisites: RequirementCarrier
+  /** 大使馆等级解锁的额外出售资源 */
+  embassyUnlocks?: EmbassyLevelUnlock[]
+  embassyCost: Record<string, number>
+  /** 动物出现的季节（影响交易效率） */
+  seasonBonus: Record<Season, number>
+}
+
+export const EMBASSY_COST_GROWTH_MULTIPLIER = 1.2
+
+export const ANIMALS: Animal[] = [
+  {
+    id: 'rabbit',
+    name: '兔子',
+    icon: '🐰',
+    description: '温顺的草食动物，用食物交换毛皮。',
+    sellResources: { fur: 30 },
+    buyCosts: { food: 50 },
+    prerequisites: { requiredBuildings: ['farm'] },
+    seasonBonus: {
+      spring: 1.2,
+      summer: 1.0,
+      autumn: 1.0,
+      winter: 0.5
+    },
+    embassyUnlocks: [
+      { level: 5, sellResources: { gold: 3 } },
+      { level: 10, sellResources: { culture: 5 } },
+      { level: 15, sellResources: { science: 8 } },
+    ],
+    embassyCost: { wood: 500, food: 300, culture: 100 },
+  },
+  {
+    id: 'bear',
+    name: '熊',
+    icon: '🐻',
+    description: '强大的森林霸主，用食物和木材交换毛皮与石材。',
+    sellResources: { fur: 40, stone: 15 },
+    buyCosts: { food: 80, wood: 30 },
+    prerequisites: { requiredBuildings: ['barn'] },
+    seasonBonus: {
+      spring: 1.0,
+      summer: 1.5,
+      autumn: 1.2,
+      winter: 0.5
+    },
+    embassyUnlocks: [
+      { level: 5, sellResources: { iron: 5 } },
+      { level: 10, sellResources: { gold: 5 } },
+      { level: 15, sellResources: { coal: 10 } },
+    ],
+    embassyCost: { wood: 500, stone: 300, culture: 100 },
+  },
+  {
+    id: 'fox',
+    name: '狐狸',
+    icon: '🦊',
+    description: '狡猾的狐狸，用食物交换毛皮和黄金。',
+    sellResources: { fur: 25, gold: 5 },
+    buyCosts: { food: 60 },
+    prerequisites: { requiredBuildings: ['farm', 'library'] },
+    seasonBonus: {
+      spring: 0.8,
+      summer: 0.5,
+      autumn: 1.0,
+      winter: 1.5
+    },
+    embassyUnlocks: [
+      { level: 5, sellResources: { culture: 3 } },
+      { level: 10, sellResources: { science: 5 } },
+      { level: 15, sellResources: { iron: 8 } },
+    ],
+    embassyCost: { wood: 1000, food: 3000, culture: 500 },
+  },
+  {
+    id: 'eagle',
+    name: '鹰',
+    icon: '🦅',
+    description: '天空的霸主，用木材与石材交换铁矿和黄金。',
+    sellResources: { iron: 10, gold: 8 },
+    buyCosts: { wood: 60, stone: 40 },
+    prerequisites: { requiredBuildings: ['workshop'] },
+    seasonBonus: {
+      spring: 0.6,
+      summer: 1.0,
+      autumn: 1.3,
+      winter: 0.3
+    },
+    embassyUnlocks: [
+      { level: 5, sellResources: { coal: 5 } },
+      { level: 10, sellResources: { science: 8 } },
+      { level: 15, sellResources: { culture: 10 } },
+    ],
+    embassyCost: { wood: 2000, stone: 1000, culture: 1000 },
+  },
+]
+
+/** 大使馆每级提供的出售数量线性加成比例 */
+export const EMBASSY_QUANTITY_BONUS_PER_LEVEL = 0.05
+
+/** 探索消耗汪力 */
+export const EXPLORE_DOGPOWER_COST = 1000
+/** 探索失败返还汪力 */
+export const EXPLORE_DOGPOWER_REFUND = 900
+
 export interface GameState {
   resourceCounts: Record<string, number>
   buildings: Record<string, number>
@@ -172,6 +293,9 @@ export interface GameState {
   leaderDogId: string | null
 
   isDomesticateEnabled: boolean
+
+  discoveredAnimals: string[]
+  embassyLevels: Record<string, number>
 
   tickCount: number
   lastTickTime: number

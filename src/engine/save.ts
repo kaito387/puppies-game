@@ -63,6 +63,13 @@ export function loadGame(): GameState {
         saveData.isDomesticateEnabled ?? INITIAL_GAME_STATE.isDomesticateEnabled,
       populationGrowthProgress:
         saveData.populationGrowthProgress ?? INITIAL_GAME_STATE.populationGrowthProgress,
+      discoveredAnimals: Array.isArray(saveData.discoveredAnimals)
+        ? saveData.discoveredAnimals.filter(
+            (id: unknown) => typeof id === 'string',
+          )
+        : INITIAL_GAME_STATE.discoveredAnimals,
+      embassyLevels:
+        saveData.embassyLevels ?? INITIAL_GAME_STATE.embassyLevels,
       tickCount: saveData.tickCount ?? INITIAL_GAME_STATE.tickCount,
       lastTickTime: saveData.lastTickTime ?? INITIAL_GAME_STATE.lastTickTime,
     }

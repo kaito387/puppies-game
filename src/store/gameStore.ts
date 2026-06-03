@@ -38,6 +38,19 @@ import {
   unlockWorkshopItem,
 } from '@/engine/workshop'
 import { getJobAssignment } from '@/engine/dogs'
+import {
+  exploreTradeAnimal,
+  tradeWithAnimal,
+  getAvailableAnimals,
+  calculateSellAmounts,
+  calculateBuyCosts,
+  isAnimalDiscovered,
+  upgradeEmbassy,
+  canUpgradeEmbassy,
+  getEmbassyUpgradeCost,
+  getEmbassyLevel,
+} from '@/engine/trade'
+import type { Animal } from '@/engine/types'
 import { min } from '@/engine/utils'
 
 
@@ -82,6 +95,19 @@ interface GameStore {
   getCalendar: () => Calendar
   dispatchExplore: () => void
   setBuildingActiveCount: (buildingId: string, count: number) => void
+
+  // Trade
+  dispatchTradeExplore: () => void
+  dispatchTradeExchange: (animalId: string) => void
+  dispatchUpgradeEmbassy: (animalId: string) => void
+  getAvailableTradeAnimals: () => Animal[]
+  getDiscoveredAnimals: () => string[]
+  getAnimalSellAmounts: (animalId: string) => Record<string, number>
+  getAnimalBuyCosts: (animalId: string) => Record<string, number>
+  getEmbassyLevel: (animalId: string) => number
+  getEmbassyUpgradeCost: (animalId: string) => Record<string, number>
+  canUpgradeEmbassy: (animalId: string) => boolean
+  isAnimalDiscovered: (animalId: string) => boolean
 
   addGameLog: (log: Omit<GameLog, 'id'>) => void
   markLogsAsRead: () => void
@@ -298,6 +324,100 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }),
       unreadLogCount: min(100, gameStore.unreadLogCount + 1),
     }))
+  },
+
+  // ---- Trade ----
+
+  dispatchTradeExplore: () => {
+    const result = exploreTradeAnimal(get().gameState)
+
+    let message = ''
+
+    if (result.blockedReason === 'insufficientDogpower') {
+      message = `贸易探索失败：汪力不足（需要 ${1000}）`
+    } else if (result.allDiscovered) {
+      message = '贸易探索：未发现新动物，返还 900 汪力'
+    } else if (result.discoveredAnimal) {
+      message = `贸易探索成功：发现了 ${result.discoveredAnimal.icon} ${result.discoveredAnimal.name}！`
+    }
+
+    set((gameStore) => ({
+      gameState: result.nextState,
+      logs: addLog(gameStore.logs, {
+        timestamp: Date.now(),
+        type: 'trade',
+        message,
+      }),
+      unreadLogCount: min(100, gameStore.unreadLogCount + 1),
+    }))
+  },
+
+  dispatchTradeExchange: (animalId: string) => {
+    const result = tradeWithAnimal(get().gameState, animalId)
+
+    let message = ''
+
+    if (result.blockedReason === 'notDiscovered') {
+      message = '交易失败：尚未发现该动物'
+    } else if (result.blockedReason === 'insufficientResources') {
+      message = '交易失败：资源不足'
+    } else {
+      const gainedParts = Object.entries(result.gained)
+        .map(([r, v]) => `${r}+${v}`)
+        .join('，')
+      const paidParts = Object.entries(result.paid)
+        .map(([r, v]) => `${r}-${v}`)
+        .join('，')
+      message = `交易完成：获得 ${gainedParts || '无'}；支付 ${paidParts || '无'}`
+    }
+
+    set((gameStore) => ({
+      gameState: result.nextState,
+      logs: addLog(gameStore.logs, {
+        timestamp: Date.now(),
+        type: 'trade',
+        message,
+      }),
+      unreadLogCount: min(100, gameStore.unreadLogCount + 1),
+    }))
+  },
+
+  dispatchUpgradeEmbassy: (animalId: string) => {
+    set((gameStore) => ({
+      gameState: upgradeEmbassy(gameStore.gameState, animalId),
+    }))
+  },
+
+  getAvailableTradeAnimals: () => {
+    return getAvailableAnimals(get().gameState)
+  },
+
+  getDiscoveredAnimals: () => {
+    return get().gameState.discoveredAnimals
+  },
+
+  getAnimalSellAmounts: (animalId: string) => {
+    return calculateSellAmounts(get().gameState, animalId)
+  },
+
+  getAnimalBuyCosts: (animalId: string) => {
+    return calculateBuyCosts(get().gameState, animalId)
+  },
+
+  getEmbassyLevel: (animalId: string) => {
+    return getEmbassyLevel(get().gameState, animalId)
+  },
+
+  getEmbassyUpgradeCost: (animalId: string) => {
+    return getEmbassyUpgradeCost(get().gameState, animalId)
+  },
+
+  canUpgradeEmbassy: (animalId: string) => {
+    return canUpgradeEmbassy(get().gameState, animalId)
+  },
+
+  isAnimalDiscovered: (animalId: string) => {
+    return isAnimalDiscovered(get().gameState, animalId)
   },
   
 }))

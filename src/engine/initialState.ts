@@ -44,6 +44,8 @@ export function createInitialGameState(): GameState {
     leaderDogId: null,
     isDomesticateEnabled: false,
     populationGrowthProgress: 0,
+    discoveredAnimals: [],
+    embassyLevels: {},
     tickCount: 0,
     lastTickTime: Date.now(),
   }
