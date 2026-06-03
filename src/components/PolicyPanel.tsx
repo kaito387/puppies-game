@@ -11,10 +11,13 @@ export function PolicyPanel() {
   const enactPolicy = useGameStore((s) => s.enactPolicy)
   const canEnactPolicy = useGameStore((s) => s.canEnactPolicy)
   const getPoliciesByGroup = useGameStore((s) => s.getPoliciesByGroup)
+  const getVisiblePolicyGroupIds = useGameStore((s) => s.getVisiblePolicyGroupIds)
 
   const culture = gameState.resourceCounts.culture || 0
   const enactedPolicyIds = gameState.enactedPolicyIds || []
-  const groups = getPoliciesByGroup()
+  const allGroups = getPoliciesByGroup()
+  const visibleGroupIds = getVisiblePolicyGroupIds()
+  const groups = visibleGroupIds.map(id => allGroups[id])
 
   const enactedCount = enactedPolicyIds.length
 
@@ -30,18 +33,19 @@ export function PolicyPanel() {
 
       <ScrollArea className="flex-1 px-6">
         <div className="space-y-6 pb-6">
-          {groups.map((group, groupIndex) => {
-            const groupCost = POLICY_GROUPS[groupIndex]?.cost || {}
-            const cultureCost = groupCost.culture || 0
+          {groups.map((group, idx) => {
+            const realGroupId = visibleGroupIds[idx]
+            const groupCost = POLICY_GROUPS[realGroupId]?.cost || {}
+            const costText = Object.entries(groupCost).map(([res, val]) => `${res}:${val}`).join(' ')
 
             const enactedInGroup = group.some(p => enactedPolicyIds.includes(p.id))
 
             return (
-              <div key={`group-${groupIndex}`} className="space-y-3">
+              <div key={`group-${realGroupId}`} className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-medium">政策组 {groupIndex + 1}</h3>
+                  <h3 className="font-medium">政策组 {realGroupId + 1}</h3>
                   <Badge variant="outline">互斥</Badge>
-                  <span className="text-xs text-muted-foreground">消耗：{cultureCost} 文化</span>
+                  <span className="text-xs text-muted-foreground">消耗：{costText}</span>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
@@ -66,13 +70,13 @@ export function PolicyPanel() {
                         <CardContent className="space-y-2 text-xs">
                           {policy.effects && policy.effects.length > 0 ? (
                             <div className="text-green-600">
-                              {policy.effects.map((ef, i) => (
-                                <div key={i}>
+                              {policy.effects.map((ef) => (
+                                <div key={ef.id}>
                                   • {ef.type === 'job_production'
-                                    ? ` ${ef.targetId} 产出 +${ef.value}`
+                                    ? `${ef.targetId} 产出 ×${ef.value}`
                                     : ef.type === 'building_cost'
-                                      ? `建筑费用 -${ef.value}`
-                                      : `效果：${ef.type}`
+                                      ? `${ef.targetId} 费用 ×${ef.value}`
+                                      : `${ef.type} ×${ef.value}`
                                   }
                                 </div>
                               ))}
