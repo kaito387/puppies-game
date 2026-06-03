@@ -32,7 +32,7 @@ export function PolicyPanel() {
       </CardHeader>
 
       <ScrollArea className="flex-1 px-6">
-        <div className="space-y-6 pb-6">
+        <div className="space-y-2 pb-6">
           {groups.map((group, idx) => {
             const realGroupId = visibleGroupIds[idx]
             const groupCost = POLICY_GROUPS[realGroupId]?.cost || {}
@@ -41,7 +41,7 @@ export function PolicyPanel() {
             const enactedInGroup = group.some(p => enactedPolicyIds.includes(p.id))
 
             return (
-              <div key={`group-${realGroupId}`} className="space-y-3">
+              <div key={`group-${realGroupId}`} className="space-y-3 space-x-3 mx-1">
                 <div className="flex items-center gap-2">
                   <h3 className="font-medium">政策组 {realGroupId + 1}</h3>
                   <Badge variant="outline">互斥</Badge>
