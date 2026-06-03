@@ -3,6 +3,7 @@ import {
   type GameState,
   type GameLog,
   type Calendar,
+  type Policy,
 } from '@/engine/types'
 import {
   createInitialGameState,
@@ -16,6 +17,7 @@ import { calculateCalendarProgress } from '@/engine/calendar'
 import {
   assignDogJob,
   clickResource,
+  enactPolicy,
   renameDog,
   setDomesticateEnabled,
   setJobAssignment,
@@ -51,6 +53,11 @@ import {
   getEmbassyLevel,
 } from '@/engine/trade'
 import type { Animal } from '@/engine/types'
+import {
+  canEnactPolicy,
+  getVisiblePolicyGroupIds,
+  getPoliciesByGroup,
+} from '@/engine/policies'
 import { min } from '@/engine/utils'
 
 
@@ -94,6 +101,10 @@ interface GameStore {
   getVisibleWorkshopUnlockIds: () => string[]
   getCalendar: () => Calendar
   dispatchExplore: () => void
+  enactPolicy: (policyId: string) => void
+  canEnactPolicy: (policyId: string) => boolean
+  getVisiblePolicyGroupIds: () => number[]
+  getPoliciesByGroup: () => Policy[][]
   setBuildingActiveCount: (buildingId: string, count: number) => void
 
   // Trade
@@ -252,6 +263,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   getVisibleWorkshopUnlockIds: () => {
     return getVisibleWorkshopUnlockIds(get().gameState)
+  },
+
+  enactPolicy: (policyId: string) => {
+    set((gameStore) => ({
+      gameState: enactPolicy(gameStore.gameState, policyId),
+    }))
+  },
+
+  canEnactPolicy: (policyId: string) => {
+    return canEnactPolicy(get().gameState, policyId)
+  },
+
+  getVisiblePolicyGroupIds: () => {
+    return getVisiblePolicyGroupIds(get().gameState)
+  },
+
+  getPoliciesByGroup: () => {
+    return getPoliciesByGroup()
   },
 
   setBuildingActiveCount: (buildingId: string, count: number) => {
