@@ -52,10 +52,8 @@ function PlaceholderActionPanel(props: {
 
 function App() {
   const tick = useGameStore((store) => store.tick)
-  const gameState = useGameStore((store) => store.gameState)
   const saveGame = useGameStore((store) => store.saveGame)
   const gameTickRef = useRef(0)
-  const hasExplorationGear = gameState.workshopUnlockIds.includes('exploration_gear')
 
   useEffect(() => {
     const interval = setInterval(() => {
