@@ -156,12 +156,107 @@ describe('Save System', () => {
       buildings: { smelter: 1 },
       tickCount: 5,
       lastTickTime: 12345,
-      // buildingActiveCounts intentionally absent
     }
     localStorage.setItem('puppies-game-save', JSON.stringify(oldSave))
 
     const loaded = loadGame()
     expect(loaded.buildingActiveCounts).toBeDefined()
     expect(loaded.buildingActiveCounts.smelter ?? 0).toBe(0)
+  })
+
+  describe('Trade – discoveredAnimalIds compatibility', () => {
+    it('should default discoveredAnimalIds to empty array when field is missing from old save', () => {
+      localStorage.setItem(
+        'puppies-game-save',
+        JSON.stringify({
+          version: '0.0.0',
+          resourceCounts: { food: 10 },
+          buildings: {},
+          tickCount: 5,
+          lastTickTime: 12345,
+        }),
+      )
+
+      const loaded = loadGame()
+      expect(loaded.discoveredAnimalIds).toEqual([])
+    })
+
+    it('should persist and reload discoveredAnimalIds correctly', () => {
+      const state = createInitialGameState()
+      state.discoveredAnimalIds = ['cats']
+      saveGame(state)
+
+      const loaded = loadGame()
+      expect(loaded.discoveredAnimalIds).toEqual(['cats'])
+    })
+
+    it('should persist multiple discovered animals and reload all of them', () => {
+      const state = createInitialGameState()
+      state.discoveredAnimalIds = ['cats', 'lizards']
+      saveGame(state)
+
+      const loaded = loadGame()
+      expect(loaded.discoveredAnimalIds).toContain('cats')
+      expect(loaded.discoveredAnimalIds).toContain('lizards')
+      expect(loaded.discoveredAnimalIds).toHaveLength(2)
+    })
+
+    it('should filter unknown animal ids from save data', () => {
+      localStorage.setItem(
+        'puppies-game-save',
+        JSON.stringify({
+          version: '0.0.0',
+          discoveredAnimalIds: ['cats', 'unknown-animal', 'lizards'],
+        }),
+      )
+
+      const loaded = loadGame()
+      expect(loaded.discoveredAnimalIds).toContain('cats')
+      expect(loaded.discoveredAnimalIds).toContain('lizards')
+      expect(loaded.discoveredAnimalIds).not.toContain('unknown-animal')
+    })
+
+    it('should default discoveredAnimalIds to empty array when value is not an array', () => {
+      localStorage.setItem(
+        'puppies-game-save',
+        JSON.stringify({
+          version: '0.0.0',
+          discoveredAnimalIds: 'cats',
+        }),
+      )
+
+      const loaded = loadGame()
+      expect(loaded.discoveredAnimalIds).toEqual([])
+    })
+
+    it('should handle null discoveredAnimalIds in save data gracefully', () => {
+      localStorage.setItem(
+        'puppies-game-save',
+        JSON.stringify({
+          version: '0.0.0',
+          discoveredAnimalIds: null,
+        }),
+      )
+
+      const loaded = loadGame()
+      expect(loaded.discoveredAnimalIds).toEqual([])
+    })
+
+    it('should not persist animal ids that were removed from TRADES config', () => {
+      const state = createInitialGameState()
+      state.discoveredAnimalIds = ['cats']
+      saveGame(state)
+
+      const rawSave = JSON.parse(localStorage.getItem('puppies-game-save')!)
+      expect(rawSave.discoveredAnimalIds).toEqual(['cats'])
+      expect(rawSave.discoveredAnimalIds).not.toContain('unknown-animal')
+    })
+
+    it('should return empty discoveredAnimalIds on corrupt JSON save', () => {
+      localStorage.setItem('puppies-game-save', 'not-valid-json{{{')
+
+      const loaded = loadGame()
+      expect(loaded.discoveredAnimalIds).toEqual([])
+    })
   })
 })
