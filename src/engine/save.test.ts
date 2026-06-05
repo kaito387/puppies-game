@@ -244,7 +244,7 @@ describe('Save System', () => {
 
     it('should not persist animal ids that were removed from TRADES config', () => {
       const state = createInitialGameState()
-      state.discoveredAnimalIds = ['cats']
+      state.discoveredAnimalIds = ['cats', 'unknown-animal']
       saveGame(state)
 
       const rawSave = JSON.parse(localStorage.getItem('puppies-game-save')!)

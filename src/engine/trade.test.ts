@@ -240,16 +240,7 @@ describe('Trade Engine', () => {
       expect(nextState.resourceCounts.dogpower).toBe(EXPLORE_COST - 1)
     })
     it('should deduct EXPLORE_COST and discover the first eligible animal', () => {
-      gameState.dogs = Array.from({ length: 5 }, (_, i) => ({
-        id: `dog-${i}`,
-        name: `Dog ${i}`,
-        color: '#fff',
-        age: 1,
-        experienceByJob: {},
-        traitId: 'scientist',
-        status: 'idle' as const,
-        currentJobId: null,
-      }))
+      gameState = withPopulation(gameState, 5)
       gameState = withResources(gameState, { dogpower: EXPLORE_COST })
       const { nextState, discovered } = exploreForAnimal(gameState)
       expect(discovered).toBe('cats')
@@ -263,16 +254,7 @@ describe('Trade Engine', () => {
       expect(nextState.resourceCounts.dogpower).toBe(EXPLORE_REFUND)
     })
     it('should refund EXPLORE_REFUND when all eligible animals are already discovered', () => {
-      gameState.dogs = Array.from({ length: 10 }, (_, i) => ({
-        id: `dog-${i}`,
-        name: `Dog ${i}`,
-        color: '#fff',
-        age: 1,
-        experienceByJob: {},
-        traitId: 'scientist',
-        status: 'idle' as const,
-        currentJobId: null,
-      }))
+      gameState = withPopulation(gameState, 10)
       gameState = withDiscovered(gameState, ['cats', 'lizards'])
       gameState = withResources(gameState, { dogpower: EXPLORE_COST })
       const { nextState, discovered } = exploreForAnimal(gameState)
@@ -282,16 +264,7 @@ describe('Trade Engine', () => {
   })
   describe('exploreForAnimal – discovery persistence', () => {
     it('should persistently add the discovered animal to discoveredAnimalIds', () => {
-      gameState.dogs = Array.from({ length: 5 }, (_, i) => ({
-        id: `dog-${i}`,
-        name: `Dog ${i}`,
-        color: '#fff',
-        age: 1,
-        experienceByJob: {},
-        traitId: 'scientist',
-        status: 'idle' as const,
-        currentJobId: null,
-      }))
+      gameState = withPopulation(gameState, 5)
       gameState = withResources(gameState, { dogpower: EXPLORE_COST * 3 })
       const { nextState: s1 } = exploreForAnimal(gameState)
       expect(s1.discoveredAnimalIds).toContain('cats')
@@ -300,16 +273,7 @@ describe('Trade Engine', () => {
       expect(d2).toBeNull()
     })
     it('should not mutate the original state discoveredAnimalIds', () => {
-      gameState.dogs = Array.from({ length: 5 }, (_, i) => ({
-        id: `dog-${i}`,
-        name: `Dog ${i}`,
-        color: '#fff',
-        age: 1,
-        experienceByJob: {},
-        traitId: 'scientist',
-        status: 'idle' as const,
-        currentJobId: null,
-      }))
+      gameState = withPopulation(gameState, 5)
       gameState = withResources(gameState, { dogpower: EXPLORE_COST })
       const originalIds = [...gameState.discoveredAnimalIds]
       exploreForAnimal(gameState)
