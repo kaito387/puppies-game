@@ -164,4 +164,100 @@ describe('Save System', () => {
     expect(loaded.buildingActiveCounts).toBeDefined()
     expect(loaded.buildingActiveCounts.smelter ?? 0).toBe(0)
   })
+
+  // ---- Trade / Embassy save migration tests ----
+
+  it('should persist discoveredAnimals and embassyLevels', () => {
+    const state = createInitialGameState()
+    state.discoveredAnimals = ['rabbit', 'bear']
+    state.embassyLevels = { rabbit: 3, bear: 0 }
+    saveGame(state)
+
+    const loaded = loadGame()
+    expect(loaded.discoveredAnimals).toEqual(['rabbit', 'bear'])
+    expect(loaded.embassyLevels).toEqual({ rabbit: 3, bear: 0 })
+  })
+
+  it('should default discoveredAnimals to empty array when missing from old save', () => {
+    const oldSave = {
+      version: '0.0.0',
+      resourceCounts: { food: 10 },
+      buildings: { barn: 1 },
+      tickCount: 5,
+      lastTickTime: 12345,
+      // discoveredAnimals intentionally absent
+    }
+    localStorage.setItem('puppies-game-save', JSON.stringify(oldSave))
+
+    const loaded = loadGame()
+    expect(loaded.discoveredAnimals).toEqual([])
+  })
+
+  it('should default embassyLevels to empty object when missing from old save', () => {
+    const oldSave = {
+      version: '0.0.0',
+      resourceCounts: { food: 10 },
+      buildings: { barn: 1 },
+      tickCount: 5,
+      lastTickTime: 12345,
+      // embassyLevels intentionally absent
+    }
+    localStorage.setItem('puppies-game-save', JSON.stringify(oldSave))
+
+    const loaded = loadGame()
+    expect(loaded.embassyLevels).toEqual({})
+  })
+
+  it('should persist empty trade fields correctly', () => {
+    const state = createInitialGameState()
+    // default: empty discoveredAnimals, empty embassyLevels
+    saveGame(state)
+
+    const loaded = loadGame()
+    expect(loaded.discoveredAnimals).toEqual([])
+    expect(loaded.embassyLevels).toEqual({})
+    expect(loaded.tickCount).toBe(0)
+  })
+
+  it('should survive full save/load cycle with trade data intact', () => {
+    const state = createInitialGameState()
+    state.discoveredAnimals = ['rabbit', 'bear', 'fox', 'eagle']
+    state.embassyLevels = { rabbit: 15, bear: 10, fox: 5, eagle: 0 }
+    state.resourceCounts.food = 5000
+    saveGame(state)
+
+    const loaded = loadGame()
+    expect(loaded.discoveredAnimals).toEqual(['rabbit', 'bear', 'fox', 'eagle'])
+    expect(loaded.embassyLevels.rabbit).toBe(15)
+    expect(loaded.embassyLevels.bear).toBe(10)
+    expect(loaded.embassyLevels.fox).toBe(5)
+    expect(loaded.embassyLevels.eagle).toBe(0)
+    expect(loaded.resourceCounts.food).toBe(5000)
+  })
+
+  it('should preserve discovered animal IDs loaded from string-only array', () => {
+    const oldSave = {
+      version: '0.0.0',
+      resourceCounts: { food: 10 },
+      buildings: { farm: 1 },
+      tickCount: 1,
+      lastTickTime: 12345,
+      discoveredAnimals: ['rabbit', 'fox'],
+    }
+    localStorage.setItem('puppies-game-save', JSON.stringify(oldSave))
+
+    const loaded = loadGame()
+    expect(loaded.discoveredAnimals).toEqual(['rabbit', 'fox'])
+  })
+
+  it('should recover gracefully from corrupted save data', () => {
+    localStorage.setItem('puppies-game-save', '{invalid json')
+
+    const loaded = loadGame()
+    // Should return initial state without throwing
+    const initial = createInitialGameState()
+    expect(loaded.discoveredAnimals).toEqual(initial.discoveredAnimals)
+    expect(loaded.embassyLevels).toEqual(initial.embassyLevels)
+    expect(loaded.resourceCounts.food).toBe(0)
+  })
 })
