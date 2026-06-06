@@ -16,9 +16,14 @@ export function TradePanel() {
   const getAnimalSellAmounts = useGameStore((s) => s.getAnimalSellAmounts)
   const canUpgradeEmbassy = useGameStore((s) => s.canUpgradeEmbassy)
 
-  const dogPower = gameState.resourceCounts.dogpower ?? 0
-
+  const dogPower = gameState?.resourceCounts?.dogpower ?? 0
   const animals = getAvailableTradeAnimals()
+
+  const hasEnoughResources = (costs: Record<string, number>) => {
+    return Object.entries(costs).every(([res, val]) => {
+      return (gameState?.resourceCounts?.[res] ?? 0) >= val
+    })
+  }
 
   return (
     <Card className="h-[80vh] flex flex-col">
@@ -61,6 +66,7 @@ export function TradePanel() {
                 const costs = getAnimalBuyCosts(id)
                 const rewards = getAnimalSellAmounts(id)
                 const canUpgrade = canUpgradeEmbassy(id)
+                const canTrade = hasEnoughResources(costs)
 
                 return (
                   <Card key={id}>
@@ -92,6 +98,9 @@ export function TradePanel() {
                             获得: {res} ×{val}
                           </div>
                         ))}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          实际获得受仓储上限影响
+                        </p>
                       </div>
 
                       <div className="flex gap-2">
@@ -99,6 +108,7 @@ export function TradePanel() {
                           size="sm"
                           className="flex-1"
                           onClick={() => dispatchTradeExchange(id)}
+                          disabled={!canTrade}
                         >
                           执行交易
                         </Button>
