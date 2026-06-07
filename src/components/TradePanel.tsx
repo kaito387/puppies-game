@@ -26,8 +26,8 @@ export function TradePanel() {
   }
 
   return (
-    <Card className="h-[80vh] flex flex-col">
-      <CardHeader className="pb-3">
+    <Card className="h-[80vh] flex flex-col p-4">
+      <CardHeader className="pb-3 px-2">
         <CardTitle className="flex items-center justify-between">
           <span>贸易</span>
           <div className="flex gap-3 text-sm font-normal">
@@ -38,8 +38,8 @@ export function TradePanel() {
         <CardDescription>探索动物、建立大使馆、进行物资交易</CardDescription>
       </CardHeader>
 
-      <ScrollArea className="flex-1 px-6">
-        <div className="space-y-6 pb-6">
+      <ScrollArea className="flex-1">
+        <div className="space-y-6 pb-6 px-2 py-1">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">野外探索</CardTitle>
