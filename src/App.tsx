@@ -24,6 +24,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Calendar } from '@/components/ui/calendar'
 import { PolicyPanel } from '@/components/PolicyPanel'
+import { TradePanel } from '@/components/TradePanel'
 
 function PlaceholderActionPanel(props: {
   title: string
@@ -127,12 +128,7 @@ function App() {
               <WorkshopPanel />
             </TabsContent>
             <TabsContent value="trade">
-              <PlaceholderActionPanel
-                title="💱 贸易"
-                description="与邻近部落交换物资，稳定补给。"
-                buttonLabel="发起贸易"
-                requirement="需要 20 骨头库存"
-              />
+              <TradePanel />
             </TabsContent>
             <TabsContent value="policies">
               <PolicyPanel />
