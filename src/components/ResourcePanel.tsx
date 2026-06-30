@@ -33,12 +33,12 @@ export function ResourcePanel() {
   }
 
   return (
-    <Card>
+    <Card className="min-h-0">
       <CardHeader className="pb-3">
         <CardTitle className="text-base">资源总览</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <ScrollArea className="max-h-[46vh] pr-3">
+      <CardContent className="flex min-h-0 flex-col gap-3">
+        <ScrollArea className="h-[min(42vh,24rem)] min-h-0 overflow-hidden pr-3">
           <div className="flex flex-col gap-2">
             {RESOURCES.map((resource) => {
               const amount = gameState.resourceCounts[resource.id] || 0
@@ -71,9 +71,9 @@ export function ResourcePanel() {
           </div>
         </ScrollArea>
 
-        <Separator />
+        <Separator className="shrink-0" />
 
-        <div className="flex items-center justify-between gap-3 rounded-md border bg-card px-3 py-2">
+        <div className="shrink-0 flex items-center justify-between gap-3 rounded-md border bg-card px-3 py-2">
           <div className="flex flex-col">
             <span className="text-sm">允许入驻</span>
             <span className="text-xs text-muted-foreground">开启后会消耗食物驯服新小狗</span>
@@ -86,9 +86,9 @@ export function ResourcePanel() {
           />
         </div>
 
-        <Separator />
+        <Separator className="shrink-0" />
 
-        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+        <div className="flex shrink-0 flex-wrap gap-2 text-xs text-muted-foreground">
           <Badge variant="outline">
             狗口 {population}
             {shouldShowProgress && (

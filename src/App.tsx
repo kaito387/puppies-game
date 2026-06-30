@@ -19,10 +19,8 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Calendar } from '@/components/ui/calendar'
 import { PolicyPanel } from '@/components/PolicyPanel'
 import { getPopulationCount } from '@/engine/dogs'
 import { Badge } from '@/components/ui/badge'
@@ -36,6 +34,13 @@ import {
   Settings2Icon,
   ScrollTextIcon,
 } from 'lucide-react'
+
+const SEASON_LABELS = {
+  spring: '春季',
+  summer: '夏季',
+  autumn: '秋季',
+  winter: '冬季',
+}
 
 function App() {
   const tick = useGameStore((store) => store.tick)
@@ -59,8 +64,8 @@ function App() {
   }, [tick, saveGame])
 
   return (
-    <SidebarProvider>
-      <Sidebar>
+    <SidebarProvider className="items-stretch overflow-x-hidden">
+      <Sidebar className="shrink-0">
         <SidebarHeader>
           <div className="flex flex-col gap-2 rounded-lg border border-sidebar-border bg-sidebar-accent/50 p-3">
             <div className="flex items-center gap-2">
@@ -84,11 +89,10 @@ function App() {
         </SidebarContent>
       </Sidebar>
 
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
           <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div className="flex items-center gap-2">
-              <SidebarTrigger />
               <div>
                 <h2 className="text-lg font-semibold">狗狗帝国控制台</h2>
                 <p className="text-sm text-muted-foreground">建造、分工、研究与制度调整。</p>
@@ -97,9 +101,9 @@ function App() {
             <div className="flex flex-wrap items-center justify-end gap-2 text-sm text-muted-foreground">
               <Badge variant="outline">
                 <CalendarDaysIcon data-icon="inline-start" />
-                {calendar.month} 月 {calendar.day} 日
+                {calendar.year} 年 {calendar.month} 月 {calendar.day} 日
+                {SEASON_LABELS[calendar.season]}
               </Badge>
-              <Calendar />
               <Badge variant="outline">5 tick/s</Badge>
               <LogPanel />
               <SettingsPanel />
