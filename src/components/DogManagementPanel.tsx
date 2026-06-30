@@ -13,8 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { PencilIcon } from 'lucide-react'
-import { JOBS, type Dog } from '@/engine/types'
+import { CompassIcon, MinusIcon, PencilIcon, PlusIcon, StarIcon } from 'lucide-react'
+import { JOBS, TRAITS, type Dog } from '@/engine/types'
 import {
   isDogNameValid,
   sanitizeDogName,
@@ -43,14 +43,13 @@ function DogCard(props: {
   onRename: (dogId: string, nextName: string) => void
   onAssignJob: (dogId: string, jobId: string | null) => void
 }) {
-
   const { dog, availableJobs, onRename, onAssignJob } = props
   const [draftName, setDraftName] = useState(dog.name)
   const [nameError, setNameError] = useState<string | null>(null)
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
 
   const currentJob = dog.currentJobId ? JOBS.find((job) => job.id === dog.currentJobId) : null
-  const traitName = dog.traitId
+  const traitName = TRAITS.find((trait) => trait.id === dog.traitId)?.name || dog.traitId
 
   const openRenameDialog = () => {
     setDraftName(dog.name)
@@ -70,16 +69,19 @@ function DogCard(props: {
     setIsRenameDialogOpen(false)
   }
 
-  const leaderDogId = useGameStore(s => s.gameState.leaderDogId)
-  const setLeaderDog = useGameStore(s => s.setLeaderDog)
-  const researchedTechIds = useGameStore(s => s.gameState.researchedTechIds)
+  const leaderDogId = useGameStore((s) => s.gameState.leaderDogId)
+  const setLeaderDog = useGameStore((s) => s.setLeaderDog)
+  const researchedTechIds = useGameStore((s) => s.gameState.researchedTechIds)
   const canManageLeader = researchedTechIds.includes('administration')
 
   return (
-    <Card className="border shadow-xl" style={{ borderColor: dog.color.replace('rgb(', 'rgba(').replace(')', ', 0.6)') }}>
-      <CardContent className="space-y-3 pt-5 py-2">
+    <Card
+      className="border shadow-sm"
+      style={{ borderColor: dog.color.replace('rgb(', 'rgba(').replace(')', ', 0.45)') }}
+    >
+      <CardContent className="flex flex-col gap-3 py-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-2">
+          <div className="flex min-w-0 flex-col gap-2">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-base font-semibold" style={{ color: dog.color }}>
                 {dog.name}
@@ -88,8 +90,9 @@ function DogCard(props: {
                 variant="ghost"
                 size="icon-xs"
                 onClick={openRenameDialog}
+                aria-label={`修改 ${dog.name} 的名字`}
               >
-                <PencilIcon />
+                <PencilIcon data-icon="inline-start" />
               </Button>
               <Badge variant={dog.status === 'working' ? 'default' : 'secondary'}>
                 {dog.status === 'working' ? '工作中' : '空闲'}
@@ -102,23 +105,15 @@ function DogCard(props: {
               <Badge variant="outline">当前工作 {currentJob ? currentJob.name : '无'}</Badge>
             </div>
             {canManageLeader && (
-              <div className="mt-2">
+              <div>
                 {leaderDogId === dog.id ? (
-                  <Button 
-                    size="xs" 
-                    variant="outline"
-                    className="h-7 text-xs bg-black text-white border border-gray-300"
-                    onClick={() => setLeaderDog(null)}
-                  >
-                    ⭐ 取消领导者
+                  <Button size="xs" variant="default" onClick={() => setLeaderDog(null)}>
+                    <StarIcon data-icon="inline-start" />
+                    取消领导者
                   </Button>
-                   ) : (
-                  <Button 
-                    size="xs" 
-                    variant="outline"
-                    className="h-7 text-xs bg-white text-black border border-gray-300"
-                    onClick={() => setLeaderDog(dog.id)}
-                  >
+                ) : (
+                  <Button size="xs" variant="outline" onClick={() => setLeaderDog(dog.id)}>
+                    <StarIcon data-icon="inline-start" />
                     设为领导者
                   </Button>
                 )}
@@ -166,7 +161,7 @@ function DogCard(props: {
               <DialogDescription>给这只狗重新起一个更好记的名字。</DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Input
                 value={draftName}
                 onChange={(event) => {
@@ -180,7 +175,7 @@ function DogCard(props: {
                 autoFocus
                 aria-label={`修改 ${dog.name} 的名字`}
               />
-              {nameError ? <p className="text-xs text-red-600">{nameError}</p> : null}
+              {nameError ? <p className="text-xs text-destructive">{nameError}</p> : null}
             </div>
 
             <DialogFooter>
@@ -261,13 +256,13 @@ export function DogManagementPanel() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>🐕 狗狗管理</CardTitle>
+          <CardTitle>狗狗管理</CardTitle>
           <CardDescription>查看每只狗的属性，手动改名，或者直接分配工作。</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-2 text-xs">
             <Badge variant="outline">总数 {gameState.dogs.length}</Badge>
             <Badge variant="outline">空闲 {idleCount}</Badge>
@@ -308,7 +303,7 @@ export function DogManagementPanel() {
               当前筛选下没有狗狗
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                 <span>
                   第 {safeCurrentPage} / {totalPages} 页，每页 {DOGS_PER_PAGE} 只
@@ -350,10 +345,10 @@ export function DogManagementPanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>👷 职业分配</CardTitle>
+          <CardTitle>职业分配</CardTitle>
           <CardDescription>工作人数不能超过总人口，使用快捷按钮可快速调整。</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-2 text-xs">
             <Badge variant="outline">总人口 {population}</Badge>
             <Badge variant="outline">空闲 {idlePopulation}</Badge>
@@ -370,8 +365,8 @@ export function DogManagementPanel() {
               const canDecrease = assigned > 0
 
               return (
-                <div key={job.id} className="rounded-md border p-3">
-                  <div className="space-y-2">
+                <div key={job.id} className="rounded-md border bg-card p-3">
+                  <div className="flex flex-col gap-2">
                     <div className="font-medium leading-none">
                       {job.icon} {job.name}
                     </div>
@@ -395,7 +390,8 @@ export function DogManagementPanel() {
                       disabled={!canDecrease}
                       onClick={() => setWithDelta(job.id, assigned, -10)}
                     >
-                      -10
+                      <MinusIcon data-icon="inline-start" />
+                      10
                     </Button>
                     <Button
                       variant="outline"
@@ -403,7 +399,7 @@ export function DogManagementPanel() {
                       disabled={!canDecrease}
                       onClick={() => setWithDelta(job.id, assigned, -1)}
                     >
-                      -1
+                      <MinusIcon data-icon="inline-start" />1
                     </Button>
                     <Badge className="min-w-8 justify-center">{assigned}</Badge>
                     <Button
@@ -412,7 +408,7 @@ export function DogManagementPanel() {
                       disabled={!canIncrease}
                       onClick={() => setWithDelta(job.id, assigned, 1)}
                     >
-                      +1
+                      <PlusIcon data-icon="inline-start" />1
                     </Button>
                     <Button
                       variant="outline"
@@ -420,7 +416,8 @@ export function DogManagementPanel() {
                       disabled={!canIncrease}
                       onClick={() => setWithDelta(job.id, assigned, 10)}
                     >
-                      +10
+                      <PlusIcon data-icon="inline-start" />
+                      10
                     </Button>
                   </div>
                 </div>
@@ -432,7 +429,7 @@ export function DogManagementPanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>🧭 野外探索</CardTitle>
+          <CardTitle>野外探索</CardTitle>
           <CardDescription>派遣猎人探索野外，消耗汪力获取毛皮</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap items-center gap-4">
@@ -443,6 +440,7 @@ export function DogManagementPanel() {
             onClick={dispatchExplore}
             disabled={(gameState.resourceCounts.dogpower || 0) < 100}
           >
+            <CompassIcon data-icon="inline-start" />
             发起探索（消耗 100 汪力）
           </Button>
         </CardContent>

@@ -35,8 +35,8 @@ describe('Technologies', () => {
     expect(canResearchTechnology(gameState, 'woodworking')).toBe(false)
 
     gameState.buildings.library = 1
-    gameState.resourceCounts.science = 600
-    gameState.resourceCounts.wood = 200
+    gameState.resourceCounts.science = 220
+    gameState.resourceCounts.wood = 80
     expect(canResearchTechnology(gameState, 'woodworking')).toBe(true)
 
     gameState.researchedTechIds = ['woodworking']
@@ -45,15 +45,15 @@ describe('Technologies', () => {
 
   it('should block research when resources are insufficient', () => {
     gameState.buildings.library = 1
-    gameState.resourceCounts.science = 600
-    gameState.resourceCounts.wood = 199
+    gameState.resourceCounts.science = 220
+    gameState.resourceCounts.wood = 79
     expect(() => researchTechnology(gameState, 'woodworking')).toThrow('所需资源 wood 不足')
   })
 
   it('should deduct cost and append researched technology once', () => {
     gameState.buildings.library = 1
-    gameState.resourceCounts.science = 600
-    gameState.resourceCounts.wood = 200
+    gameState.resourceCounts.science = 220
+    gameState.resourceCounts.wood = 80
 
     const researched = researchTechnology(gameState, 'woodworking')
     expect(researched.resourceCounts.science).toBe(0)
@@ -134,7 +134,7 @@ describe('Technologies', () => {
       expect(aggregated.jobProductionMultipliers.lumberjack).toBeCloseTo(1.584)
       expect(aggregated.jobProductionMultipliers.scientist).toBeCloseTo(1.2)
     } finally {
-      const index = TECHNOLOGIES.findIndex(t => t.id === 'stacking_test_tech')
+      const index = TECHNOLOGIES.findIndex((t) => t.id === 'stacking_test_tech')
       if (index !== -1) TECHNOLOGIES.splice(index, 1)
     }
   })
@@ -184,8 +184,8 @@ describe('Technologies', () => {
 
   it('returns false when any required resource is not enough', () => {
     gameState.buildings.library = 1
-    gameState.resourceCounts.science = 600
-    gameState.resourceCounts.wood = 199
+    gameState.resourceCounts.science = 220
+    gameState.resourceCounts.wood = 79
 
     expect(canResearchTechnology(gameState, 'woodworking')).toBe(false)
   })
@@ -286,7 +286,7 @@ describe('Technologies', () => {
       const result = aggregateEffects(gameState)
       expect(result.jobProductionMultipliers.lumberjack).toBeCloseTo(1.5)
     } finally {
-      const index = TECHNOLOGIES.findIndex(t => t.id === 'additive_only')
+      const index = TECHNOLOGIES.findIndex((t) => t.id === 'additive_only')
       if (index !== -1) TECHNOLOGIES.splice(index, 1)
     }
   })
@@ -322,7 +322,7 @@ describe('Technologies', () => {
       const result = aggregateEffects(gameState)
       expect(result.jobProductionMultipliers.lumberjack).toBeCloseTo(1.56)
     } finally {
-      const index = TECHNOLOGIES.findIndex(t => t.id === 'multiplier_only')
+      const index = TECHNOLOGIES.findIndex((t) => t.id === 'multiplier_only')
       if (index !== -1) TECHNOLOGIES.splice(index, 1)
     }
   })
@@ -343,7 +343,7 @@ describe('Technologies', () => {
     const autumnResult = aggregateEffects(gameState)
 
     expect(springResult.buildingProductionMultipliers.farm).toBeGreaterThan(
-      autumnResult.buildingProductionMultipliers.farm || 1
+      autumnResult.buildingProductionMultipliers.farm || 1,
     )
   })
 
@@ -405,13 +405,13 @@ describe('Technologies', () => {
         const result = aggregateEffects(gameState)
         expect(result.buildingCostMultipliers.farm).toBeCloseTo(0.8)
       } finally {
-        const index = TECHNOLOGIES.findIndex(t => t.id === 'additive_cost_tech')
+        const index = TECHNOLOGIES.findIndex((t) => t.id === 'additive_cost_tech')
         if (index !== -1) TECHNOLOGIES.splice(index, 1)
       }
     })
 
     it('building_production effect with multiplier mode from building effects', () => {
-      const farmBuilding = BUILDINGS.find(b => b.id === 'farm')
+      const farmBuilding = BUILDINGS.find((b) => b.id === 'farm')
       const originalEffects = farmBuilding?.Effects
 
       if (farmBuilding) {
@@ -440,7 +440,7 @@ describe('Technologies', () => {
 
     it('job_production effect with unknown target from season effects', () => {
       const originalSeasonEffects = { ...SEASON_EFFECTS }
-      
+
       SEASON_EFFECTS.spring = [
         {
           id: 'spring_job',
@@ -486,7 +486,7 @@ describe('Technologies', () => {
         const result = aggregateEffects(gameState)
         expect(result.buildingProductionMultipliers.fake_building).toBe(2.0)
       } finally {
-        const index = TECHNOLOGIES.findIndex(t => t.id === 'unknown_building_tech')
+        const index = TECHNOLOGIES.findIndex((t) => t.id === 'unknown_building_tech')
         if (index !== -1) TECHNOLOGIES.splice(index, 1)
       }
     })
@@ -516,7 +516,7 @@ describe('Technologies', () => {
         const result = aggregateEffects(gameState)
         expect(result.jobProductionMultipliers.lumberjack).toBeCloseTo(1.1)
       } finally {
-        const index = TECHNOLOGIES.findIndex(t => t.id === 'additive_test_tech')
+        const index = TECHNOLOGIES.findIndex((t) => t.id === 'additive_test_tech')
         if (index !== -1) TECHNOLOGIES.splice(index, 1)
       }
     })
@@ -546,7 +546,7 @@ describe('Technologies', () => {
         const result = aggregateEffects(gameState)
         expect(result.jobProductionMultipliers.lumberjack).toBeCloseTo(1.2)
       } finally {
-        const index = TECHNOLOGIES.findIndex(t => t.id === 'multiplier_test_tech')
+        const index = TECHNOLOGIES.findIndex((t) => t.id === 'multiplier_test_tech')
         if (index !== -1) TECHNOLOGIES.splice(index, 1)
       }
     })

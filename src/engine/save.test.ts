@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { loadGame, resetGame, saveGame } from '@/engine/save'
 import { createInitialGameState } from '@/engine/initialState'
 import { createDogs } from '@/engine/dogs'
+import { INITIAL_DOG_COUNT, INITIAL_POPULATION_CAP } from '@/engine/constants'
 
 function createMemoryStorage(): Storage {
   const store = new Map<string, string>()
@@ -53,8 +54,8 @@ describe('Save System', () => {
     )
 
     const loaded = loadGame()
-    expect(loaded.dogs).toEqual([])
-    expect(loaded.populationCap).toBe(1)
+    expect(loaded.dogs).toHaveLength(INITIAL_DOG_COUNT)
+    expect(loaded.populationCap).toBe(INITIAL_POPULATION_CAP)
     expect(loaded.isDomesticateEnabled).toBe(false)
     expect(loaded.populationGrowthProgress).toBe(0)
   })

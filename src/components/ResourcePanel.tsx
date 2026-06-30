@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
+import { formatAmount } from '@/engine/formatters'
 
 export function ResourcePanel() {
   const gameState = useGameStore((store) => store.gameState)
@@ -22,28 +23,21 @@ export function ResourcePanel() {
   const totalAssigned = getAssignedCount(gameState.dogs)
   const idlePopulation = Math.max(0, population - totalAssigned)
   const shouldShowProgress = growthProgressPercent > 0
-  const progressText = growthProgressRaw > 0 ? `+${growthProgressPercent}%` : `-${growthProgressPercent}%`
+  const progressText =
+    growthProgressRaw > 0 ? `+${growthProgressPercent}%` : `-${growthProgressPercent}%`
 
   const formatRateText = (ratePerSecond: number): string => {
     const absoluteRate = Math.abs(ratePerSecond)
 
-    if (absoluteRate < 10) {
-      return ratePerSecond.toFixed(2)
-    }
-
-    if (absoluteRate < 100) {
-      return ratePerSecond.toFixed(1)
-    }
-
-    return ratePerSecond.toFixed(0)
+    return formatAmount(absoluteRate < 100 ? ratePerSecond : Math.round(ratePerSecond))
   }
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">📦 资源</CardTitle>
+        <CardTitle className="text-base">资源总览</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="flex flex-col gap-3">
         <ScrollArea className="max-h-[46vh] pr-3">
           <div className="flex flex-col gap-2">
             {RESOURCES.map((resource) => {
@@ -53,24 +47,21 @@ export function ResourcePanel() {
               const ratePerSecond = deltaPerTick * ratePerSecondMultiplier
               const shouldShowRate = Math.abs(ratePerSecond) > 0.0001
               return (
-                <div key={resource.id} className="flex items-center justify-between rounded-md border px-3 py-2 gap-3">
-                  <span className="text-sm">
+                <div
+                  key={resource.id}
+                  className="flex items-center justify-between gap-3 rounded-md border bg-card px-3 py-2"
+                >
+                  <span className="min-w-0 truncate text-sm">
                     {resource.icon} {resource.name}
                   </span>
-                  <div className="flex items-center gap-1 flex-wrap justify-end">
+                  <div className="flex flex-wrap items-center justify-end gap-1">
                     <Badge variant="secondary">
-                      {amount.toFixed(0)} / {limit.toFixed(0)}
+                      {formatAmount(amount)} / {formatAmount(limit)}
                     </Badge>
                     {shouldShowRate && (
-                      <Badge
-                        variant="outline"
-                        className={
-                          ratePerSecond > 0
-                            ? 'border-green-500/30 bg-green-500/10 text-green-700'
-                            : 'border-red-500/30 bg-red-500/10 text-red-700'
-                        }
-                      >
-                        {ratePerSecond > 0 ? '+' : ''}{formatRateText(ratePerSecond)}/s
+                      <Badge variant={ratePerSecond > 0 ? 'default' : 'destructive'}>
+                        {ratePerSecond > 0 ? '+' : ''}
+                        {formatRateText(ratePerSecond)}/s
                       </Badge>
                     )}
                   </div>
@@ -82,14 +73,13 @@ export function ResourcePanel() {
 
         <Separator />
 
-        <div className="flex items-center justify-between rounded-md border px-3 py-2">
+        <div className="flex items-center justify-between gap-3 rounded-md border bg-card px-3 py-2">
           <div className="flex flex-col">
             <span className="text-sm">允许入驻</span>
-            <span className="text-xs text-muted-foreground">
-              开启后会消耗食物驯服新小狗
-            </span>
+            <span className="text-xs text-muted-foreground">开启后会消耗食物驯服新小狗</span>
           </div>
-          <Switch size="lg"
+          <Switch
+            size="lg"
             checked={gameState.isDomesticateEnabled}
             onCheckedChange={setDomesticateEnabled}
             aria-label="切换是否允许小狗入驻"
@@ -104,7 +94,9 @@ export function ResourcePanel() {
             {shouldShowProgress && (
               <>
                 (
-                <span className={growthProgressRaw > 0 ? 'text-green-600' : 'text-red-600'}>{progressText}</span>
+                <span className={growthProgressRaw > 0 ? 'text-foreground' : 'text-destructive'}>
+                  {progressText}
+                </span>
                 )
               </>
             )}

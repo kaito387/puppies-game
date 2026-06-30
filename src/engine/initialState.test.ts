@@ -8,7 +8,12 @@ import {
 
 import { RESOURCES, BUILDINGS } from '@/engine/types'
 
-import { INITIAL_POPULATION_CAP, INITIAL_RESOURCE_LIMITS } from '@/engine/constants'
+import {
+  INITIAL_DOG_COUNT,
+  INITIAL_FOOD,
+  INITIAL_POPULATION_CAP,
+  INITIAL_RESOURCE_LIMITS,
+} from '@/engine/constants'
 
 describe('initialState', () => {
   describe('createInitialGameState', () => {
@@ -38,9 +43,9 @@ describe('initialState', () => {
       expect(state.workshopUnlockIds).toEqual([])
     })
 
-    it('should initialize dogs as empty array', () => {
+    it('should initialize with the starting dog count', () => {
       const state = createInitialGameState()
-      expect(state.dogs).toEqual([])
+      expect(state.dogs).toHaveLength(INITIAL_DOG_COUNT)
     })
 
     it('should set populationCap to INITIAL_POPULATION_CAP', () => {
@@ -73,10 +78,11 @@ describe('initialState', () => {
       expect(typeof state.lastTickTime).toBe('number')
     })
 
-    it('should initialize all resources to 0', () => {
+    it('should initialize resources with starting supplies', () => {
       const state = createInitialGameState()
       RESOURCES.forEach((resource) => {
-        expect(state.resourceCounts[resource.id]).toBe(0)
+        const expected = resource.id === 'food' ? INITIAL_FOOD : 0
+        expect(state.resourceCounts[resource.id]).toBe(expected)
       })
     })
 

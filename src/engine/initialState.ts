@@ -1,4 +1,10 @@
-import { INITIAL_POPULATION_CAP, INITIAL_RESOURCE_LIMITS } from '@/engine/constants'
+import {
+  INITIAL_DOG_COUNT,
+  INITIAL_FOOD,
+  INITIAL_POPULATION_CAP,
+  INITIAL_RESOURCE_LIMITS,
+} from '@/engine/constants'
+import { createDogs } from '@/engine/dogs'
 import { BUILDINGS, RESOURCES, type GameState } from '@/engine/types'
 
 export function createInitialResourceLimits(): Record<string, number> {
@@ -19,6 +25,7 @@ export function createInitialGameState(): GameState {
   RESOURCES.forEach((resource) => {
     resources[resource.id] = 0
   })
+  resources.food = INITIAL_FOOD
 
   const buildings: Record<string, number> = {}
   BUILDINGS.forEach((building) => {
@@ -40,7 +47,7 @@ export function createInitialGameState(): GameState {
     researchedTechIds: [],
     enactedPolicyIds: [],
     workshopUnlockIds: [],
-    dogs: [],
+    dogs: createDogs(INITIAL_DOG_COUNT),
     populationCap: INITIAL_POPULATION_CAP,
     leaderDogId: null,
     isDomesticateEnabled: false,

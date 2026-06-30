@@ -9,8 +9,8 @@ import { WorkshopPanel } from '@/components/WorkshopPanel'
 import { LogPanel } from '@/components/LogPanel'
 import { SettingsPanel } from '@/components/SettingsPanel'
 import { AUTO_SAVE_INTERVAL_TICKS, GAME_TICK_INTERVAL_MS } from '@/engine/constants'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { calculateCalendarProgress } from '@/engine/calendar'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Sidebar,
   SidebarContent,
@@ -24,36 +24,26 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Calendar } from '@/components/ui/calendar'
 import { PolicyPanel } from '@/components/PolicyPanel'
-
-function PlaceholderActionPanel(props: {
-  title: string
-  description: string
-  buttonLabel: string
-  requirement?: string
-  locked?: boolean
-}) {
-  const { title, description, buttonLabel, requirement, locked = true } = props
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-wrap items-center gap-3">
-        <Button disabled={locked}>{buttonLabel}</Button>
-        {requirement ? (
-          <span className="text-sm text-muted-foreground">前置条件: {requirement}</span>
-        ) : null}
-      </CardContent>
-    </Card>
-  )
-}
+import { getPopulationCount } from '@/engine/dogs'
+import { Badge } from '@/components/ui/badge'
+import {
+  BoxesIcon,
+  CalendarDaysIcon,
+  FlaskConicalIcon,
+  HammerIcon,
+  HomeIcon,
+  PawPrintIcon,
+  Settings2Icon,
+  ScrollTextIcon,
+} from 'lucide-react'
 
 function App() {
   const tick = useGameStore((store) => store.tick)
   const saveGame = useGameStore((store) => store.saveGame)
+  const gameState = useGameStore((store) => store.gameState)
+  const calendar = calculateCalendarProgress(gameState)
   const gameTickRef = useRef(0)
+  const population = getPopulationCount(gameState.dogs)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -72,9 +62,17 @@ function App() {
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <div className="rounded-md border border-sidebar-border bg-sidebar-accent/40 p-3">
-            <h1 className="text-xl font-semibold">🐕 狗国建设者</h1>
-            <p className="text-xs text-muted-foreground">资源总览</p>
+          <div className="flex flex-col gap-2 rounded-lg border border-sidebar-border bg-sidebar-accent/50 p-3">
+            <div className="flex items-center gap-2">
+              <PawPrintIcon data-icon="inline-start" />
+              <h1 className="text-xl font-semibold">狗国建设者</h1>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary">第 {calendar.year} 年</Badge>
+              <Badge variant="outline">
+                狗口 {population}/{gameState.populationCap}
+              </Badge>
+            </div>
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -93,12 +91,16 @@ function App() {
               <SidebarTrigger />
               <div>
                 <h2 className="text-lg font-semibold">狗狗帝国控制台</h2>
-                <p className="text-sm text-muted-foreground">建造、分工与扩张都在这里进行。</p>
+                <p className="text-sm text-muted-foreground">建造、分工、研究与制度调整。</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-end gap-2 text-sm text-muted-foreground">
+              <Badge variant="outline">
+                <CalendarDaysIcon data-icon="inline-start" />
+                {calendar.month} 月 {calendar.day} 日
+              </Badge>
               <Calendar />
-              <span>TPS: ~5</span>
+              <Badge variant="outline">5 tick/s</Badge>
               <LogPanel />
               <SettingsPanel />
             </div>
@@ -107,12 +109,26 @@ function App() {
         <div className="px-4 py-4">
           <Tabs defaultValue="buildings" className="gap-4">
             <TabsList variant="line" className="w-full justify-start overflow-x-auto">
-              <TabsTrigger value="buildings">建筑</TabsTrigger>
-              <TabsTrigger value="management">管理</TabsTrigger>
-              <TabsTrigger value="technologies">科技</TabsTrigger>
-              <TabsTrigger value="workshop">工坊</TabsTrigger>
-              <TabsTrigger value="trade">贸易</TabsTrigger>
-              <TabsTrigger value="policies">政策</TabsTrigger>
+              <TabsTrigger value="buildings">
+                <HomeIcon data-icon="inline-start" />
+                建筑
+              </TabsTrigger>
+              <TabsTrigger value="management">
+                <PawPrintIcon data-icon="inline-start" />
+                管理
+              </TabsTrigger>
+              <TabsTrigger value="technologies">
+                <FlaskConicalIcon data-icon="inline-start" />
+                科技
+              </TabsTrigger>
+              <TabsTrigger value="workshop">
+                <HammerIcon data-icon="inline-start" />
+                工坊
+              </TabsTrigger>
+              <TabsTrigger value="policies">
+                <ScrollTextIcon data-icon="inline-start" />
+                政策
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="buildings">
               <BuildingPanel />
@@ -126,22 +142,17 @@ function App() {
             <TabsContent value="workshop">
               <WorkshopPanel />
             </TabsContent>
-            <TabsContent value="trade">
-              <PlaceholderActionPanel
-                title="💱 贸易"
-                description="与邻近部落交换物资，稳定补给。"
-                buttonLabel="发起贸易"
-                requirement="需要 20 骨头库存"
-              />
-            </TabsContent>
             <TabsContent value="policies">
               <PolicyPanel />
             </TabsContent>
           </Tabs>
 
-          <Card className="mt-4">
-            <CardContent className="pt-6 text-xs text-muted-foreground">
-              💾 游戏会自动保存到浏览器存储。
+          <Card size="sm" className="mt-4">
+            <CardContent className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <BoxesIcon data-icon="inline-start" />
+              游戏会自动保存到浏览器存储。
+              <Settings2Icon data-icon="inline-start" />
+              设置中可以手动保存、读取或重置。
             </CardContent>
           </Card>
         </div>

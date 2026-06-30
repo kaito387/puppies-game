@@ -40,8 +40,8 @@ describe('Workshop', () => {
   it('should unlock wood pickaxe once and deduct resources', () => {
     gameState.buildings.workshop = 1
     gameState.researchedTechIds = ['mining']
-    gameState.resourceCounts.wood = 80
-    gameState.resourceCounts.science = 60
+    gameState.resourceCounts.wood = 60
+    gameState.resourceCounts.science = 40
 
     const unlocked = unlockWorkshopItem(gameState, 'wood_pickaxe')
 
@@ -110,7 +110,7 @@ describe('Workshop', () => {
 
   it('should check isWorkshopUnlockUnlocked correctly', () => {
     expect(isWorkshopUnlockUnlocked(gameState, 'wood_pickaxe')).toBe(false)
-    
+
     gameState.workshopUnlockIds = ['wood_pickaxe']
     expect(isWorkshopUnlockUnlocked(gameState, 'wood_pickaxe')).toBe(true)
   })
@@ -118,16 +118,16 @@ describe('Workshop', () => {
   it('should check isWorkshopUnlockVisible correctly', () => {
     const woodPickaxe = {
       id: 'wood_pickaxe',
-      prerequisites: { requiredBuildings: ['workshop'], requiredTechs: ['mining'] }
+      prerequisites: { requiredBuildings: ['workshop'], requiredTechs: ['mining'] },
     } as WorkshopUnlock
-    
+
     expect(isWorkshopUnlockVisible(gameState, woodPickaxe)).toBe(false)
-    
+
     gameState.buildings.workshop = 1
     gameState.researchedTechIds = ['mining']
-    
+
     expect(isWorkshopUnlockVisible(gameState, woodPickaxe)).toBe(true)
-    
+
     gameState.workshopUnlockIds = ['wood_pickaxe']
     expect(isWorkshopUnlockVisible(gameState, woodPickaxe)).toBe(true)
   })
@@ -147,9 +147,9 @@ describe('Workshop - Additional Coverage', () => {
     gameState.workshopUnlockIds = ['wood_pickaxe']
     const woodPickaxe = {
       id: 'wood_pickaxe',
-      prerequisites: { requiredBuildings: ['workshop'], requiredTechs: ['mining'] }
+      prerequisites: { requiredBuildings: ['workshop'], requiredTechs: ['mining'] },
     } as WorkshopUnlock
-    
+
     const result = isWorkshopUnlockVisible(gameState, woodPickaxe)
     expect(result).toBe(true)
   })
@@ -157,9 +157,9 @@ describe('Workshop - Additional Coverage', () => {
   it('isWorkshopUnlockVisible should return false when not unlocked and prerequisites not met', () => {
     const woodPickaxe = {
       id: 'wood_pickaxe',
-      prerequisites: { requiredBuildings: ['workshop'], requiredTechs: ['mining'] }
+      prerequisites: { requiredBuildings: ['workshop'], requiredTechs: ['mining'] },
     } as WorkshopUnlock
-    
+
     const result = isWorkshopUnlockVisible(gameState, woodPickaxe)
     expect(result).toBe(false)
   })
@@ -169,7 +169,7 @@ describe('Workshop - Additional Coverage', () => {
     gameState.researchedTechIds = ['mining']
     gameState.resourceCounts.wood = 50
     gameState.resourceCounts.science = 50
-    
+
     const result = canUnlockWorkshopItem(gameState, 'wood_pickaxe')
     expect(result).toBe(false)
   })
@@ -179,7 +179,7 @@ describe('Workshop - Additional Coverage', () => {
     gameState.researchedTechIds = ['mining']
     gameState.resourceCounts.wood = 100
     gameState.resourceCounts.science = 100
-    
+
     const result = canUnlockWorkshopItem(gameState, 'wood_pickaxe')
     expect(result).toBe(true)
   })
@@ -190,7 +190,7 @@ describe('Workshop - Additional Coverage', () => {
     gameState.resourceCounts.wood = 100
     gameState.resourceCounts.science = 100
     gameState.workshopUnlockIds = ['wood_pickaxe']
-    
+
     const result = canUnlockWorkshopItem(gameState, 'wood_pickaxe')
     expect(result).toBe(false)
   })

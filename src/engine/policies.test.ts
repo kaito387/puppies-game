@@ -80,16 +80,16 @@ describe('Policies', () => {
     })
 
     it('should return false when culture is insufficient', () => {
-      const group = getPolicyGroupByPolicyId('policy-democracy') // costs 300 culture
+      const group = getPolicyGroupByPolicyId('policy-democracy')
       gameState.buildings.library = 1
-      gameState.resourceCounts.culture = 100
+      gameState.resourceCounts.culture = 79
       expect(canEnactPolicyGroup(gameState, group)).toBe(false)
     })
 
     it('should return true when prerequisites are met and resources are sufficient', () => {
       const group = getPolicyGroupByPolicyId('policy-democracy')
       gameState.buildings.library = 1
-      gameState.resourceCounts.culture = 300
+      gameState.resourceCounts.culture = 80
       expect(canEnactPolicyGroup(gameState, group)).toBe(true)
     })
 
@@ -130,7 +130,7 @@ describe('Policies', () => {
 
     it('should return true when all conditions are satisfied', () => {
       gameState.buildings.library = 1
-      gameState.resourceCounts.culture = 300
+      gameState.resourceCounts.culture = 80
       expect(canEnactPolicy(gameState, 'policy-democracy')).toBe(true)
     })
 
@@ -249,29 +249,29 @@ describe('Policies', () => {
   describe('enactPolicy (action integration)', () => {
     it('should add the policy to enactedPolicyIds', () => {
       gameState.buildings.library = 1
-      gameState.resourceCounts.culture = 300
+      gameState.resourceCounts.culture = 80
       const next = enactPolicy(gameState, 'policy-democracy')
       expect(next.enactedPolicyIds).toContain('policy-democracy')
     })
 
     it('should deduct the group cost from resources', () => {
       gameState.buildings.library = 1
-      gameState.resourceCounts.culture = 300
+      gameState.resourceCounts.culture = 80
       const next = enactPolicy(gameState, 'policy-democracy')
       expect(next.resourceCounts.culture).toBe(0)
     })
 
     it('should not mutate the original state', () => {
       gameState.buildings.library = 1
-      gameState.resourceCounts.culture = 300
+      gameState.resourceCounts.culture = 80
       enactPolicy(gameState, 'policy-democracy')
       expect(gameState.enactedPolicyIds).not.toContain('policy-democracy')
-      expect(gameState.resourceCounts.culture).toBe(300)
+      expect(gameState.resourceCounts.culture).toBe(80)
     })
 
     it('should throw when prerequisites are not met', () => {
       gameState.buildings.library = 0
-      gameState.resourceCounts.culture = 300
+      gameState.resourceCounts.culture = 80
       expect(() => enactPolicy(gameState, 'policy-democracy')).toThrow('不满足实施条件')
     })
 
@@ -306,7 +306,7 @@ describe('Policies', () => {
 
     it('should preserve all other state fields after enacting a policy', () => {
       gameState.buildings.library = 1
-      gameState.resourceCounts.culture = 300
+      gameState.resourceCounts.culture = 80
       const next = enactPolicy(gameState, 'policy-democracy')
       expect(next.dogs).toEqual(gameState.dogs)
       expect(next.buildings).toEqual(gameState.buildings)

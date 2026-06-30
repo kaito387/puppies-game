@@ -37,7 +37,9 @@ describe('Game Loop', () => {
   describe('Production', () => {
     it('should calculate production correctly with no buildings', () => {
       const production = calculateProduction(gameState)
-      const zeroResources: Record<string, number> = Object.fromEntries(RESOURCES.map((r) => [r.id, 0]))
+      const zeroResources: Record<string, number> = Object.fromEntries(
+        RESOURCES.map((r) => [r.id, 0]),
+      )
       expect(production).toEqual(zeroResources)
     })
 
@@ -46,7 +48,7 @@ describe('Game Loop', () => {
       gameState.buildings.farm = 3
       gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 6
       const production = calculateProduction(gameState)
-      expect(production.food).toBeCloseTo(0.6)
+      expect(production.food).toBeCloseTo(0.45)
     })
 
     it('should calculate job production correctly', () => {
@@ -62,8 +64,8 @@ describe('Game Loop', () => {
       gameState.dogs[2].traitId = 'scientist'
 
       const production = calculateJobProduction(gameState)
-      expect(production.food).toBeCloseTo(3)
-      expect(production.wood).toBeCloseTo(0.2)
+      expect(production.food).toBeCloseTo(1.8)
+      expect(production.wood).toBeCloseTo(0.35)
     })
 
     it('should skip dogs with unknown jobId silently', () => {
@@ -77,20 +79,20 @@ describe('Game Loop', () => {
 
     it('should calculate population cap from housing buildings', () => {
       gameState.buildings.barn = 3
-      expect(calculatePopulationCap(gameState)).toBe(7)
+      expect(calculatePopulationCap(gameState)).toBe(8)
     })
 
     it('should calculate resource limits with warehouse bonuses', () => {
       gameState.buildings.warehouse = 2
       const limits = calculateResourceLimits(gameState)
-      expect(limits.food).toBe(INITIAL_RESOURCE_LIMITS.food + 2 * 5000)
-      expect(limits.wood).toBe(INITIAL_RESOURCE_LIMITS.wood + 2 * 1000)
+      expect(limits.food).toBe(INITIAL_RESOURCE_LIMITS.food + 2 * 250)
+      expect(limits.wood).toBe(INITIAL_RESOURCE_LIMITS.wood + 2 * 220)
     })
 
     it('should apply multiplier resource_limit effect from enacted policy', () => {
       gameState.enactedPolicyIds = ['policy-environment']
       const limits = calculateResourceLimits(gameState)
-      expect(limits.food).toBeCloseTo(INITIAL_RESOURCE_LIMITS.food * 1.25)
+      expect(limits.food).toBeCloseTo(INITIAL_RESOURCE_LIMITS.food * 1.4)
     })
 
     it('should apply researched tech multiplier to building production', () => {
@@ -99,7 +101,7 @@ describe('Game Loop', () => {
       gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 6
 
       const production = calculateProduction(gameState)
-      expect(production.food).toBeCloseTo(0.48)
+      expect(production.food).toBeCloseTo(0.36)
     })
 
     it('should keep resource limits unchanged when no resource-limit tech exists', () => {
@@ -108,7 +110,7 @@ describe('Game Loop', () => {
       const limits = calculateResourceLimits(gameState)
       expect(limits.food).toBe(INITIAL_RESOURCE_LIMITS.food)
       expect(limits.wood).toBe(INITIAL_RESOURCE_LIMITS.wood)
-      expect(limits.science).toBeUndefined()
+      expect(limits.science).toBe(INITIAL_RESOURCE_LIMITS.science)
     })
 
     it('should apply researched tech multiplier to job production', () => {
@@ -118,7 +120,7 @@ describe('Game Loop', () => {
       gameState.dogs[0].status = 'working'
 
       const production = calculateJobProduction(gameState)
-      expect(production.wood).toBeCloseTo(0.24)
+      expect(production.wood).toBeCloseTo(0.42)
     })
 
     it('should include dog experience bonus in job production with cap', () => {
@@ -129,7 +131,7 @@ describe('Game Loop', () => {
       gameState.dogs[0].experienceByJob.farmer = 200
 
       const production = calculateJobProduction(gameState)
-      expect(production.food).toBeCloseTo(1.6591, 3)
+      expect(production.food).toBeCloseTo(0.9954, 3)
     })
 
     it('should produce dogpower when hunter is assigned', () => {
@@ -138,7 +140,7 @@ describe('Game Loop', () => {
       gameState.dogs[0].status = 'working'
 
       const production = calculateJobProduction(gameState)
-      expect(production.dogpower).toBeCloseTo(0.2)
+      expect(production.dogpower).toBeCloseTo(0.22)
     })
 
     it('should produce culture when artist is assigned', () => {
@@ -148,7 +150,7 @@ describe('Game Loop', () => {
       gameState.dogs[0].status = 'working'
 
       const production = calculateJobProduction(gameState)
-      expect(production.culture).toBeCloseTo(0.2)
+      expect(production.culture).toBeCloseTo(0.16)
     })
 
     it('should accumulate culture each tick with artist assigned', () => {
@@ -172,7 +174,7 @@ describe('Game Loop', () => {
       gameState.enactedPolicyIds = ['policy-democracy']
 
       const production = calculateJobProduction(gameState)
-      expect(production.culture).toBeCloseTo(0.2 * 1.2)
+      expect(production.culture).toBeCloseTo(0.16 * 1.35)
     })
 
     it('should apply authoritarian policy multiplier to farmer and penalty to artist', () => {
@@ -186,8 +188,8 @@ describe('Game Loop', () => {
       gameState.enactedPolicyIds = ['policy-authoritarian']
 
       const production = calculateJobProduction(gameState)
-      expect(production.food).toBeCloseTo(1.5 * 1.2)
-      expect(production.culture).toBeCloseTo(0.2 * 0.8)
+      expect(production.food).toBeCloseTo(0.9 * 1.3)
+      expect(production.culture).toBeCloseTo(0.16 * 0.75)
     })
 
     it('should include enacted policy effects in aggregateEffects', () => {
@@ -195,7 +197,7 @@ describe('Game Loop', () => {
       gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 6
 
       const effects = aggregateEffects(gameState)
-      expect(effects.jobProductionMultipliers.artist).toBeCloseTo(1.2)
+      expect(effects.jobProductionMultipliers.artist).toBeCloseTo(1.35)
     })
 
     it('should apply effects from two policies in different groups simultaneously', () => {
@@ -208,8 +210,8 @@ describe('Game Loop', () => {
       gameState.enactedPolicyIds = ['policy-democracy', 'policy-radical']
 
       const production = calculateJobProduction(gameState)
-      expect(production.culture).toBeCloseTo(0.2 * 1.2)
-      expect(production.science).toBeCloseTo(0.2 * 1.1 * 1.25)
+      expect(production.culture).toBeCloseTo(0.16 * 1.35)
+      expect(production.science).toBeCloseTo(0.18 * 1.1 * 1.35)
     })
   })
 
@@ -227,7 +229,7 @@ describe('Game Loop', () => {
       gameState.dogs[1].traitId = 'agriculturalist'
 
       const production = calculateJobProduction(gameState)
-      expect(production.science).toBeCloseTo(0.2)
+      expect(production.science).toBeCloseTo(0.18)
     })
 
     it('should apply leader trait effect once administration is researched', () => {
@@ -238,7 +240,7 @@ describe('Game Loop', () => {
       gameState.dogs[1].traitId = 'agriculturalist'
 
       const production = calculateJobProduction(gameState)
-      expect(production.science).toBeCloseTo(0.2 * 1.1)
+      expect(production.science).toBeCloseTo(0.18 * 1.1)
     })
 
     it('should only apply the designated leader trait, not other dogs traits', () => {
@@ -256,8 +258,8 @@ describe('Game Loop', () => {
       gameState.dogs[2].status = 'working'
 
       const production = calculateJobProduction(gameState)
-      expect(production.food).toBeCloseTo(1.5 * 1.1)
-      expect(production.science).toBeCloseTo(0.2)
+      expect(production.food).toBeCloseTo(0.9 * 1.1)
+      expect(production.science).toBeCloseTo(0.18)
     })
 
     it('should clear leader effect after leader dog dies (leaderDogId auto-cleared)', () => {
@@ -281,7 +283,7 @@ describe('Game Loop', () => {
       gameState.researchedTechIds = ['administration']
 
       const production = calculateJobProduction(gameState)
-      expect(production.science).toBeCloseTo(0.2)
+      expect(production.science).toBeCloseTo(0.18)
     })
   })
 
@@ -290,7 +292,9 @@ describe('Game Loop', () => {
       gameState.buildings.farm = 1
       gameState.tickCount = TICKS_PER_DAY * DAYS_PER_MONTH * 6
       const { gameState: newState } = tick(gameState)
-      expect(newState.resourceCounts.food).toBeCloseTo(0.2)
+      expect(newState.resourceCounts.food).toBeCloseTo(
+        30 + 0.15 - FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
+      )
       expect(newState.tickCount).toBe(TICKS_PER_DAY * DAYS_PER_MONTH * 6 + 1)
     })
 
@@ -333,8 +337,10 @@ describe('Game Loop', () => {
       gameState.dogs[1].traitId = 'scientist'
 
       const { gameState: next } = tick(gameState)
-      expect(next.resourceCounts.food).toBeCloseTo(50 + 3 - 4 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK)
-      expect(next.resourceCounts.wood).toBeCloseTo(0.2)
+      expect(next.resourceCounts.food).toBeCloseTo(
+        50 + 1.8 - 4 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK,
+      )
+      expect(next.resourceCounts.wood).toBeCloseTo(0.35)
     })
 
     it('should not increase growth when domestication is enabled but food is not enough for domestication cost', () => {
@@ -365,7 +371,7 @@ describe('Game Loop', () => {
 
       const { gameState: next } = tick(gameState)
       const expectedStarvationDelta =
-        (5 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK / FOOD_CONSUMPTION_PER_PUPPY_PER_TICK) *
+        ((5 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK) / FOOD_CONSUMPTION_PER_PUPPY_PER_TICK) *
         POPULATION_GROWTH_RATE
 
       expect(next.populationGrowthProgress).toBeCloseTo(-expectedStarvationDelta)
@@ -389,15 +395,14 @@ describe('Game Loop', () => {
 
     it('should not spend domestication food when population is at cap', () => {
       gameState.buildings.barn = 1
-      setDogs(3)
-      gameState.populationCap = 3
+      setDogs(4)
       gameState.resourceCounts.food = 200
       gameState.populationGrowthProgress = 0.8
       gameState.isDomesticateEnabled = true
 
       const { gameState: next } = tick(gameState)
       expect(next.dogs.length).toBe(next.populationCap)
-      expect(next.resourceCounts.food).toBeCloseTo(200 - 3 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK)
+      expect(next.resourceCounts.food).toBeCloseTo(200 - 4 * FOOD_CONSUMPTION_PER_PUPPY_PER_TICK)
       expect(next.populationGrowthProgress).toBeCloseTo(0.8)
     })
 
@@ -524,7 +529,7 @@ describe('Game Loop', () => {
       gameState.buildings.farm = 1
       gameState.tickCount = 0
       const springProduction = calculateProduction(gameState)
-      expect(springProduction.food).toBeCloseTo(0.23)
+      expect(springProduction.food).toBeCloseTo(0.1725)
     })
   })
 
@@ -537,9 +542,9 @@ describe('Game Loop', () => {
       gameState.resourceCounts.iron = 0
 
       const { gameState: next } = tick(gameState)
-      expect(next.resourceCounts.wood).toBeCloseTo(9)
-      expect(next.resourceCounts.stone).toBeCloseTo(9)
-      expect(next.resourceCounts.iron).toBeCloseTo(1)
+      expect(next.resourceCounts.wood).toBeCloseTo(9.2)
+      expect(next.resourceCounts.stone).toBeCloseTo(9.2)
+      expect(next.resourceCounts.iron).toBeCloseTo(0.55)
     })
 
     it('should not consume or produce when resources are insufficient', () => {
@@ -573,9 +578,9 @@ describe('Game Loop', () => {
       gameState.resourceCounts.iron = 0
 
       const { gameState: next } = tick(gameState)
-      expect(next.resourceCounts.wood).toBeCloseTo(7)
-      expect(next.resourceCounts.stone).toBeCloseTo(7)
-      expect(next.resourceCounts.iron).toBeCloseTo(3)
+      expect(next.resourceCounts.wood).toBeCloseTo(7.6)
+      expect(next.resourceCounts.stone).toBeCloseTo(7.6)
+      expect(next.resourceCounts.iron).toBeCloseTo(1.65)
     })
 
     it('should stop entire batch when only one resource is insufficient', () => {

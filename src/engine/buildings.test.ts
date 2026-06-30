@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { buildBuilding, canBuildBuilding, getBuildingCost, getBuildingById, setBuildingActiveCount } from '@/engine/buildings'
+import {
+  buildBuilding,
+  canBuildBuilding,
+  getBuildingCost,
+  getBuildingById,
+  setBuildingActiveCount,
+} from '@/engine/buildings'
 import { BUILDINGS, type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 
@@ -65,7 +71,7 @@ describe('Buildings', () => {
 
     it('should apply technology cost discount to building costs', () => {
       gameState.researchedTechIds = ['woodworking', 'crop_rotation']
-      expect(getBuildingCost(gameState, 'farm').food).toBe(8)
+      expect(getBuildingCost(gameState, 'farm').food).toBe(10)
     })
 
     it('should build a barn if resources are sufficient', () => {
@@ -95,6 +101,7 @@ describe('Buildings', () => {
 
     it('should return true for canBuildBuilding once tech prerequisites are met', () => {
       gameState.resourceCounts.wood = 1000
+      gameState.resourceCounts.science = 1000
       gameState.researchedTechIds = ['workshop_engineering']
       expect(canBuildBuilding(gameState, 'workshop')).toBe(true)
     })

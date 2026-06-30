@@ -15,11 +15,7 @@ import { type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import { createDogs } from '@/engine/dogs'
 import { calculateResourceLimits } from '@/engine/gameLoop'
-import {
-  DOGPOWER_PER_EXPLORATION,
-  FUR_REWARD_MIN,
-  FUR_REWARD_MAX,
-} from '@/engine/constants'
+import { DOGPOWER_PER_EXPLORATION, FUR_REWARD_MIN, FUR_REWARD_MAX } from '@/engine/constants'
 import { canEnactPolicy } from '@/engine/policies'
 
 describe('Actions', () => {
@@ -89,7 +85,9 @@ describe('Actions', () => {
       withDogs(2)
       gameState.buildings.farm = 1
       gameState = setJobAssignment(gameState, 'farmer', 1)
-      expect(() => setJobAssignment(gameState, 'lumberjack', 2)).toThrow('职业分配总人数不能超过当前人口')
+      expect(() => setJobAssignment(gameState, 'lumberjack', 2)).toThrow(
+        '职业分配总人数不能超过当前人口',
+      )
     })
 
     it('should reject unknown jobs', () => {
@@ -109,7 +107,9 @@ describe('Actions', () => {
     it('should throw when assigning unknown jobId via assignDogJob', () => {
       withDogs(1)
       const targetDogId = gameState.dogs[0].id
-      expect(() => assignDogJob(gameState, targetDogId, 'nonexistent-job')).toThrow('职业 nonexistent-job 不存在')
+      expect(() => assignDogJob(gameState, targetDogId, 'nonexistent-job')).toThrow(
+        '职业 nonexistent-job 不存在',
+      )
     })
 
     it('should reject assigning locked job to individual dog', () => {
@@ -145,7 +145,9 @@ describe('Actions', () => {
     it('should throw when renaming with invalid name', () => {
       withDogs(1)
       const targetDogId = gameState.dogs[0].id
-      expect(() => renameDog(gameState, targetDogId, ' '.repeat(20))).toThrow('小狗名字长度必须在 1-16 个字符')
+      expect(() => renameDog(gameState, targetDogId, ' '.repeat(20))).toThrow(
+        '小狗名字长度必须在 1-16 个字符',
+      )
     })
 
     it('should throw when renaming a dog that does not exist', () => {
@@ -270,24 +272,24 @@ describe('Actions', () => {
   describe('enactPolicy', () => {
     it('should deduct culture cost from resources', () => {
       gameState.buildings.library = 1
-      gameState.resourceCounts.culture = 300
+      gameState.resourceCounts.culture = 80
       const next = enactPolicy(gameState, 'policy-democracy')
       expect(next.resourceCounts.culture).toBe(0)
     })
 
     it('should append policy to enactedPolicyIds', () => {
       gameState.buildings.library = 1
-      gameState.resourceCounts.culture = 300
+      gameState.resourceCounts.culture = 80
       const next = enactPolicy(gameState, 'policy-democracy')
       expect(next.enactedPolicyIds).toContain('policy-democracy')
     })
 
     it('should not mutate the original state', () => {
       gameState.buildings.library = 1
-      gameState.resourceCounts.culture = 300
+      gameState.resourceCounts.culture = 80
       enactPolicy(gameState, 'policy-democracy')
       expect(gameState.enactedPolicyIds).not.toContain('policy-democracy')
-      expect(gameState.resourceCounts.culture).toBe(300)
+      expect(gameState.resourceCounts.culture).toBe(80)
     })
 
     it('should throw when prerequisites are not met', () => {
