@@ -3,6 +3,7 @@ import { createInitialGameState } from '@/engine/initialState'
 import { WORKSHOP_UNLOCKS } from '@/engine/types'
 
 export const SAVE_KEY = 'puppies-game-save'
+export const SAVE_VERSION = '1.0.0'
 
 export function saveGame(gameState: GameState): void {
   const knownTechIds = new Set(TECHNOLOGIES.map((technology) => technology.id))
@@ -13,7 +14,7 @@ export function saveGame(gameState: GameState): void {
   const enactedPolicyIds = (gameState.enactedPolicyIds || []).filter((policyId) => knownPolicyIds.has(policyId))
 
   const saveData = {
-    version: '0.0.0',
+    version: SAVE_VERSION,
     timestamp: Date.now(),
     ...gameState,
     researchedTechIds,

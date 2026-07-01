@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { loadGame, resetGame, saveGame } from '@/engine/save'
+import { loadGame, resetGame, saveGame, SAVE_KEY, SAVE_VERSION } from '@/engine/save'
 import { createInitialGameState } from '@/engine/initialState'
 import { createDogs } from '@/engine/dogs'
 import { INITIAL_DOG_COUNT, INITIAL_POPULATION_CAP } from '@/engine/constants'
@@ -92,6 +92,13 @@ describe('Save System', () => {
     expect(loaded.populationCap).toBe(7)
     expect(loaded.isDomesticateEnabled).toBe(true)
     expect(loaded.populationGrowthProgress).toBeCloseTo(-0.55)
+  })
+
+  it('should persist the current save version', () => {
+    saveGame(createInitialGameState())
+
+    const saveData = JSON.parse(localStorage.getItem(SAVE_KEY) ?? '{}')
+    expect(saveData.version).toBe(SAVE_VERSION)
   })
 
   it('should persist researched technologies', () => {
