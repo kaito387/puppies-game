@@ -11,7 +11,7 @@ import {
 } from '@/engine/types'
 import { getVisibleJobsIds, canResearchTechnology, researchTechnology } from '@/engine/technologies'
 import { canUnlockWorkshopItem, unlockWorkshopItem } from '@/engine/workshop'
-import { setJobAssignment, setDomesticateEnabled } from '@/engine/actions'
+import { setDomesticateEnabled } from '@/engine/actions'
 import {
   calculateJobProduction,
   calculateProduction,
@@ -233,16 +233,9 @@ function runExplorationForSimulation(state: GameState): GameState {
 }
 
 function assignJobsForSimulation(state: GameState): GameState {
-  let nextState: GameState = {
-    ...state,
-    dogs: state.dogs.map((dog) => ({
-      ...dog,
-      currentJobId: null,
-      status: normalizeDogStatus(null),
-    })),
-  }
-  const visibleJobs = getVisibleJobsIds(nextState)
-  let remaining = nextState.dogs.length
+  const visibleJobs = getVisibleJobsIds(state)
+  let remaining = state.dogs.length
+  const targetAssignments: Record<string, number> = {}
 
   for (const jobId of JOB_PRIORITY) {
     if (!visibleJobs.includes(jobId)) {
@@ -251,34 +244,82 @@ function assignJobsForSimulation(state: GameState): GameState {
 
     let target = 0
     if (jobId === 'farmer') {
-      target = Math.min(remaining, Math.ceil(nextState.dogs.length * 0.25))
+      target = Math.min(remaining, Math.ceil(state.dogs.length * 0.25))
     } else if (jobId === 'lumberjack') {
-      target = Math.min(remaining, Math.ceil(nextState.dogs.length * 0.2))
+      target = Math.min(remaining, Math.ceil(state.dogs.length * 0.2))
     } else if (jobId === 'scientist') {
-      target = Math.min(remaining, Math.ceil(nextState.dogs.length * 0.18))
+      target = Math.min(remaining, Math.ceil(state.dogs.length * 0.18))
     } else if (jobId === 'miner') {
-      target = Math.min(remaining, Math.ceil(nextState.dogs.length * 0.15))
+      target = Math.min(remaining, Math.ceil(state.dogs.length * 0.15))
     } else if (jobId === 'hunter') {
-      target = Math.min(remaining, Math.ceil(nextState.dogs.length * 0.08))
+      target = Math.min(remaining, Math.ceil(state.dogs.length * 0.08))
     } else if (jobId === 'artist') {
-      target = Math.min(remaining, Math.ceil(nextState.dogs.length * 0.1))
+      target = Math.min(remaining, Math.ceil(state.dogs.length * 0.1))
     } else {
-      target = Math.min(remaining, Math.max(1, Math.floor(nextState.dogs.length * 0.08)))
+      target = Math.min(remaining, Math.max(1, Math.floor(state.dogs.length * 0.08)))
     }
 
     if (target > 0) {
-      nextState = setJobAssignment(nextState, jobId, target)
+      targetAssignments[jobId] = target
       remaining -= target
     }
   }
 
   const fallbackJob = visibleJobs.includes('lumberjack') ? 'lumberjack' : visibleJobs[0]
   if (fallbackJob && remaining > 0) {
-    const current = nextState.dogs.filter((dog) => dog.currentJobId === fallbackJob).length
-    nextState = setJobAssignment(nextState, fallbackJob, current + remaining)
+    targetAssignments[fallbackJob] = (targetAssignments[fallbackJob] || 0) + remaining
   }
 
-  return nextState
+  const currentAssignments: Record<string, number> = {}
+  for (const dog of state.dogs) {
+    if (dog.currentJobId) {
+      currentAssignments[dog.currentJobId] = (currentAssignments[dog.currentJobId] || 0) + 1
+    }
+  }
+
+  const assignmentIds = new Set([
+    ...Object.keys(currentAssignments),
+    ...Object.keys(targetAssignments),
+  ])
+  let assignmentsChanged = false
+  for (const jobId of assignmentIds) {
+    if ((currentAssignments[jobId] || 0) !== (targetAssignments[jobId] || 0)) {
+      assignmentsChanged = true
+      break
+    }
+  }
+
+  if (!assignmentsChanged) {
+    return state
+  }
+
+  const assignmentOrder = [
+    ...JOB_PRIORITY,
+    ...visibleJobs.filter((jobId) => !JOB_PRIORITY.includes(jobId)),
+  ]
+  const remainingTargets = { ...targetAssignments }
+  const nextDogs = state.dogs.map((dog) => {
+    const jobId =
+      assignmentOrder.find((candidate) => (remainingTargets[candidate] || 0) > 0) || null
+    if (jobId) {
+      remainingTargets[jobId] -= 1
+    }
+
+    if (dog.currentJobId === jobId) {
+      return dog
+    }
+
+    return {
+      ...dog,
+      currentJobId: jobId,
+      status: normalizeDogStatus(jobId),
+    }
+  })
+
+  return {
+    ...state,
+    dogs: nextDogs,
+  }
 }
 
 function advanceSimulationTicks(state: GameState, ticksToAdvance: number): GameState {

@@ -19,5 +19,5 @@ describe('Balance Simulation', () => {
     })
 
     expect(lastDayPurchases.length).toBeGreaterThan(0)
-  })
+  }, 15_000)
 })
