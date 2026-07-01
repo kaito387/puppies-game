@@ -46,6 +46,11 @@ export function describeRequirements(requirements: RequirementCarrier = {}): str
     parts.push(`工坊 ${requirements.requiredWorkshopUnlockIds.join('、')}`)
   }
 
+  if (requirements.requiredTickCount !== undefined) {
+    const days = Math.ceil(requirements.requiredTickCount / (24 * 60 * 60 * 5))
+    parts.push(`运行第 ${days} 天`)
+  }
+
   return parts.join('；')
 }
 

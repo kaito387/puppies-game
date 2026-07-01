@@ -9,7 +9,7 @@ import {
   isWorkshopUnlockUnlocked,
   isWorkshopUnlockVisible,
 } from '@/engine/workshop'
-import { calculateJobProduction } from '@/engine/gameLoop'
+import { calculateJobProduction, calculateResourceLimits } from '@/engine/gameLoop'
 import { createDogs } from '@/engine/dogs'
 
 describe('Workshop', () => {
@@ -64,6 +64,23 @@ describe('Workshop', () => {
     const production = calculateJobProduction(gameState)
     const baselineStone = baseline.stone || 0
     expect(production.stone).toBeCloseTo(baselineStone * 1.5)
+  })
+
+  it('should apply new workshop resource-limit and job bonuses', () => {
+    gameState.dogs = createDogs(1)
+    gameState.dogs[0].currentJobId = 'hunter'
+    gameState.dogs[0].status = 'working'
+
+    const baselineProduction = calculateJobProduction(gameState)
+    const baselineLimits = calculateResourceLimits(gameState)
+
+    gameState.workshopUnlockIds = ['field_pack']
+
+    const upgradedProduction = calculateJobProduction(gameState)
+    const upgradedLimits = calculateResourceLimits(gameState)
+
+    expect(upgradedProduction.dogpower).toBeCloseTo(baselineProduction.dogpower * 1.3)
+    expect(upgradedLimits.fur).toBeCloseTo(baselineLimits.fur * 1.5)
   })
 
   it('should throw error when getting non-existent workshop unlock', () => {

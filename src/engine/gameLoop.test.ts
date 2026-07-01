@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
+  applyOfflineProgress,
   tick,
   calculateProduction,
   calculateJobProduction,
@@ -19,6 +20,8 @@ import {
   CALENDAR_START_YEAR,
   CALENDAR_START_MONTH,
   CALENDAR_START_DAY,
+  GAME_TICK_INTERVAL_MS,
+  OFFLINE_PROGRESS_MAX_TICKS,
 } from '@/engine/constants'
 import { createDogs } from '@/engine/dogs'
 import { aggregateEffects } from '@/engine/technologies'
@@ -453,6 +456,42 @@ describe('Game Loop', () => {
     })
   })
 
+  describe('Offline Progress', () => {
+    it('should simulate elapsed ticks and update lastTickTime', () => {
+      const now = 1_000_000
+      gameState.lastTickTime = now - GAME_TICK_INTERVAL_MS * 10
+      gameState.buildings.farm = 1
+
+      const result = applyOfflineProgress(gameState, now)
+
+      expect(result.simulatedTicks).toBe(10)
+      expect(result.gameState.tickCount).toBe(gameState.tickCount + 10)
+      expect(result.gameState.lastTickTime).toBe(now)
+      expect(result.gameState.resourceCounts.food).toBeGreaterThan(gameState.resourceCounts.food)
+    })
+
+    it('should cap very long offline progress', () => {
+      const now = 10_000_000
+      gameState.lastTickTime = now - GAME_TICK_INTERVAL_MS * (OFFLINE_PROGRESS_MAX_TICKS + 1000)
+
+      const result = applyOfflineProgress(gameState, now)
+
+      expect(result.simulatedTicks).toBe(OFFLINE_PROGRESS_MAX_TICKS)
+      expect(result.capped).toBe(true)
+    })
+
+    it('should not simulate negative elapsed time', () => {
+      const now = 1_000
+      gameState.lastTickTime = now + GAME_TICK_INTERVAL_MS * 10
+
+      const result = applyOfflineProgress(gameState, now)
+
+      expect(result.simulatedTicks).toBe(0)
+      expect(result.gameState.tickCount).toBe(gameState.tickCount)
+      expect(result.gameState.lastTickTime).toBe(now)
+    })
+  })
+
   describe('Calendar', () => {
     it('should start at 387年3月1日 when tickCount is 0', () => {
       gameState.tickCount = 0
@@ -581,6 +620,18 @@ describe('Game Loop', () => {
       expect(next.resourceCounts.wood).toBeCloseTo(7.6)
       expect(next.resourceCounts.stone).toBeCloseTo(7.6)
       expect(next.resourceCounts.iron).toBeCloseTo(1.65)
+    })
+
+    it('should apply building production multipliers to toggleable buildings', () => {
+      gameState.buildings.smelter = 1
+      gameState.buildingActiveCounts.smelter = 1
+      gameState.researchedTechIds = ['metalworking']
+      gameState.resourceCounts.wood = 10
+      gameState.resourceCounts.stone = 10
+      gameState.resourceCounts.iron = 0
+
+      const { gameState: next } = tick(gameState)
+      expect(next.resourceCounts.iron).toBeCloseTo(0.55 * 1.2)
     })
 
     it('should stop entire batch when only one resource is insufficient', () => {

@@ -9,7 +9,8 @@ import {
   createInitialGameState,
   createInitialResourceDeltaPerTick,
 } from '@/engine/initialState'
-import { 
+import {
+  applyOfflineProgress,
   calculateResourceLimits, 
   tick as engineTick,
 } from '@/engine/gameLoop'
@@ -49,6 +50,22 @@ import { min } from '@/engine/utils'
 
 
 const MAX_LOGS = 100
+
+function formatOfflineDuration(elapsedMs: number): string {
+  const totalSeconds = Math.floor(elapsedMs / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+
+  if (hours > 0) {
+    return `${hours} 小时 ${minutes} 分钟`
+  }
+
+  if (minutes > 0) {
+    return `${minutes} 分钟`
+  }
+
+  return `${totalSeconds} 秒`
+}
 
 function addLog(logs: GameLog[], log: Omit<GameLog, 'id'>): GameLog[] {
   const newLog: GameLog = {
@@ -102,11 +119,51 @@ interface GameStore {
   resetGame: () => void
 }
 
+function createLoadedGameSnapshot(): Pick<GameStore, 'gameState' | 'logs' | 'unreadLogCount'> {
+  const loadedState = loadGame()
+  const offlineProgress = applyOfflineProgress(loadedState)
+
+  if (offlineProgress.simulatedTicks <= 0) {
+    return {
+      gameState: offlineProgress.gameState,
+      logs: [],
+      unreadLogCount: 0,
+    }
+  }
+
+  let logs: GameLog[] = []
+  logs = addLog(logs, {
+    timestamp: Date.now(),
+    type: 'explore',
+    message: `离线结算 ${formatOfflineDuration(offlineProgress.elapsedMs)}，推进 ${offlineProgress.simulatedTicks} tick${offlineProgress.capped ? '（已达上限）' : ''}`,
+  })
+
+  for (const event of offlineProgress.events) {
+    if (event.type === 'death') {
+      logs = addLog(logs, {
+        timestamp: Date.now(),
+        type: 'death',
+        message: `${event.dogName} 死于离线饥荒`,
+      })
+    }
+  }
+
+  saveGame(offlineProgress.gameState)
+
+  return {
+    gameState: offlineProgress.gameState,
+    logs,
+    unreadLogCount: Math.min(MAX_LOGS, logs.length),
+  }
+}
+
+const initialSnapshot = createLoadedGameSnapshot()
+
 export const useGameStore = create<GameStore>((set, get) => ({
-  gameState: loadGame(),
+  gameState: initialSnapshot.gameState,
   resourceDeltaPerTick: createInitialResourceDeltaPerTick(),
-  logs: [],
-  unreadLogCount: 0,
+  logs: initialSnapshot.logs,
+  unreadLogCount: initialSnapshot.unreadLogCount,
 
   tick: () => {
     set((gameStore) => {
@@ -282,11 +339,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   loadGame: () => {
+    const snapshot = createLoadedGameSnapshot()
     set(() => ({
-      gameState: loadGame(),
+      gameState: snapshot.gameState,
       resourceDeltaPerTick: createInitialResourceDeltaPerTick(),
-      logs: [],
-      unreadLogCount: 0,
+      logs: snapshot.logs,
+      unreadLogCount: snapshot.unreadLogCount,
     }))
   },
 

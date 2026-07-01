@@ -1,5 +1,9 @@
 export const GAME_TICK_INTERVAL_MS = 200 // 游戏 200ms 更新一次
 export const AUTO_SAVE_INTERVAL_TICKS = 10 // 每 10 个 tick 自动保存一次
+export const OFFLINE_PROGRESS_CAP_MS = 8 * 60 * 60 * 1000 // 最多结算 8 小时离线收益
+export const OFFLINE_PROGRESS_MAX_TICKS = Math.floor(
+  OFFLINE_PROGRESS_CAP_MS / GAME_TICK_INTERVAL_MS,
+)
 
 export const INITIAL_RESOURCE_LIMITS = {
   food: 250,

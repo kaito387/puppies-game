@@ -54,6 +54,13 @@ function hasRequiredWorkshopUnlocks(state: GameState, requiredWorkshopUnlockIds:
 }
 
 export function isRequirementSatisfied(state: GameState, requirement: RequirementCarrier): boolean {
+  if (
+    requirement.requiredTickCount !== undefined &&
+    state.tickCount < requirement.requiredTickCount
+  ) {
+    return false
+  }
+
   if (requirement.requiredTechs && !hasRequiredTechs(state, requirement.requiredTechs)) {
     return false
   }
@@ -155,6 +162,8 @@ function applyEffectToAccumulators(
       break
     case 'job_production':
       addEffectContribution(jobProductionEffects, effect, occurrences)
+      break
+    case 'resource_limit':
       break
     default:
       if (import.meta.env.DEV) {

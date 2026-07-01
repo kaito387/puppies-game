@@ -33,8 +33,8 @@ export function PolicyPanel() {
   }
 
   return (
-    <Card className="max-h-[80vh]">
-      <CardHeader>
+    <Card className="flex h-[min(78svh,54rem)] min-h-0 flex-col">
+      <CardHeader className="shrink-0">
         <CardTitle className="flex flex-wrap items-center justify-between gap-2">
           <span>政策</span>
           <span className="flex flex-wrap gap-2">
@@ -45,8 +45,8 @@ export function PolicyPanel() {
         <CardDescription>每组政策互斥，只能选择一个长期方向。</CardDescription>
       </CardHeader>
 
-      <CardContent>
-        <ScrollArea className="max-h-[62vh] pr-3">
+      <CardContent className="min-h-0 flex-1">
+        <ScrollArea className="h-full min-h-0 overflow-hidden pr-3">
           <div className="flex flex-col gap-5 pb-2">
             {groups.map((group, index) => {
               const groupId = visibleGroupIds[index]

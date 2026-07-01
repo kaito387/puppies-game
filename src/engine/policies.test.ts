@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { type GameState } from '@/engine/types'
+import { POLICY_GROUPS, REALTIME_DAY_TICKS, type GameState } from '@/engine/types'
 import { createInitialGameState } from '@/engine/initialState'
 import {
   getPolicyById,
@@ -12,7 +12,6 @@ import {
   getVisiblePolicyGroups,
 } from '@/engine/policies'
 import { enactPolicy } from '@/engine/actions'
-import { POLICY_GROUPS } from '@/engine/types'
 
 describe('Policies', () => {
   let gameState: GameState
@@ -177,8 +176,29 @@ describe('Policies', () => {
     it('should return all group indices when all prerequisites are met', () => {
       gameState.buildings.library = 1
       gameState.buildings.workshop = 1
+      gameState.buildings.market = 1
+      gameState.buildings.observatory = 1
+      gameState.buildings.monument = 1
+      gameState.workshopUnlockIds = ['exploration_gear']
+      gameState.tickCount = REALTIME_DAY_TICKS * 6
       const ids = getVisiblePolicyGroupIds(gameState)
-      expect(ids).toEqual([0, 1, 2])
+      expect(ids).toEqual([0, 1, 2, 3, 4, 5])
+    })
+
+    it('should reveal late-game policy groups through market, exploration, and civic buildings', () => {
+      gameState.buildings.library = 1
+      expect(getVisiblePolicyGroupIds(gameState)).toEqual([0, 2])
+
+      gameState.buildings.market = 1
+      expect(getVisiblePolicyGroupIds(gameState)).toContain(3)
+
+      gameState.workshopUnlockIds = ['exploration_gear']
+      expect(getVisiblePolicyGroupIds(gameState)).toContain(4)
+
+      gameState.buildings.observatory = 1
+      gameState.buildings.monument = 1
+      gameState.tickCount = REALTIME_DAY_TICKS * 6
+      expect(getVisiblePolicyGroupIds(gameState)).toContain(5)
     })
 
     it('returned indices should map back to the correct POLICY_GROUPS entries', () => {

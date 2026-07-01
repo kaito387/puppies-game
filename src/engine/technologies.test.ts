@@ -98,6 +98,33 @@ describe('Technologies', () => {
     expect(getVisibleJobsIds(gameState)).toContain('miner')
   })
 
+  it('should reveal mid and late game jobs through their own unlock chains', () => {
+    gameState.researchedTechIds = ['forestry']
+    expect(getVisibleJobsIds(gameState)).toContain('forester')
+
+    gameState.buildings.workshop = 1
+    gameState.researchedTechIds = ['metalworking']
+    expect(getVisibleJobsIds(gameState)).toContain('engineer')
+
+    gameState.buildings.market = 1
+    expect(getVisibleJobsIds(gameState)).toContain('merchant')
+
+    gameState.workshopUnlockIds = ['survey_compass']
+    expect(getVisibleJobsIds(gameState)).toContain('prospector')
+  })
+
+  it('should unlock new staged buildings only after their prerequisites are met', () => {
+    expect(getUnlockedBuildingsIds(gameState)).not.toContain('quarry')
+    expect(getUnlockedBuildingsIds(gameState)).not.toContain('observatory')
+
+    gameState.researchedTechIds = ['masonry']
+    gameState.workshopUnlockIds = ['wood_pickaxe']
+    expect(getUnlockedBuildingsIds(gameState)).toContain('quarry')
+
+    gameState.researchedTechIds = ['astronomy']
+    expect(getUnlockedBuildingsIds(gameState)).toContain('observatory')
+  })
+
   it('should aggregate additive and multiplier effect modes', () => {
     const stackingTech: Technology = {
       id: 'stacking_test_tech',
