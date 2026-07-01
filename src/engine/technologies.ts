@@ -1,15 +1,23 @@
 import {
   BUILDINGS,
   JOBS,
+  POLICIES,
   TECHNOLOGIES,
   WORKSHOP_UNLOCKS,
+  SEASON_EFFECTS,
   type RequirementCarrier,
   type Effect,
   type GameState,
   type Technology,
 } from '@/engine/types'
 
-export interface AggregatedTechEffects {
+import {
+  calculateCalendarProgress,
+} from '@/engine/calendar'
+
+import { getLeaderTrait } from '@/engine/dogs'
+
+export interface AggregatedEffects {
   buildingCostMultipliers: Record<string, number>
   buildingProductionMultipliers: Record<string, number>
   jobProductionMultipliers: Record<string, number>
@@ -46,6 +54,13 @@ function hasRequiredWorkshopUnlocks(state: GameState, requiredWorkshopUnlockIds:
 }
 
 export function isRequirementSatisfied(state: GameState, requirement: RequirementCarrier): boolean {
+  if (
+    requirement.requiredTickCount !== undefined &&
+    state.tickCount < requirement.requiredTickCount
+  ) {
+    return false
+  }
+
   if (requirement.requiredTechs && !hasRequiredTechs(state, requirement.requiredTechs)) {
     return false
   }
@@ -131,8 +146,34 @@ function finalizeEffects(accumulator: EffectAccumulator): Record<string, number>
   return finalized
 }
 
-export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
-  const aggregated: AggregatedTechEffects = {
+function applyEffectToAccumulators(
+  effect: Effect,
+  buildingCostEffects: EffectAccumulator,
+  buildingProductionEffects: EffectAccumulator,
+  jobProductionEffects: EffectAccumulator,
+  occurrences: number = 1,
+): void {
+  switch (effect.type) {
+    case 'building_cost':
+      addEffectContribution(buildingCostEffects, effect, occurrences)
+      break
+    case 'building_production':
+      addEffectContribution(buildingProductionEffects, effect, occurrences)
+      break
+    case 'job_production':
+      addEffectContribution(jobProductionEffects, effect, occurrences)
+      break
+    case 'resource_limit':
+      break
+    default:
+      if (import.meta.env.DEV) {
+        console.warn(`未知效果类型: ${(effect as Effect).type}`)
+      }
+  }
+}
+
+export function aggregateEffects(state: GameState): AggregatedEffects {
+  const aggregated: AggregatedEffects = {
     buildingCostMultipliers: {},
     buildingProductionMultipliers: {},
     jobProductionMultipliers: {},
@@ -151,25 +192,33 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     multiplierTotals: {},
   }
 
+  // FIX: Leader trait effect is gated behind the 'administration' technology.
+  // Previously, getLeaderTrait() was called unconditionally, so the leader's
+  // trait multiplier was applied even before administration was researched.
+  // Now we only resolve the trait when administration is confirmed researched.
+  const leaderTrait = isTechResearched(state, 'administration')
+    ? getLeaderTrait(state.dogs, state.leaderDogId)
+    : null
+
+  if (leaderTrait) {
+    applyEffectToAccumulators(
+      leaderTrait.effect,
+      buildingCostEffects,
+      buildingProductionEffects,
+      jobProductionEffects
+    )
+  }
+  
   for (const techId of state.researchedTechIds) {
     const technology = getTechnologyById(techId)
     if (technology.effects) {
       for (const effect of technology.effects) {
-        switch (effect.type) {
-          case 'building_cost':
-            addEffectContribution(buildingCostEffects, effect)
-            break
-          case 'building_production':
-            addEffectContribution(buildingProductionEffects, effect)
-            break
-          case 'job_production':
-            addEffectContribution(jobProductionEffects, effect)
-            break
-          default:
-            if (import.meta.env.DEV) {
-              console.warn(`未知科技效果类型: ${(effect as Effect).type}`)
-            }
-        }
+        applyEffectToAccumulators(
+          effect,
+          buildingCostEffects,
+          buildingProductionEffects,
+          jobProductionEffects
+        )
       }
     }
   }
@@ -178,21 +227,12 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     const unlock = WORKSHOP_UNLOCKS.find((item) => item.id === unlockId)
     if (unlock?.effects) {
       for (const effect of unlock.effects) {
-        switch (effect.type) {
-          case 'building_cost':
-            addEffectContribution(buildingCostEffects, effect)
-            break
-          case 'building_production':
-            addEffectContribution(buildingProductionEffects, effect)
-            break
-          case 'job_production':
-            addEffectContribution(jobProductionEffects, effect)
-            break
-          default:
-            if (import.meta.env.DEV) {
-              console.warn(`未知工坊效果类型: ${(effect as Effect).type}`)
-            }
-        }
+        applyEffectToAccumulators(
+          effect,
+          buildingCostEffects,
+          buildingProductionEffects,
+          jobProductionEffects
+        )
       }
     }
   }
@@ -202,21 +242,38 @@ export function aggregateTechEffects(state: GameState): AggregatedTechEffects {
     if (building?.Effects) {
       const count = state.buildings[buildingId] || 0
       for (const effect of building.Effects) {
-        switch (effect.type) {
-          case 'building_cost':
-            addEffectContribution(buildingCostEffects, effect, count)
-            break
-          case 'building_production':
-            addEffectContribution(buildingProductionEffects, effect, count)
-            break
-          case 'job_production':
-            addEffectContribution(jobProductionEffects, effect, count)
-            break
-          default:
-            if (import.meta.env.DEV) {
-              console.warn(`未知建筑效果类型: ${(effect as Effect).type}`)
-            }
-        }
+        applyEffectToAccumulators(
+          effect,
+          buildingCostEffects,
+          buildingProductionEffects,
+          jobProductionEffects,
+          count
+        )
+      }
+    }
+  }
+
+  const season = calculateCalendarProgress(state).season
+  const seasonEffects = SEASON_EFFECTS[season] || []
+  for (const effect of seasonEffects) {
+    applyEffectToAccumulators(
+      effect,
+      buildingCostEffects,
+      buildingProductionEffects,
+      jobProductionEffects,
+    )
+  }
+  
+  for (const policyId of state.enactedPolicyIds || []) {
+    const policy = POLICIES.find((item) => item.id === policyId)
+    if (policy?.effects) {
+      for (const effect of policy.effects) {
+        applyEffectToAccumulators(
+          effect,
+          buildingCostEffects,
+          buildingProductionEffects,
+          jobProductionEffects,
+        )
       }
     }
   }
@@ -274,7 +331,6 @@ export function getVisibleJobsIds(state: GameState): string[] {
   return JOBS
     .filter((job) => isRequirementSatisfied(state, job.prerequisites || {}))
     .map((job) => job.id)
-
   }
 
 export function getUnlockedJobsIds(state: GameState): string[] {

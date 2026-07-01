@@ -2,20 +2,30 @@ import { create } from 'zustand'
 import {
   type GameState,
   type GameLog,
+  type Calendar,
+  type Policy,
 } from '@/engine/types'
 import {
   createInitialGameState,
   createInitialResourceDeltaPerTick,
 } from '@/engine/initialState'
-import { calculateResourceLimits, tick as engineTick } from '@/engine/gameLoop'
+import {
+  applyOfflineProgress,
+  calculateResourceLimits, 
+  tick as engineTick,
+} from '@/engine/gameLoop'
+import { calculateCalendarProgress } from '@/engine/calendar'
 import {
   assignDogJob,
   clickResource,
+  enactPolicy,
   renameDog,
   setDomesticateEnabled,
   setJobAssignment,
+  setLeaderDog, 
+  performExplore,
 } from '@/engine/actions'
-import { buildBuilding, canBuildBuilding, getBuildingCost } from '@/engine/buildings'
+import { buildBuilding, canBuildBuilding, getBuildingCost, setBuildingActiveCount } from '@/engine/buildings'
 import { saveGame, loadGame, resetGame } from '@/engine/save'
 import {
   canResearchTechnology,
@@ -31,10 +41,31 @@ import {
   unlockWorkshopItem,
 } from '@/engine/workshop'
 import { getJobAssignment } from '@/engine/dogs'
+import {
+  canEnactPolicy,
+  getVisiblePolicyGroupIds,
+  getPoliciesByGroup,
+} from '@/engine/policies'
 import { min } from '@/engine/utils'
 
 
 const MAX_LOGS = 100
+
+function formatOfflineDuration(elapsedMs: number): string {
+  const totalSeconds = Math.floor(elapsedMs / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+
+  if (hours > 0) {
+    return `${hours} 小时 ${minutes} 分钟`
+  }
+
+  if (minutes > 0) {
+    return `${minutes} 分钟`
+  }
+
+  return `${totalSeconds} 秒`
+}
 
 function addLog(logs: GameLog[], log: Omit<GameLog, 'id'>): GameLog[] {
   const newLog: GameLog = {
@@ -65,12 +96,20 @@ interface GameStore {
   assignDogJob: (dogId: string, jobId: string | null) => void
   renameDog: (dogId: string, nextName: string) => void
   setDomesticateEnabled: (enabled: boolean) => void
+  setLeaderDog: (dogId: string | null) => void 
   researchTechnology: (techId: string) => void
   canResearchTechnology: (techId: string) => boolean
   getVisibleTechnologiesIds: () => string[]
   unlockWorkshopItem: (unlockId: string) => void
   canUnlockWorkshopItem: (unlockId: string) => boolean
   getVisibleWorkshopUnlockIds: () => string[]
+  getCalendar: () => Calendar
+  dispatchExplore: () => void
+  enactPolicy: (policyId: string) => void
+  canEnactPolicy: (policyId: string) => boolean
+  getVisiblePolicyGroupIds: () => number[]
+  getPoliciesByGroup: () => Policy[][]
+  setBuildingActiveCount: (buildingId: string, count: number) => void
 
   addGameLog: (log: Omit<GameLog, 'id'>) => void
   markLogsAsRead: () => void
@@ -80,11 +119,51 @@ interface GameStore {
   resetGame: () => void
 }
 
+function createLoadedGameSnapshot(): Pick<GameStore, 'gameState' | 'logs' | 'unreadLogCount'> {
+  const loadedState = loadGame()
+  const offlineProgress = applyOfflineProgress(loadedState)
+
+  if (offlineProgress.simulatedTicks <= 0) {
+    return {
+      gameState: offlineProgress.gameState,
+      logs: [],
+      unreadLogCount: 0,
+    }
+  }
+
+  let logs: GameLog[] = []
+  logs = addLog(logs, {
+    timestamp: Date.now(),
+    type: 'explore',
+    message: `离线结算 ${formatOfflineDuration(offlineProgress.elapsedMs)}，推进 ${offlineProgress.simulatedTicks} tick${offlineProgress.capped ? '（已达上限）' : ''}`,
+  })
+
+  for (const event of offlineProgress.events) {
+    if (event.type === 'death') {
+      logs = addLog(logs, {
+        timestamp: Date.now(),
+        type: 'death',
+        message: `${event.dogName} 死于离线饥荒`,
+      })
+    }
+  }
+
+  saveGame(offlineProgress.gameState)
+
+  return {
+    gameState: offlineProgress.gameState,
+    logs,
+    unreadLogCount: Math.min(MAX_LOGS, logs.length),
+  }
+}
+
+const initialSnapshot = createLoadedGameSnapshot()
+
 export const useGameStore = create<GameStore>((set, get) => ({
-  gameState: loadGame(),
+  gameState: initialSnapshot.gameState,
   resourceDeltaPerTick: createInitialResourceDeltaPerTick(),
-  logs: [],
-  unreadLogCount: 0,
+  logs: initialSnapshot.logs,
+  unreadLogCount: initialSnapshot.unreadLogCount,
 
   tick: () => {
     set((gameStore) => {
@@ -183,6 +262,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }))
   },
 
+  setLeaderDog: (dogId: string | null) => {
+    set((gameStore) => ({
+      gameState: setLeaderDog(gameStore.gameState, dogId),
+    }))
+  },
+
   researchTechnology: (techId: string) => {
     set((gameStore) => ({
       gameState: researchTechnology(gameStore.gameState, techId),
@@ -211,6 +296,30 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return getVisibleWorkshopUnlockIds(get().gameState)
   },
 
+  enactPolicy: (policyId: string) => {
+    set((gameStore) => ({
+      gameState: enactPolicy(gameStore.gameState, policyId),
+    }))
+  },
+
+  canEnactPolicy: (policyId: string) => {
+    return canEnactPolicy(get().gameState, policyId)
+  },
+
+  getVisiblePolicyGroupIds: () => {
+    return getVisiblePolicyGroupIds(get().gameState)
+  },
+
+  getPoliciesByGroup: () => {
+    return getPoliciesByGroup()
+  },
+
+  setBuildingActiveCount: (buildingId: string, count: number) => {
+    set((gameStore) => ({
+      gameState: setBuildingActiveCount(gameStore.gameState, buildingId, count),
+    }))
+  },
+
   addGameLog: (log: Omit<GameLog, 'id'>) => {
     set((gameStore) => ({
       logs: addLog(gameStore.logs, log),
@@ -230,11 +339,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   loadGame: () => {
+    const snapshot = createLoadedGameSnapshot()
     set(() => ({
-      gameState: loadGame(),
+      gameState: snapshot.gameState,
       resourceDeltaPerTick: createInitialResourceDeltaPerTick(),
-      logs: [],
-      unreadLogCount: 0,
+      logs: snapshot.logs,
+      unreadLogCount: snapshot.unreadLogCount,
     }))
   },
 
@@ -247,4 +357,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
       unreadLogCount: 0,
     }))
   },
+
+  getCalendar: () => {
+    return calculateCalendarProgress(get().gameState)
+  },
+  
+  dispatchExplore: () => {
+    const { nextState, furReward } = performExplore(get().gameState)
+    let message = ''
+    
+    if (furReward === undefined) {
+      message = '探索失败，汪力不足'
+    } 
+    else if (furReward > 0) {
+      message = `探索成功，获得毛皮 +${furReward}`
+    }
+    else {
+      message = '探索失败，狗狗什么也没得到'
+    }
+
+    set((gameStore) => ({
+      gameState: nextState,
+      logs: addLog(gameStore.logs, {
+        timestamp: Date.now(),
+        type: 'explore',
+        message,
+      }),
+      unreadLogCount: min(100, gameStore.unreadLogCount + 1),
+    }))
+  },
+  
 }))

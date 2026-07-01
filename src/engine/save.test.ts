@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { loadGame, resetGame, saveGame } from '@/engine/save'
+import { loadGame, resetGame, saveGame, SAVE_KEY, SAVE_VERSION } from '@/engine/save'
 import { createInitialGameState } from '@/engine/initialState'
 import { createDogs } from '@/engine/dogs'
+import { INITIAL_DOG_COUNT, INITIAL_POPULATION_CAP } from '@/engine/constants'
 
 function createMemoryStorage(): Storage {
   const store = new Map<string, string>()
@@ -53,8 +54,8 @@ describe('Save System', () => {
     )
 
     const loaded = loadGame()
-    expect(loaded.dogs).toEqual([])
-    expect(loaded.populationCap).toBe(1)
+    expect(loaded.dogs).toHaveLength(INITIAL_DOG_COUNT)
+    expect(loaded.populationCap).toBe(INITIAL_POPULATION_CAP)
     expect(loaded.isDomesticateEnabled).toBe(false)
     expect(loaded.populationGrowthProgress).toBe(0)
   })
@@ -91,6 +92,13 @@ describe('Save System', () => {
     expect(loaded.populationCap).toBe(7)
     expect(loaded.isDomesticateEnabled).toBe(true)
     expect(loaded.populationGrowthProgress).toBeCloseTo(-0.55)
+  })
+
+  it('should persist the current save version', () => {
+    saveGame(createInitialGameState())
+
+    const saveData = JSON.parse(localStorage.getItem(SAVE_KEY) ?? '{}')
+    expect(saveData.version).toBe(SAVE_VERSION)
   })
 
   it('should persist researched technologies', () => {
@@ -137,5 +145,31 @@ describe('Save System', () => {
 
     const loaded = loadGame()
     expect(loaded.workshopUnlockIds).toEqual(['wood_pickaxe'])
+  })
+
+  it('should persist and reload buildingActiveCounts correctly', () => {
+    const state = createInitialGameState()
+    state.buildings.smelter = 2
+    state.buildingActiveCounts.smelter = 2
+    saveGame(state)
+
+    const loaded = loadGame()
+    expect(loaded.buildingActiveCounts.smelter).toBe(2)
+  })
+
+  it('should default buildingActiveCounts to initial value when missing from old save', () => {
+    const oldSave = {
+      version: '0.0.0',
+      resourceCounts: { food: 10 },
+      buildings: { smelter: 1 },
+      tickCount: 5,
+      lastTickTime: 12345,
+      // buildingActiveCounts intentionally absent
+    }
+    localStorage.setItem('puppies-game-save', JSON.stringify(oldSave))
+
+    const loaded = loadGame()
+    expect(loaded.buildingActiveCounts).toBeDefined()
+    expect(loaded.buildingActiveCounts.smelter ?? 0).toBe(0)
   })
 })
